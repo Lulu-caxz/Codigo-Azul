@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://dro8nmhx8whd6"]
+
+[node name="Main" type="Node2D" unique_id=1576598560]
+
+[node name="ConectarCliente" type="Node" parent="." unique_id=600538917]

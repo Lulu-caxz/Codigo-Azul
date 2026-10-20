@@ -18,6 +18,7 @@ config/icon="res://assets/icon.svg"
 
 Global="*uid://m1ki4gf2nkht"
 GeracaoMapa="*uid://bs6hqrt1jm1y0"
+Multiplayer="*uid://4qjpy8gl4h3m"
 
 [display]
 
