@@ -6,7 +6,13 @@ func gerar_mapa() -> void:
 	
 	var noise := FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_PERLIN
-	noise.seed = Global.seed
+	if Global.seed:
+		noise.seed = Global.seed
+	else:
+		noise.seed = randi()
+		Global.seed = noise.seed
+	
+	print(noise.seed , Global.seed)
 	noise.frequency = 0.1
 	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
 	noise.fractal_octaves = 4 

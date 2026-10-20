@@ -6,6 +6,6 @@ var profundidade: int = 100
 var tamanho_cubo: float = 0.5
 var altura_maxima: float = 5
 
-var seed: int = randi()
+var seed: int = 10
 
 var mapa: Array = []
