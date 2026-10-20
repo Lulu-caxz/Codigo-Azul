@@ -1,8 +1,3 @@
 [gd_scene format=3 uid="uid://dro8nmhx8whd6"]
 
-[ext_resource type="Script" uid="uid://xn7medmnya8h" path="res://scripts/central/conectarCliente.gd" id="1_dab24"]
-
 [node name="Main" type="Node2D" unique_id=1576598560]
-
-[node name="ConectarCliente" type="Node" parent="." unique_id=600538917]
-script = ExtResource("1_dab24")

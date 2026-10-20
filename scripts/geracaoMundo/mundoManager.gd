@@ -17,7 +17,7 @@ func gerar_mundo() -> void:
 	# 2) ruas alteram Global.mapa / Global.tipos (ruas e pontes viram parte do terreno)
 	ruas.gerar_ruas()
 
-	#quadras.gerar_quadras()   # use ruas.quarteiroes (Array[Rect2i], em celulas)
+	quadras.gerar_quadras()   # use ruas.quarteiroes (Array[Rect2i], em celulas)
 	#predios.gerar_predios()
 
 	# 3) malha + colisao ja com as ruas (assincrono). Crie o jogador depois disso.
