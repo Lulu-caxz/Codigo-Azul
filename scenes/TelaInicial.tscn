@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://cry1wmuq4qdhh"]
+
+[ext_resource type="Script" uid="uid://7ndc56tu4gqe" path="res://scripts/telaInicial.gd" id="1_17ume"]
+[ext_resource type="Script" uid="uid://bgbeo4fxkp0gg" path="res://scripts/criarSala.gd" id="2_0b72l"]
+
+[node name="TelaInicial" type="Node2D" unique_id=1883393008]
+
+[node name="Control" type="Control" parent="." unique_id=2040790764]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 383.0
+offset_top = 188.0
+offset_right = 383.0
+offset_bottom = 188.0
+script = ExtResource("1_17ume")
+
+[node name="HTTPRequestSalas" type="HTTPRequest" parent="Control" unique_id=1822292829]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control" unique_id=1850774465]
+layout_mode = 1
+offset_left = -242.0
+offset_top = -102.0
+offset_right = 233.0
+offset_bottom = 363.0
+
+[node name="SalasDisponiveis" type="Label" parent="Control/VBoxContainer" unique_id=1663992242]
+layout_mode = 2
+text = "Salas Disponiveis"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/VBoxContainer" unique_id=120545632]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ListaSalas" type="VBoxContainer" parent="Control/VBoxContainer/ScrollContainer" unique_id=1125177061]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="AtualizarSalas" type="Button" parent="Control/VBoxContainer" unique_id=669519658]
+layout_mode = 2
+text = "Atualizar salas"
+
+[node name="Control" type="Control" parent="Control" unique_id=1274037798]
+anchors_preset = 0
+offset_left = 316.0
+offset_top = 15.0
+offset_right = 356.0
+offset_bottom = 55.0
+
+[node name="CriarSala" type="Node" parent="Control/Control" unique_id=67337243]
+script = ExtResource("2_0b72l")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="Control/Control/CriarSala" unique_id=780301939]
+
+[node name="BotaoCriarSala" type="Button" parent="Control/Control" unique_id=274821921]
+layout_mode = 0
+offset_left = 76.0
+offset_top = 254.0
+offset_right = 336.0
+offset_bottom = 337.0
+text = "Criar Sala"
+
+[node name="LineEdit" type="LineEdit" parent="Control/Control" unique_id=692002674]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.7750001
+anchor_top = 4.9
+anchor_right = 1.7750001
+anchor_bottom = 4.9
+offset_left = 6.0
+offset_top = 3.0
+offset_right = 263.0
+offset_bottom = 43.0
+placeholder_text = "Nome da sala"

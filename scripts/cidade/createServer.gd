@@ -2,5 +2,5 @@ extends Node
 
 
 func _ready() -> void:
-	Global.criar_servidor()
+	Multiplayer.criar_servidor()
 	pass
