@@ -2,10 +2,26 @@
 
 [ext_resource type="Script" uid="uid://bs3kvtnxgrr4h" path="res://scripts/cidade/main.gd" id="1_dfing"]
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_oxi0b"]
+
+[sub_resource type="Sky" id="Sky_sdby7"]
+sky_material = SubResource("ProceduralSkyMaterial_oxi0b")
+
+[sub_resource type="Environment" id="Environment_hlgrv"]
+background_mode = 2
+sky = SubResource("Sky_sdby7")
+
 [node name="Main" type="Node3D" unique_id=116635308]
 script = ExtResource("1_dfing")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1365079530]
-transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 24.325531, 29.748348, 63.894363)
+transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 24.326, 12, 63.894)
 
-[node name="CreateServer" type="Node" parent="." unique_id=81752438]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=2066993900]
+transform = Transform3D(0.9657949, 0.12965326, -0.22456677, 0, 0.8660253, 0.49999997, 0.25930694, -0.48289743, 0.83640283, 0, 0, 0)
+shadow_enabled = true
+shadow_normal_bias = 0.0
+directional_shadow_blend_splits = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2130968369]
+environment = SubResource("Environment_hlgrv")

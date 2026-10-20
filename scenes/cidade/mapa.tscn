@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://cuf5pjp2arirc"]
+
+[ext_resource type="Script" uid="uid://cygfkk2doc04y" path="res://scripts/geracaoMundo/mundoManager.gd" id="1_orvpg"]
+[ext_resource type="Script" uid="uid://bnlfwnww1u73g" path="res://scripts/geracaoMundo/geracaoTerreno.gd" id="2_u4a18"]
+[ext_resource type="Script" uid="uid://cnv0437t6ortb" path="res://scripts/geracaoMundo/geracaoRua.gd" id="3_b2qpp"]
+[ext_resource type="Texture2D" uid="uid://sapmdn7yiugy" path="res://assets/grama.png" id="3_u4a18"]
+[ext_resource type="Script" uid="uid://bjh12mpg1yqjk" path="res://scripts/geracaoMundo/geracaoQuadras.gd" id="4_i0q3m"]
+[ext_resource type="Script" uid="uid://ca0jadlijewox" path="res://scripts/geracaoMundo/geracaoPredios.gd" id="5_derue"]
+
+[node name="Mapa" type="Node3D" unique_id=1091553734]
+script = ExtResource("1_orvpg")
+
+[node name="Terreno" type="Node3D" parent="." unique_id=1862711609]
+script = ExtResource("2_u4a18")
+texturas_topo = Array[Texture2D]([null, null, ExtResource("3_u4a18")])
+texturas_lateral = Array[Texture2D]([null, null, ExtResource("3_u4a18")])
+
+[node name="Ruas" type="Node3D" parent="." unique_id=1605538390]
+script = ExtResource("3_b2qpp")
+
+[node name="Quadras" type="Node3D" parent="." unique_id=1873154163]
+script = ExtResource("4_i0q3m")
+
+[node name="Predios" type="Node3D" parent="." unique_id=990130025]
+script = ExtResource("5_derue")
