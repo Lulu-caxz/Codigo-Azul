@@ -20,11 +20,12 @@ script = ExtResource("1_17ume")
 layout_mode = 1
 offset_left = -242.0
 offset_top = -102.0
-offset_right = 233.0
-offset_bottom = 363.0
+offset_right = 737.0
+offset_bottom = 828.0
 
 [node name="SalasDisponiveis" type="Label" parent="Control/VBoxContainer" unique_id=1663992242]
 layout_mode = 2
+theme_override_font_sizes/font_size = 34
 text = "Salas Disponiveis"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Control/VBoxContainer" unique_id=120545632]
@@ -35,17 +36,19 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/separation = 10
 
 [node name="AtualizarSalas" type="Button" parent="Control/VBoxContainer" unique_id=669519658]
 layout_mode = 2
+theme_override_font_sizes/font_size = 34
 text = "Atualizar salas"
 
 [node name="Control" type="Control" parent="Control" unique_id=1274037798]
 anchors_preset = 0
-offset_left = 316.0
-offset_top = 15.0
-offset_right = 356.0
-offset_bottom = 55.0
+offset_left = 841.0
+offset_top = 268.0
+offset_right = 1460.0
+offset_bottom = 805.0
 
 [node name="CriarSala" type="Node" parent="Control/Control" unique_id=67337243]
 script = ExtResource("2_0b72l")
@@ -54,21 +57,23 @@ script = ExtResource("2_0b72l")
 
 [node name="BotaoCriarSala" type="Button" parent="Control/Control" unique_id=274821921]
 layout_mode = 0
-offset_left = 76.0
+offset_left = 53.0
 offset_top = 254.0
-offset_right = 336.0
-offset_bottom = 337.0
+offset_right = 582.0
+offset_bottom = 514.0
+theme_override_font_sizes/font_size = 34
 text = "Criar Sala"
 
 [node name="LineEdit" type="LineEdit" parent="Control/Control" unique_id=692002674]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 1.7750001
-anchor_top = 4.9
-anchor_right = 1.7750001
-anchor_bottom = 4.9
-offset_left = 6.0
-offset_top = 3.0
-offset_right = 263.0
-offset_bottom = 43.0
+anchor_left = 0.22000001
+anchor_top = 0.18200001
+anchor_right = 0.22000001
+anchor_bottom = 0.18200001
+offset_left = -88.18001
+offset_top = 16.265991
+offset_right = 453.82
+offset_bottom = 117.26599
+theme_override_font_sizes/font_size = 34
 placeholder_text = "Nome da sala"

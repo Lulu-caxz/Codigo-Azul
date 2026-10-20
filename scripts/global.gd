@@ -24,3 +24,5 @@ func tipo_em(x: int, z: int) -> int:
 	if x < 0 or z < 0 or x >= largura or z >= profundidade:
 		return 0
 	return tipos[x * profundidade + z]
+
+var salaID: String
