@@ -2,9 +2,8 @@
 
 [ext_resource type="Script" uid="uid://ctmchi0v6vtxl" path="res://scripts/cidade/player.gd" id="1_kab33"]
 [ext_resource type="Texture2D" uid="uid://buqbhrqyfuawx" path="res://assets/AdaFrente.png" id="2_1qjop"]
-[ext_resource type="Texture2D" uid="uid://bovhp6e21lkfa" path="res://assets/Grace.png" id="3_p6pwb"]
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_26022"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_hlgrv"]
 animations = [{
 "frames": [{
 "duration": 1.0,
@@ -41,49 +40,6 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("2_1qjop")
-}],
-"loop": 1,
-"name": &"idle",
-"speed": 5.0
-}]
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_kab33"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("3_p6pwb")
-}],
-"loop": 1,
-"name": &"baixo",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("3_p6pwb")
-}],
-"loop": 1,
-"name": &"cima",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("3_p6pwb")
-}],
-"loop": 1,
-"name": &"direita",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("3_p6pwb")
-}],
-"loop": 1,
-"name": &"esquerda",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("3_p6pwb")
 }],
 "loop": 1,
 "name": &"idle",
@@ -97,19 +53,12 @@ size = Vector3(0.15753174, 0.39328003, 0.063964844)
 transform = Transform3D(8, 0, 0, 0, 8, 0, 0, 0, 8, 0, 0, 0)
 script = ExtResource("1_kab33")
 
-[node name="Ada" type="AnimatedSprite3D" parent="." unique_id=735159343]
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="." unique_id=231087083]
 shaded = true
 alpha_cut = 2
 texture_filter = 0
-sprite_frames = SubResource("SpriteFrames_26022")
+sprite_frames = SubResource("SpriteFrames_hlgrv")
 animation = &"baixo"
-
-[node name="Grace" type="AnimatedSprite3D" parent="." unique_id=232511274]
-shaded = true
-alpha_cut = 2
-texture_filter = 0
-sprite_frames = SubResource("SpriteFrames_kab33")
-animation = &"idle"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=654740054]
 transform = Transform3D(1.5563343, 0, 0, 0, 1, 0, 0, 0, 1, -0.005645752, -0.039871216, -0.0016758591)

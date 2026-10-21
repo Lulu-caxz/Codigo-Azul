@@ -83,5 +83,6 @@ ctrl={
 
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
+textures/lossless_compression/force_png=true
 lights_and_shadows/directional_shadow/size=2048
 anti_aliasing/quality/screen_space_aa=1
