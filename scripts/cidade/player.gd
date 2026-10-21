@@ -8,14 +8,9 @@ extends CharacterBody3D
 ## Abaixo desta altura o jogador e considerado "caido do mundo".
 @export var altura_queda: float = -30.0
 
-@onready var spriteAda: AnimatedSprite3D = $Ada
-@onready var spriteGrace: AnimatedSprite3D = $Grace
-
-
+@onready var sprite: AnimatedSprite3D = $AnimatedSprite3D
 
 @onready var camera: Camera3D = $Camera3D
-
-var sprite
 
 var _offset_camera := Vector3.ZERO
 var _olhando := "baixo"
@@ -24,15 +19,6 @@ var _ultimo_chao := Vector3.ZERO
 
 func _ready() -> void:
 	
-	match Global.PlayerAtual:
-		"Ada":
-			spriteGrace.visible = false
-			spriteAda.visible = true
-			sprite = spriteAda
-		"Grace":
-			spriteAda.visible = false
-			spriteGrace.visible = true
-			sprite = spriteGrace
 	
 	floor_snap_length = 1.1   # cola no chao ao descer degraus
 

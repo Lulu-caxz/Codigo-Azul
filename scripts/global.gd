@@ -13,8 +13,6 @@ var mapa: PackedInt32Array = PackedInt32Array()
 # 0 = agua, 1 = areia, 2 = grama, 3 = pedra
 var tipos: PackedByteArray = PackedByteArray()
 
-var PlayerAtual = "Ada"
-
 func altura_em(x: int, z: int) -> int:
 	if x < 0 or z < 0 or x >= largura or z >= profundidade:
 		return 0
