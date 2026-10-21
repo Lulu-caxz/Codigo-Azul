@@ -27,6 +27,25 @@ var _cores_topo: Array[Color] = [
 @export_group("Opcoes")
 @export var gerar_colisao: bool = true
 
+@export_group("Agua")
+@export var cor_agua_funda := Color("2e6ed1")
+@export var cor_agua_linha := Color("6cb2ee")
+## Quantos "pixels" da agua cabem em 1 bloco (combine com a resolucao das suas texturas, ex: 16).
+@export var pixels_por_bloco := 8.0
+## Tamanho das manchas: menor = manchas maiores.
+@export var escala_agua := 0.05
+## Velocidade da correnteza.
+@export var velocidade_agua := 0.02
+## Quadros por segundo da animacao (baixo = efeito retro).
+@export var fps_agua := 6.0
+## Espessura das linhas (0.02 fino, 0.05 grosso).
+@export_range(0.005, 0.1, 0.005) var espessura_linha := 0.03
+## Quanto a superficie da agua fica abaixo do topo do bloco (0.25 = 75% de bloco).
+@export_range(0.0, 0.9, 0.05) var rebaixo_agua := 0.25
+@export var cor_espuma := Color("eaf6ff")
+## Largura da faixa de espuma, em blocos.
+@export_range(0.05, 1.5, 0.05) var largura_espuma := 0.45
+
 @export_group("Renderizacao por Distancia")
 ## Esconde os chunks de terreno longe da camera.
 @export var renderizar_so_proximo := true
@@ -35,8 +54,9 @@ var _cores_topo: Array[Color] = [
 ## Intervalo (segundos) entre verificacoes da posicao da camera.
 @export_range(0.05, 2.0, 0.05) var intervalo_atualizacao := 0.2
 
-const CHUNK := 32            # tamanho do chunk em blocos (16, 32, 64...)
-const CAMADA_LATERAL := 4    # indice da textura lateral no Texture2DArray
+const DIST_COSTA := 4.0   # distancia maxima (em blocos) guardada no mapa da costa
+const CHUNK := 32
+const CAMADA_LATERAL := 4
 
 const SHADER_CODE := """
 shader_type spatial;
@@ -44,14 +64,57 @@ render_mode diffuse_lambert, specular_disabled;
 
 uniform sampler2DArray texturas : source_color, filter_nearest_mipmap, repeat_enable;
 
+uniform sampler2D ruido_agua : filter_linear, repeat_enable;
+uniform sampler2D mapa_costa : filter_linear, repeat_disable;
+uniform vec2 tam_mapa = vec2(320.0, 180.0);
+uniform float dist_max = 4.0;
+
+uniform vec3 cor_funda : source_color = vec3(0.18, 0.43, 0.82);
+uniform vec3 cor_linha : source_color = vec3(0.42, 0.70, 0.93);
+uniform vec3 cor_espuma : source_color = vec3(0.92, 0.96, 1.0);
+uniform float largura_espuma = 0.45;
+uniform float pixels_por_bloco = 8.0;
+uniform float escala_agua = 0.05;
+uniform float velocidade_agua = 0.02;
+uniform float fps_agua = 6.0;
+uniform float nivel_a = 0.5;
+uniform float nivel_b = 0.68;
+uniform float espessura = 0.03;
+
 varying flat float camada;
+varying vec3 pos_mundo;
 
 void vertex() {
 	camada = UV2.x;
+	pos_mundo = VERTEX;   // coordenadas locais do terreno (casam com o mapa_costa)
 }
 
 void fragment() {
-	ALBEDO = texture(texturas, vec3(UV, camada)).rgb;
+	if (camada < 0.5) {
+		vec2 p = (floor(pos_mundo.xz * pixels_por_bloco) + 0.5) / pixels_por_bloco;
+		float te = floor(TIME * fps_agua) / fps_agua;
+		float t = te * velocidade_agua;
+
+		vec2 uv = p * escala_agua;
+		float n1 = textureLod(ruido_agua, uv + vec2(t, t * 0.6), 0.0).r;
+		float n2 = textureLod(ruido_agua, uv * 1.7 + vec2(-t * 0.8, t * 0.5), 0.0).r;
+		float n = clamp(((n1 + n2) * 0.5 - 0.5) * 1.6 + 0.5, 0.0, 1.0);
+
+		float linha = max(step(abs(n - nivel_a), espessura), step(abs(n - nivel_b), espessura));
+		vec3 cor = mix(cor_funda, cor_linha, linha);
+
+		// ESPUMA: distancia (em blocos) ate a margem mais proxima
+		float d_borda = textureLod(mapa_costa, p / tam_mapa, 0.0).r * dist_max - 0.5;
+		float onda = (n - 0.5) * 0.5 + 0.25 * sin(te * 1.6 + (p.x + p.y) * 0.5);
+		float limite = largura_espuma * (1.0 + onda);
+		float espuma = step(d_borda, limite);
+		float anel = step(abs(d_borda - (limite + 0.35 + 0.15 * sin(te * 1.2))), 0.08);
+		cor = mix(cor, cor_espuma, max(espuma, anel * 0.6));
+
+		ALBEDO = cor;
+	} else {
+		ALBEDO = texture(texturas, vec3(UV, camada)).rgb;
+	}
 	ROUGHNESS = 1.0;
 }
 """
@@ -201,12 +264,18 @@ func _calcular_alturas() -> void:
 	_tipos.resize(_largura * _profundidade)
 
 	var altura_max: int = Global.altura_maxima
+	# Nivel unico para toda a agua (sem degraus nem buracos dentro dos lagos)
+	var nivel_agua := clampi(roundi(altura_max * 0.25 - 0.01), 1, altura_max)
 	var i := 0
 	for x in _largura:
 		for z in _profundidade:
 			var normalizado := remap(noise.get_noise_2d(x, z), -1.0, 1.0, 0.0, 1.0)
-			_alturas[i] = clampi(roundi(normalizado * altura_max), 1, altura_max)
-			_tipos[i] = _tipo_para(normalizado)
+			var tipo := _tipo_para(normalizado)
+			_tipos[i] = tipo
+			if tipo == 0:
+				_alturas[i] = nivel_agua
+			else:
+				_alturas[i] = clampi(roundi(normalizado * altura_max), 1, altura_max)
 			i += 1
 
 
@@ -219,6 +288,52 @@ func _tipo_para(n: float) -> int:
 		return 2   # grama
 	return 2       # pedra
 
+# Textura R8 (1 pixel por celula): distancia ate o bloco nao-agua mais proximo
+func _criar_textura_costa() -> ImageTexture:
+	var L := _largura
+	var P := _profundidade
+	var d := PackedFloat32Array()
+	d.resize(L * P)
+	for i in L * P:
+		d[i] = 0.0 if _tipos[i] != 0 else 99.0
+
+	# transformada de distancia em duas passadas
+	for x in L:
+		for z in P:
+			var i := x * P + z
+			var v := d[i]
+			if x > 0:
+				v = minf(v, d[i - P] + 1.0)
+				if z > 0:
+					v = minf(v, d[i - P - 1] + 1.414)
+				if z < P - 1:
+					v = minf(v, d[i - P + 1] + 1.414)
+			if z > 0:
+				v = minf(v, d[i - 1] + 1.0)
+			d[i] = v
+	for x in range(L - 1, -1, -1):
+		for z in range(P - 1, -1, -1):
+			var i := x * P + z
+			var v := d[i]
+			if x < L - 1:
+				v = minf(v, d[i + P] + 1.0)
+				if z < P - 1:
+					v = minf(v, d[i + P + 1] + 1.414)
+				if z > 0:
+					v = minf(v, d[i + P - 1] + 1.414)
+			if z < P - 1:
+				v = minf(v, d[i + 1] + 1.0)
+			d[i] = v
+
+	# imagem: largura = X, altura = Z
+	var bytes := PackedByteArray()
+	bytes.resize(L * P)
+	for x in L:
+		for z in P:
+			bytes[z * L + x] = int(clampf(d[x * P + z] / DIST_COSTA, 0.0, 1.0) * 255.0)
+
+	var img := Image.create_from_data(L, P, false, Image.FORMAT_R8, bytes)
+	return ImageTexture.create_from_image(img)
 
 # ---------------------------------------------------------------------------
 # MATERIAL: Texture2DArray + shader simples (1 amostra de textura por pixel)
@@ -229,7 +344,33 @@ func _criar_material() -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
 	mat.set_shader_parameter("texturas", _criar_array_texturas())
+	mat.set_shader_parameter("ruido_agua", _criar_textura_ruido())
+	mat.set_shader_parameter("cor_funda", cor_agua_funda)
+	mat.set_shader_parameter("cor_linha", cor_agua_linha)
+	mat.set_shader_parameter("pixels_por_bloco", pixels_por_bloco)
+	mat.set_shader_parameter("escala_agua", escala_agua)
+	mat.set_shader_parameter("velocidade_agua", velocidade_agua)
+	mat.set_shader_parameter("fps_agua", fps_agua)
+	mat.set_shader_parameter("espessura", espessura_linha)
+	mat.set_shader_parameter("mapa_costa", _criar_textura_costa())
+	mat.set_shader_parameter("tam_mapa", Vector2(_largura * _tamanho, _profundidade * _tamanho))
+	mat.set_shader_parameter("dist_max", DIST_COSTA)
+	mat.set_shader_parameter("cor_espuma", cor_espuma)
+	mat.set_shader_parameter("largura_espuma", largura_espuma)
 	return mat
+
+
+# Perlin sem emendas (tileable), gerado uma vez
+func _criar_textura_ruido() -> ImageTexture:
+	var ruido := FastNoiseLite.new()
+	ruido.noise_type = FastNoiseLite.TYPE_PERLIN
+	ruido.fractal_type = FastNoiseLite.FRACTAL_FBM
+	ruido.fractal_octaves = 3
+	ruido.frequency = 0.015
+	ruido.seed = Global.seed
+	var img := ruido.get_seamless_image(256, 256)
+	img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
 
 
 func _criar_array_texturas() -> Texture2DArray:
@@ -328,8 +469,9 @@ func _gerar_chunk(indice: int) -> void:
 				for b in dz:
 					visitado[(lx + a) * CHUNK + lz + b] = 1
 
+			var y_topo := (h - rebaixo_agua) * s if t == 0 else h * s
 			d.quad(
-				Vector3(gx * s, h * s, gz * s),
+				Vector3(gx * s, y_topo, gz * s),
 				Vector3(dx * s, 0.0, 0.0),
 				Vector3(0.0, 0.0, dz * s),
 				Vector3.UP, dx, dz, t * 2)
@@ -356,6 +498,14 @@ func _gerar_chunk(indice: int) -> void:
 		"faces": faces,
 	}
 
+# Altura "efetiva" da superficie: a agua fica rebaixada
+func _hef(x: int, z: int) -> float:
+	if x < 0 or z < 0 or x >= _largura or z >= _profundidade:
+		return 0.0
+	var i := x * _profundidade + z
+	if _tipos[i] == 0:
+		return _alturas[i] - rebaixo_agua
+	return float(_alturas[i])
 
 func _h(x: int, z: int) -> int:
 	if x < 0 or z < 0 or x >= _largura or z >= _profundidade:
@@ -377,8 +527,8 @@ func _laterais(d: DadosMalha, dir: Vector2i, x_ini: int, x_fim: int, z_ini: int,
 		while b < b_fim:
 			var gx := a if corre_em_z else b
 			var gz := b if corre_em_z else a
-			var h := _h(gx, gz)
-			var viz := _h(gx + dir.x, gz + dir.y)
+			var h := _hef(gx, gz)
+			var viz := _hef(gx + dir.x, gz + dir.y)
 			var t := _tipos[gx * _profundidade + gz]
 			if viz >= h:
 				b += 1
@@ -389,7 +539,7 @@ func _laterais(d: DadosMalha, dir: Vector2i, x_ini: int, x_fim: int, z_ini: int,
 			while fim < b_fim:
 				var fx := a if corre_em_z else fim
 				var fz := fim if corre_em_z else a
-				if _h(fx, fz) != h or _h(fx + dir.x, fz + dir.y) != viz \
+				if _hef(fx, fz) != h or _hef(fx + dir.x, fz + dir.y) != viz \
 						or _tipos[fx * _profundidade + fz] != t:
 					break
 				fim += 1

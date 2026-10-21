@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://sapmdn7yiugy"
-path.s3tc="res://.godot/imported/grama.png-2606d58d13b6629e185dae0c77cb2254.s3tc.ctex"
+path.s3tc="res://.godot/imported/grama.png-86433131742f606c0c7be2bc11505fdb.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/grama.png"
-dest_files=["res://.godot/imported/grama.png-2606d58d13b6629e185dae0c77cb2254.s3tc.ctex"]
+source_file="res://assets/textures/grama.png"
+dest_files=["res://.godot/imported/grama.png-86433131742f606c0c7be2bc11505fdb.s3tc.ctex"]
 
 [params]
 
