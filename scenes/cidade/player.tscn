@@ -49,16 +49,17 @@ animations = [{
 [sub_resource type="BoxShape3D" id="BoxShape3D_26022"]
 size = Vector3(0.15753174, 0.39328003, 0.063964844)
 
-[node name="Player" type="CharacterBody3D" unique_id=1620207659]
+[node name="Player" type="CharacterBody3D" unique_id=1620207659 node_paths=PackedStringArray("camera")]
 transform = Transform3D(8, 0, 0, 0, 8, 0, 0, 0, 8, 0, 0, 0)
 script = ExtResource("1_kab33")
+camera = NodePath("Camera3D")
 
 [node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="." unique_id=231087083]
 shaded = true
 alpha_cut = 2
 texture_filter = 0
 sprite_frames = SubResource("SpriteFrames_hlgrv")
-animation = &"baixo"
+animation = &"idle"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=654740054]
 transform = Transform3D(1.5563343, 0, 0, 0, 1, 0, 0, 0, 1, -0.005645752, -0.039871216, -0.0016758591)

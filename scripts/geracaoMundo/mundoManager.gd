@@ -44,6 +44,15 @@ func gerar_mundo() -> void:
 	ruas.gerar_ruas()
 	quadras.gerar_quadras()
 	predios.gerar_predios()
+
+	# Dados lógicos prontos: o main adiciona o player e troca a câmera.
+	dados_prontos.emit()
+
+	# Espera 1 frame: o teleportar() é deferido e a câmera do player
+	# precisa estar ativa, pois o streaming de prédios usa a câmera atual.
+	await get_tree().process_frame
+	await predios.aguardar_chunks_iniciais()
+
 	terreno.gerar_malha()
 
 func mundo_pronto_func() -> void:
