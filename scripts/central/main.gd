@@ -8,6 +8,8 @@ const MAP_WIDTH: int = 320
 const MAP_HEIGHT: int = 180
 const TILE_SIZE: int = 4
 
+const SONAR_SHADER = preload("res://shaders/sonar.gdshader")
+
 @onready var http: HTTPRequest = $HTTPRequest
 
 var mapa: Array = []
@@ -27,6 +29,17 @@ var cores: Array[Color] = [
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+	var material_sonar := ShaderMaterial.new()
+	material_sonar.shader = SONAR_SHADER
+
+	material_sonar.set_shader_parameter(
+		"proporcao",
+		float(MAP_WIDTH) / float(MAP_HEIGHT)
+	)
+
+	material = material_sonar
+
 	await carregar_mapa()
 
 

@@ -2,12 +2,54 @@
 
 [ext_resource type="Script" uid="uid://ctmchi0v6vtxl" path="res://scripts/cidade/player.gd" id="1_kab33"]
 [ext_resource type="Texture2D" uid="uid://buqbhrqyfuawx" path="res://assets/AdaFrente.png" id="2_1qjop"]
+[ext_resource type="Texture2D" uid="uid://byek3fwkokmhk" path="res://assets/AdaSheet.png" id="2_p6pwb"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p81bm"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(0, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ox2pt"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(48, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m4gwf"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(96, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ctl8c"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(144, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yjx5x"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(0, 96, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qs37e"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(48, 96, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g2f5y"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(96, 96, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_etur7"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(144, 96, 48, 48)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_hlgrv"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_1qjop")
+"texture": SubResource("AtlasTexture_p81bm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ox2pt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m4gwf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ctl8c")
 }],
 "loop": 1,
 "name": &"baixo",
@@ -15,7 +57,16 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_1qjop")
+"texture": SubResource("AtlasTexture_yjx5x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qs37e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g2f5y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_etur7")
 }],
 "loop": 1,
 "name": &"cima",
@@ -59,7 +110,8 @@ shaded = true
 alpha_cut = 2
 texture_filter = 0
 sprite_frames = SubResource("SpriteFrames_hlgrv")
-animation = &"idle"
+animation = &"cima"
+speed_scale = 2.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=654740054]
 transform = Transform3D(1.5563343, 0, 0, 0, 1, 0, 0, 0, 1, -0.005645752, -0.039871216, -0.0016758591)
