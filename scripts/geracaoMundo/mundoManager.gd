@@ -103,7 +103,6 @@ func ponto_de_nascimento() -> Vector3:
 
 
 func atualizar_mapa_backend() -> void:
-
 	var url: String = (
 		"https://%s.supabase.co/rest/v1/salas" % PROJECT_REF
 		+ "?id=eq." + Global.salaID.uri_encode()
@@ -117,9 +116,34 @@ func atualizar_mapa_backend() -> void:
 		"Prefer: return=representation"
 	])
 
+	# Mapa gerado
 	var mapa_json: Array = Array(Global.tipos)
+
+	# Posição inicial do jogador F.
+	# Troque pelo ponto de nascimento real, se necessário.
+	var jogador_f_position := [
+		0.0,
+		0.0,
+		0.0
+	]
+
+	# Horário atual + 10 segundos.
+	var inicio_unix: int = int(Time.get_unix_time_from_system()) + 10
+	var inicio_timer: String = Time.get_datetime_string_from_unix_time(
+		inicio_unix,
+		true
+	) + "+00:00"
+
+	# Pontos do mundo.
+	var pontos_position: Array = Global.pontos_position
+
+	# Todas as informações são salvas juntas.
 	var corpo: String = JSON.stringify({
-		"mapa": mapa_json
+		"mapa": mapa_json,
+		"jogador_f_position": jogador_f_position,
+		"inicio_timer": inicio_timer,
+		"duracao_timer": 60,
+		"pontos_position": pontos_position
 	})
 
 	var erro := http_mapa.request(
@@ -130,7 +154,7 @@ func atualizar_mapa_backend() -> void:
 	)
 
 	if erro != OK:
-		push_error("Não foi possível enviar o mapa.")
+		push_error("Não foi possível enviar os dados do mundo.")
 		return
 
 	var resposta = await http_mapa.request_completed
@@ -139,11 +163,11 @@ func atualizar_mapa_backend() -> void:
 	var texto: String = resposta[3].get_string_from_utf8()
 
 	if resultado != HTTPRequest.RESULT_SUCCESS:
-		push_error("Falha de conexão ao atualizar o mapa.")
+		push_error("Falha de conexão ao atualizar o mundo.")
 		return
 
 	if codigo_http < 200 or codigo_http >= 300:
-		push_error("Erro HTTP ao atualizar o mapa: " + str(codigo_http))
+		push_error("Erro HTTP ao atualizar o mundo: " + str(codigo_http))
 		print(texto)
 		return
 
@@ -154,12 +178,14 @@ func atualizar_mapa_backend() -> void:
 	print("ID usado na atualização: ", Global.salaID)
 
 	if dados is Array and not dados.is_empty():
-		print("Mapa atualizado no backend!")
-		print("Quantidade de valores: ", Global.tipos.size())
+		print("Mundo e variáveis atualizados no backend!")
+		print("Quantidade de valores do mapa: ", mapa_json.size())
+		print("Início do timer: ", inicio_timer)
+		print("Duração do timer: 60 segundos")
 	elif dados is Array and dados.is_empty():
 		push_error(
-			"Nenhuma linha foi retornada pelo PATCH. "
-			+ "Verifique o ID e as políticas RLS."
+			"Nenhuma sala foi atualizada. "
+			+ "Verifique o ID da sala e as políticas RLS."
 		)
 	else:
 		push_error("Resposta inesperada do Supabase.")

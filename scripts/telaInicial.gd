@@ -146,6 +146,10 @@ func _ao_clicar_entrar(id_sala: String, papel: String) -> void:
 		atualizar_salas()
 		return
 
+	# Só define a sala depois de confirmar a entrada.
+	Global.salaID = id_sala
+	Global.funcao = papel
+
 	solicitou_entrada.emit(id_sala, papel)
 
 	var cena := get_tree().change_scene_to_file(

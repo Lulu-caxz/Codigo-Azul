@@ -27,3 +27,10 @@ func tipo_em(x: int, z: int) -> int:
 var salaID: String = "ed4fb9a7-1286-403f-b783-b3a5c91b7587"
 
 var funcao: String = "C"
+
+var pontos_position: Array = [
+	[12, 31, 12, "incompleto", "radar"],
+	[23, 42, 12, "completo", "pluviometro"],
+	[15, 25, 12, "incompleto", "pluviometro"],
+	[16, 24, 12, "incompleto", "bueiro"]
+]
