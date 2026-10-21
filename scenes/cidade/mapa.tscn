@@ -25,3 +25,5 @@ script = ExtResource("4_i0q3m")
 [node name="Predios" type="Node3D" parent="." unique_id=990130025]
 script = ExtResource("5_derue")
 distancia_render = 80.0
+
+[node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1387345646]

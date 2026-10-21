@@ -23,7 +23,6 @@ Mapa="*uid://cuf5pjp2arirc"
 
 [debug]
 
-settings/stdout/print_fps=true
 GeracaoMapa="*uid://bs6hqrt1jm1y0"
 ConectSupa="*uid://cqfyk0ey8n0f1"
 
