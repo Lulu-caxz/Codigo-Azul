@@ -1,6 +1,6 @@
 extends Node
 
-signal sala_criada(dados: Dictionary)
+signal sala_criada()
 signal erro_ao_criar(mensagem: String)
 signal entrada_concluida(sucesso: bool)
 
@@ -195,7 +195,7 @@ func _ao_receber_resposta(
 
 	if operacao == "criar":
 		if resposta is Array and not resposta.is_empty():
-			sala_criada.emit(resposta[0])
+			sala_criada.emit()
 		else:
 			erro_ao_criar.emit("Resposta inesperada: " + texto)
 

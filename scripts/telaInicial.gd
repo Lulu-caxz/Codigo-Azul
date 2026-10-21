@@ -156,12 +156,11 @@ func _ao_clicar_entrar(id_sala: String, papel: String) -> void:
 		push_error("Erro ao trocar de cena: " + str(cena))
 
 func _ao_clicar_criar_sala() -> void:
+	criador_sala.sala_criada.connect(_on_botao_atualizar_pressed)
 	if nome_sala_input.text == "":
-		await criador_sala.criar_sala("Nova sala")
+		criador_sala.criar_sala("Nova sala")
 	else:
-		await criador_sala.criar_sala(nome_sala_input.text)
-	await get_tree().create_timer(1).timeout
-	atualizar_salas()
+		criador_sala.criar_sala(nome_sala_input.text)
 
 func _on_botao_atualizar_pressed() -> void:
 	atualizar_salas()

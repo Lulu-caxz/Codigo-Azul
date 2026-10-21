@@ -5,7 +5,6 @@ const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
 const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 
 const INTERVALO_CONSULTA: float = 2.0
-const CENA_PRINCIPAL: String = "res://scenes/cidade/Main.tscn"
 
 @onready var http: HTTPRequest = $HTTPRequest
 
@@ -173,7 +172,11 @@ func iniciar_partida() -> void:
 
 
 func ir_para_jogo() -> void:
-	var erro := get_tree().change_scene_to_file(CENA_PRINCIPAL)
+	var erro
+	if Global.funcao == "F":
+		erro = get_tree().change_scene_to_file("res://scenes/cidade/main.tscn")
+	else:
+		erro = get_tree().change_scene_to_file("res://scenes/central/Main.tscn")
 
 	if erro != OK:
 		mudando_cena = false

@@ -12,34 +12,59 @@ const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 @onready var predios = $Predios
 @onready var http_mapa: HTTPRequest = $HTTPRequest
 
+var geracao_iniciada: bool = false
+var atualizando_mapa: bool = false
+
 
 func _ready() -> void:
-	# Deixamos a cena principal comandar o início ou iniciamos no próximo frame
+	print(
+		"MUNDO MANAGER CRIADO | Instância: ",
+		get_instance_id(),
+		" | Sala: ",
+		Global.salaID
+	)
+
+	terreno.terreno_pronto.connect(mundo_pronto_func)
 	gerar_mundo()
 
 
 func gerar_mundo() -> void:
-	# 1. Geração lógica (matrizes de altura, ruas, quadras e planejamento de prédios)
+	if geracao_iniciada:
+		print("Geração ignorada: o mundo já foi gerado.")
+		return
+
+	if Global.salaID.is_empty():
+		push_error("Não é possível gerar o mundo sem ID da sala.")
+		return
+
+	geracao_iniciada = true
+
+	print("Iniciando geração. Sala: ", Global.salaID)
 	terreno.gerar_alturas()
 	ruas.gerar_ruas()
 	quadras.gerar_quadras()
 	predios.gerar_predios()
+	terreno.gerar_malha()
 
-	# Avisa que já podemos calcular o ponto_de_nascimento() e posicionar a câmera do player
-	dados_prontos.emit()
-	await get_tree().process_frame
+func mundo_pronto_func() -> void:
+	if atualizando_mapa:
+		print("Atualização ignorada: já existe uma requisição em andamento.")
+		return
 
-	# 2. Geração pesada das malhas 3D (Terreno + Chunks de Prédios ao redor do Player)
-	await terreno.gerar_malha()
-	await predios.aguardar_chunks_iniciais()
+	if Global.salaID.is_empty():
+		push_error("Não é possível atualizar o mapa sem ID da sala.")
+		return
 
-	# 3. Se também quiser esperar salvar no banco antes de tirar a tela preta, mantenha o await aqui:
+	atualizando_mapa = true
+
+	print("Mundo pronto. Sala: ", Global.salaID)
+
+	mundo_pronto.emit()
 	await atualizar_mapa_backend()
 
-	# Agora sim, 100% carregado e renderizado!
-	mundo_pronto.emit()
+	atualizando_mapa = false
 
-
+# Ponto de nascimento (posicao global), apenas apos o mundo estar pronto
 func ponto_de_nascimento() -> Vector3:
 	var cx = Global.largura >> 1
 	var cz = Global.profundidade >> 1
@@ -68,13 +93,11 @@ func ponto_de_nascimento() -> Vector3:
 
 
 func atualizar_mapa_backend() -> void:
-	if Global.salaID.is_empty():
-		push_error("ID da sala não definido.")
-		return
 
 	var url: String = (
 		"https://%s.supabase.co/rest/v1/salas" % PROJECT_REF
 		+ "?id=eq." + Global.salaID.uri_encode()
+		+ "&select=id"
 	)
 
 	var headers := PackedStringArray([
@@ -115,8 +138,18 @@ func atualizar_mapa_backend() -> void:
 		return
 
 	var dados = JSON.parse_string(texto)
+
+	print("Código HTTP: ", codigo_http)
+	print("Resposta do Supabase: ", texto)
+	print("ID usado na atualização: ", Global.salaID)
+
 	if dados is Array and not dados.is_empty():
 		print("Mapa atualizado no backend!")
 		print("Quantidade de valores: ", Global.mapa.size())
+	elif dados is Array and dados.is_empty():
+		push_error(
+			"Nenhuma linha foi retornada pelo PATCH. "
+			+ "Verifique o ID e as políticas RLS."
+		)
 	else:
-		push_error("Nenhuma sala foi atualizada. Verifique o ID e as permissões.")
+		push_error("Resposta inesperada do Supabase.")
