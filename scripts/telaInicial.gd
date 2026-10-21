@@ -148,15 +148,9 @@ func _ao_clicar_entrar(id_sala: String, papel: String) -> void:
 
 	solicitou_entrada.emit(id_sala, papel)
 
-	var cena
-	if papel == "F":
-		cena = get_tree().change_scene_to_file(
-			"res://scenes/cidade/Main.tscn"
-		)
-	else:
-		cena = get_tree().change_scene_to_file(
-			"res://scenes/central/Main.tscn"
-		)
+	var cena := get_tree().change_scene_to_file(
+		"res://scenes/SalaDeEspera.tscn"
+	)
 
 	if cena != OK:
 		push_error("Erro ao trocar de cena: " + str(cena))

@@ -23,4 +23,4 @@ func gerar_mundo() -> void:
 	# 3) malha + colisao ja com as ruas (assincrono). Crie o jogador depois disso.
 	await terreno.gerar_malha()
 	
-	print(Global.salaID)
+	

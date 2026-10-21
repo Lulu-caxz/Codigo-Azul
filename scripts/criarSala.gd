@@ -141,6 +141,7 @@ func entrar_na_sala(id_sala: String, papel: String) -> bool:
 	)
 	
 	Global.salaID = id_sala.uri_encode()
+	Global.funcao = papel
 
 	var headers_patch := PackedStringArray([
 		"Content-Type: application/json",

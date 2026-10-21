@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://pv56atrxp7ol"]
+
+[ext_resource type="Script" uid="uid://dryypxaip4k5b" path="res://scripts/salaDeEspera.gd" id="1_umba1"]
+
+[node name="SalaDeEspera" type="Node2D" unique_id=380435716]
+script = ExtResource("1_umba1")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=206367056]
+
+[node name="Label" type="Label" parent="." unique_id=877404934]
+offset_left = 610.0
+offset_top = 467.0
+offset_right = 1361.0
+offset_bottom = 563.0
+theme_override_font_sizes/font_size = 70
+text = "Espera ai filha da puta"
