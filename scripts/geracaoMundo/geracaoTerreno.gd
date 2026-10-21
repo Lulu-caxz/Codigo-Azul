@@ -20,6 +20,8 @@ var _cores_topo: Array[Color] = [
 	Color.DARK_GRAY,         # 3 pedra
 	Color("4a4a50"),         # 4 rua
 	Color("8b6b4a"),         # 5 ponte
+	Color("b0a898"),         # 6 calcada
+	Color("a09888"),         # 7 quadra
 ]
 
 @export_group("Opcoes")

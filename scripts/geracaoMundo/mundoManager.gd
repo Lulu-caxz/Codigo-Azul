@@ -18,7 +18,7 @@ func gerar_mundo() -> void:
 	ruas.gerar_ruas()
 
 	quadras.gerar_quadras()   # use ruas.quarteiroes (Array[Rect2i], em celulas)
-	#predios.gerar_predios()
+	predios.gerar_predios()
 
 	# 3) malha + colisao ja com as ruas (assincrono). Crie o jogador depois disso.
 	await terreno.gerar_malha()

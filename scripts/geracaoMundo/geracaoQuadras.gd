@@ -83,7 +83,7 @@ const LADRILHO := 64   # tamanho do bloco de trabalho na busca de quadras extern
 ## Desnivel maximo do terreno original dentro de uma quadra. Acima disso a quadra e rejeitada.
 @export_range(0, 6) var desnivel_max_quadra := 3
 ## Aplana cada quadra numa altura unica (recomendado para predios).
-@export var nivelar_quadras := false
+@export var nivelar_quadras := true
 ## Quantos blocos o chao da quadra fica acima da calcada/rua vizinha.
 @export_range(0, 2) var elevacao_quadra := 0
 ## Permite quadras sobre areia (perto de lagos).
