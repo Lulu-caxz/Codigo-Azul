@@ -83,7 +83,7 @@ const LADRILHO := 64   # tamanho do bloco de trabalho na busca de quadras extern
 ## Desnivel maximo do terreno original dentro de uma quadra. Acima disso a quadra e rejeitada.
 @export_range(0, 6) var desnivel_max_quadra := 3
 ## Aplana cada quadra numa altura unica (recomendado para predios).
-@export var nivelar_quadras := true
+@export var nivelar_quadras := false
 ## Quantos blocos o chao da quadra fica acima da calcada/rua vizinha.
 @export_range(0, 2) var elevacao_quadra := 0
 ## Permite quadras sobre areia (perto de lagos).
@@ -95,15 +95,15 @@ const LADRILHO := 64   # tamanho do bloco de trabalho na busca de quadras extern
 
 @export_group("Quadras externas")
 ## Espessura da faixa do lado de fora das ruas onde podem nascer quadras.
-@export_range(4, 40) var profundidade_externa := 14
+@export_range(4, 40) var profundidade_externa := 10
 ## Chance de cada pedaco de faixa virar quadra (o resto fica como terreno).
-@export_range(0.0, 1.0, 0.01) var chance_quadra_externa := 0.75
+@export_range(0.0, 1.0, 0.01) var chance_quadra_externa := 0.5
 ## Comprimento maximo de uma quadra externa (faixas longas sao cortadas).
 @export_range(10, 120) var comprimento_max_externa := 40
 
 @export_group("Lotes")
 ## Divide cada quadra em lotes para predios e casas.
-@export var gerar_lotes := true
+@export var gerar_lotes := false
 ## Menor lado de um lote.
 @export_range(4, 40) var lote_min := 8
 ## Maior lado de um lote. Quadras maiores que isso sao divididas.
@@ -199,7 +199,7 @@ func gerar_quadras() -> void:
 func area_construivel(r: Rect2i, exigir_plano: bool = true) -> bool:
 	if r.size.x <= 0 or r.size.y <= 0:
 		return false
-	var h0 := Global.altura_em(r.position.x, r.position.y)
+	var h0 = Global.altura_em(r.position.x, r.position.y)
 	for x in range(r.position.x, r.end.x):
 		for z in range(r.position.y, r.end.y):
 			if Global.tipo_em(x, z) != T_QUADRA:
