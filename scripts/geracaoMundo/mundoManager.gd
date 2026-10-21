@@ -1,7 +1,7 @@
-
 extends Node3D
 
-signal mundo_pronto
+signal dados_prontos # Emitido quando alturas/ruas estão calculadas (para já posicionar o player)
+signal mundo_pronto  # Emitido quando TODAS as malhas 3D (terreno + prédios) terminaram de carregar
 
 const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
 const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
@@ -40,7 +40,6 @@ func gerar_mundo() -> void:
 	geracao_iniciada = true
 
 	print("Iniciando geração. Sala: ", Global.salaID)
-
 	terreno.gerar_alturas()
 	ruas.gerar_ruas()
 	quadras.gerar_quadras()
@@ -71,7 +70,8 @@ func ponto_de_nascimento() -> Vector3:
 	var cz = Global.profundidade >> 1
 	var melhor := Vector2i(cx, cz)
 	var melhor_d := INF
-	for pref in [4, -1]:   # 4 = rua; -1 = qualquer bloco que nao seja agua
+
+	for pref in [4, -1]: # 4 = rua; -1 = qualquer bloco que nao seja agua
 		for x in Global.largura:
 			for z in Global.profundidade:
 				var t = Global.tipos[x * Global.profundidade + z]
@@ -83,9 +83,14 @@ func ponto_de_nascimento() -> Vector3:
 					melhor = Vector2i(x, z)
 		if melhor_d < INF:
 			break
+
 	var s = Global.tamanho_cubo
 	return terreno.global_position + Vector3(
-		(melhor.x + 0.5) * s, Global.altura_em(melhor.x, melhor.y) * s + 1.0, (melhor.y + 0.5) * s)
+		(melhor.x + 0.5) * s,
+		Global.altura_em(melhor.x, melhor.y) * s + 2.0,
+		(melhor.y + 0.5) * s
+	)
+
 
 func atualizar_mapa_backend() -> void:
 
@@ -103,7 +108,6 @@ func atualizar_mapa_backend() -> void:
 	])
 
 	var mapa_json: Array = Array(Global.mapa)
-
 	var corpo: String = JSON.stringify({
 		"mapa": mapa_json
 	})

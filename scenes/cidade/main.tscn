@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://o0svjp63lgj5"]
 
 [ext_resource type="Script" uid="uid://bs3kvtnxgrr4h" path="res://scripts/cidade/main.gd" id="1_dfing"]
-[ext_resource type="Shader" uid="uid://dkboftcvp0c76" path="res://shaders/efeitoCamera.gdshader" id="2_msogl"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_oxi0b"]
 
@@ -11,15 +10,6 @@ sky_material = SubResource("ProceduralSkyMaterial_oxi0b")
 [sub_resource type="Environment" id="Environment_hlgrv"]
 background_mode = 2
 sky = SubResource("Sky_sdby7")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_msogl"]
-shader = ExtResource("2_msogl")
-shader_parameter/vignette_strength = 0.0
-shader_parameter/vignette_size = 0.1
-shader_parameter/rgb_shift = 0.0007
-shader_parameter/glitch_strength = 0.001
-shader_parameter/glitch_frequency = 0.01
-shader_parameter/glitch_enabled = false
 
 [node name="Main" type="Node3D" unique_id=116635308]
 script = ExtResource("1_dfing")
@@ -37,13 +27,3 @@ directional_shadow_max_distance = 50.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2130968369]
 environment = SubResource("Environment_hlgrv")
-
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=234452447]
-
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer" unique_id=252706909]
-material = SubResource("ShaderMaterial_msogl")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2

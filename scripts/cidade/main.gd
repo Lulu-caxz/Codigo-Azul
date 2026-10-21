@@ -1,4 +1,3 @@
-
 extends Node3D
 
 const MUNDO_CENA: PackedScene = preload("res://scenes/cidade/mapa.tscn")
@@ -11,41 +10,58 @@ var player: CharacterBody3D
 var modo_camera_teste: bool = false
 
 
+
+
+
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	camera_teste.current = true
+	
+	await Transicao.iniciar_carregamento(0.0)
 
-	# Instancia o mundo. O próprio MundoManager inicia a geração.
+	# 1. Trava a tela no preto absoluto antes de qualquer processamento pesado
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	# 2. Instancia o mundo e o player (com física pausada para não cair no vazio)
 	mundo = MUNDO_CENA.instantiate()
 	mundo.name = "MundoManager"
-	add_child(mundo)
 
-	# Aguarda a geração do mundo terminar.
-	await mundo.mundo_pronto
-
-	# Cria o personagem dentro do mundo gerado.
 	player = PLAYER_CENA.instantiate()
 	player.name = "Player"
-	mundo.add_child(player)
+	player.set_physics_process(false)
 
-	# Posição provisória de nascimento.
-	player.teleportar(mundo.ponto_de_nascimento())
+	# 3. Assim que a matriz lógica do mapa estiver pronta, posiciona o player e a câmera
+	mundo.dados_prontos.connect(func():
+		mundo.add_child(player)
+		player.teleportar(mundo.ponto_de_nascimento())
+		var cam_p: Camera3D = player.get_node_or_null("Camera3D")
+		if cam_p:
+			camera_teste.current = false
+			cam_p.current = true
+	, CONNECT_ONE_SHOT)
 
-	# Começa no modo de jogo, com a câmera do jogador.
-	var camera_player: Camera3D = player.get_node_or_null("Camera3D")
-	if camera_player:
-		camera_teste.current = false
-		camera_player.current = true
+	add_child(mundo)
 
-	print("Mundo pronto e jogador criado!")
+	await mundo.mundo_pronto
+	
+	await Transicao.finalizar_carregamento(1.0)
+	player.set_physics_process(true)
+
+
+	for i in 10:
+		await get_tree().process_frame
+
+	player.teleportar(player.global_position)
+	await get_tree().process_frame
+
+
 
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		modo_camera_teste = false
 		alternar_camera()
-
-
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_F1:
 			modo_camera_teste = not modo_camera_teste
@@ -55,9 +71,7 @@ func _input(event: InputEvent) -> void:
 func alternar_camera() -> void:
 	if not is_instance_valid(player):
 		return
-
 	var camera_player: Camera3D = player.get_node_or_null("Camera3D")
-
 	if camera_player == null:
 		push_warning("O Player não possui um nó Camera3D.")
 		return
