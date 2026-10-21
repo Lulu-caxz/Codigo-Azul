@@ -24,6 +24,6 @@ func tipo_em(x: int, z: int) -> int:
 		return 0
 	return tipos[x * profundidade + z]
 
-var salaID: String = "8e2ec62c-918f-4288-9973-8dda20dee9c1"
+var salaID: String = "ed4fb9a7-1286-403f-b783-b3a5c91b7587"
 
 var funcao: String = "C"

@@ -74,7 +74,7 @@ func _posicionar_no_chao() -> void:
 		push_warning("Nenhum chao encontrado sob o spawn: o terreno tem colisao?")
 		return
 
-	player.teleportar(hit.position + Vector3.UP * 2.0)
+	player.teleportar(hit.position + Vector3.UP * 1.0)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

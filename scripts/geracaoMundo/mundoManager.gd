@@ -24,6 +24,7 @@ func _ready() -> void:
 		Global.salaID
 	)
 
+
 	terreno.terreno_pronto.connect(mundo_pronto_func)
 	gerar_mundo()
 
@@ -116,7 +117,7 @@ func atualizar_mapa_backend() -> void:
 		"Prefer: return=representation"
 	])
 
-	var mapa_json: Array = Array(Global.mapa)
+	var mapa_json: Array = Array(Global.tipos)
 	var corpo: String = JSON.stringify({
 		"mapa": mapa_json
 	})
@@ -154,7 +155,7 @@ func atualizar_mapa_backend() -> void:
 
 	if dados is Array and not dados.is_empty():
 		print("Mapa atualizado no backend!")
-		print("Quantidade de valores: ", Global.mapa.size())
+		print("Quantidade de valores: ", Global.tipos.size())
 	elif dados is Array and dados.is_empty():
 		push_error(
 			"Nenhuma linha foi retornada pelo PATCH. "

@@ -91,6 +91,7 @@ func carregar_mapa() -> void:
 			+ ". Esperado: "
 			+ str(MAP_WIDTH * MAP_HEIGHT)
 		)
+		carregar_mapa()
 		return
 
 	construir_mapa()
@@ -110,8 +111,11 @@ func construir_mapa() -> void:
 			# índice = x * profundidade + z
 			var indice: int = x * MAP_HEIGHT + y
 			var valor: int = int(mapa[indice])
-
-			imagem.set_pixel(x, y, cor_do_bloco(valor))
+			
+			if valor == 7 or valor == 1:
+				imagem.set_pixel(x, y, cor_do_bloco(2))
+			else:
+				imagem.set_pixel(x, y, cor_do_bloco(valor))
 
 	textura_mapa = ImageTexture.create_from_image(imagem)
 
