@@ -66,6 +66,12 @@ const CHUNK_PREDIOS := 32
 ## Construcoes projetam sombra (paredes e telhados; sprites nunca projetam).
 @export var projetar_sombras := true
 
+@export_group("Colisao")
+## Gera colisao solida para paredes/predios.
+@export var gerar_colisao := true
+## Camada de fisica em que as construcoes ficam (o mundo costuma ser a 1).
+@export_flags_3d_physics var camada_colisao := 1
+
 @export_group("Dimensoes")
 ## Menor lado de uma construcao (em blocos).
 @export_range(2, 10) var construcao_min := 3
@@ -378,6 +384,37 @@ func gerar_predios() -> void:
 			_montar_chunk(ch, dados)
 
 
+# Adicione esta função no seu script de Prédios (logo após gerar_predios):
+
+## Força o carregamento e montagem de todos os chunks próximos à câmera antes de liberar a tela
+func aguardar_chunks_iniciais() -> void:
+	if not renderizar_so_proximo:
+		return # Se o streaming estiver desligado, gerar_predios() já montou tudo.
+
+	# Atualiza a lista de chunks desejados com base na posição atual da câmera
+	_atualizar_chunks()
+
+	# Loop até que a fila de espera e as tarefas nas threads terminem completamente
+	while not _fila.is_empty() or not _tarefas.is_empty():
+		# 1. Inicia tarefas nas threads disponíveis
+		while _tarefas.size() < tarefas_simultaneas and not _fila.is_empty():
+			var ch: Vector2i = _fila.pop_front()
+			if _chunk_nos.has(ch) or _tarefas.has(ch) or not _desejados.has(ch):
+				continue
+			_iniciar_chunk(ch)
+
+		# 2. Verifica e monta todos os chunks que já terminaram (sem limite por frame aqui)
+		for ch in _tarefas.keys():
+			var t: Dictionary = _tarefas[ch]
+			if WorkerThreadPool.is_task_completed(t["id"]):
+				WorkerThreadPool.wait_for_task_completion(t["id"])
+				_tarefas.erase(ch)
+				if _desejados.has(ch) and not _chunk_nos.has(ch):
+					_montar_chunk(ch, t["dados"])
+
+		await get_tree().process_frame
+
+
 # ---------------------------------------------------------------------------
 # STREAMING POR DISTANCIA DA CAMERA
 # ---------------------------------------------------------------------------
@@ -492,9 +529,39 @@ func _montar_chunk(ch: Vector2i, dados: Dictionary) -> void:
 		mi2.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		no.add_child(mi2)
 
+	if gerar_colisao:
+		_criar_colisao(ch, no)
+
 	_raiz.add_child(no)
 	_chunk_nos[ch] = no
 
+
+# Thread principal: 1 StaticBody3D por chunk, 1 caixa de colisao por caixa de construcao.
+func _criar_colisao(ch: Vector2i, no: Node3D) -> void:
+	var s: float = Global.tamanho_cubo
+	var corpo := StaticBody3D.new()
+	corpo.name = "Colisao"
+	corpo.collision_layer = camada_colisao
+	corpo.collision_mask = 0   # corpo estatico nao precisa detectar nada
+
+	for c in _chunks[ch]:
+		var altura: float = c.andares * blocos_por_andar * s
+		var base_y: float = c.altura_base * s
+		for caixa in c.caixas:
+			var forma := BoxShape3D.new()
+			forma.size = Vector3(caixa.size.x * s, altura, caixa.size.y * s)
+			var cs := CollisionShape3D.new()
+			cs.shape = forma
+			cs.position = Vector3(
+				(caixa.position.x + caixa.size.x * 0.5) * s,
+				base_y + altura * 0.5,
+				(caixa.position.y + caixa.size.y * 0.5) * s)
+			corpo.add_child(cs)
+
+	if corpo.get_child_count() > 0:
+		no.add_child(corpo)
+	else:
+		corpo.free()
 
 # tipo: 0 = paredes, 1 = telhados, 2 = sprites
 func _commit(malha: ArrayMesh, grupos: Dictionary, tipo: int) -> void:

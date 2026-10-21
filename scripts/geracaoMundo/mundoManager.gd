@@ -1,7 +1,7 @@
-
 extends Node3D
 
-signal mundo_pronto
+signal dados_prontos # Emitido quando alturas/ruas estão calculadas (para já posicionar o player)
+signal mundo_pronto  # Emitido quando TODAS as malhas 3D (terreno + prédios) terminaram de carregar
 
 const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
 const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
@@ -14,30 +14,39 @@ const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 
 
 func _ready() -> void:
+	# Deixamos a cena principal comandar o início ou iniciamos no próximo frame
 	gerar_mundo()
 
 
 func gerar_mundo() -> void:
+	# 1. Geração lógica (matrizes de altura, ruas, quadras e planejamento de prédios)
 	terreno.gerar_alturas()
 	ruas.gerar_ruas()
 	quadras.gerar_quadras()
 	predios.gerar_predios()
 
+	# Avisa que já podemos calcular o ponto_de_nascimento() e posicionar a câmera do player
+	dados_prontos.emit()
+	await get_tree().process_frame
+
+	# 2. Geração pesada das malhas 3D (Terreno + Chunks de Prédios ao redor do Player)
 	await terreno.gerar_malha()
+	await predios.aguardar_chunks_iniciais()
 
-	# Avisa que o mundo está pronto para receber o jogador.
-	mundo_pronto.emit()
-
-	# Atualiza o mapa da sala no Supabase.
+	# 3. Se também quiser esperar salvar no banco antes de tirar a tela preta, mantenha o await aqui:
 	await atualizar_mapa_backend()
 
-# Ponto de nascimento (posicao global), apenas apos o mundo estar pronto
+	# Agora sim, 100% carregado e renderizado!
+	mundo_pronto.emit()
+
+
 func ponto_de_nascimento() -> Vector3:
 	var cx = Global.largura >> 1
 	var cz = Global.profundidade >> 1
 	var melhor := Vector2i(cx, cz)
 	var melhor_d := INF
-	for pref in [4, -1]:   # 4 = rua; -1 = qualquer bloco que nao seja agua
+
+	for pref in [4, -1]: # 4 = rua; -1 = qualquer bloco que nao seja agua
 		for x in Global.largura:
 			for z in Global.profundidade:
 				var t = Global.tipos[x * Global.profundidade + z]
@@ -49,9 +58,14 @@ func ponto_de_nascimento() -> Vector3:
 					melhor = Vector2i(x, z)
 		if melhor_d < INF:
 			break
+
 	var s = Global.tamanho_cubo
 	return terreno.global_position + Vector3(
-		(melhor.x + 0.5) * s, Global.altura_em(melhor.x, melhor.y) * s + 1.0, (melhor.y + 0.5) * s)
+		(melhor.x + 0.5) * s,
+		Global.altura_em(melhor.x, melhor.y) * s + 2.0,
+		(melhor.y + 0.5) * s
+	)
+
 
 func atualizar_mapa_backend() -> void:
 	if Global.salaID.is_empty():
@@ -71,7 +85,6 @@ func atualizar_mapa_backend() -> void:
 	])
 
 	var mapa_json: Array = Array(Global.mapa)
-
 	var corpo: String = JSON.stringify({
 		"mapa": mapa_json
 	})
@@ -102,11 +115,8 @@ func atualizar_mapa_backend() -> void:
 		return
 
 	var dados = JSON.parse_string(texto)
-
 	if dados is Array and not dados.is_empty():
 		print("Mapa atualizado no backend!")
 		print("Quantidade de valores: ", Global.mapa.size())
 	else:
-		push_error(
-			"Nenhuma sala foi atualizada. Verifique o ID e as permissões."
-		)
+		push_error("Nenhuma sala foi atualizada. Verifique o ID e as permissões.")

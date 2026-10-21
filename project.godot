@@ -18,11 +18,12 @@ config/icon="res://assets/icon.svg"
 [autoload]
 
 Global="*uid://m1ki4gf2nkht"
-Multiplayer="*uid://4qjpy8gl4h3m"
-Mapa="*uid://cuf5pjp2arirc"
+Mapa="uid://cuf5pjp2arirc"
+Transicao="*uid://c73k01up728pk"
 
 [debug]
 
+settings/stdout/print_fps=true
 GeracaoMapa="*uid://bs6hqrt1jm1y0"
 ConectSupa="*uid://cqfyk0ey8n0f1"
 
