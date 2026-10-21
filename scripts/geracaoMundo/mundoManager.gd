@@ -14,6 +14,7 @@ const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 
 var geracao_iniciada: bool = false
 var atualizando_mapa: bool = false
+var objetivos: GerenciadorObjetivos
 
 
 func _ready() -> void:
@@ -24,7 +25,10 @@ func _ready() -> void:
 		Global.salaID
 	)
 
-
+	objetivos = GerenciadorObjetivos.new()
+	objetivos.name = "Objetivos"
+	add_child(objetivos)
+	
 	terreno.terreno_pronto.connect(mundo_pronto_func)
 	gerar_mundo()
 
@@ -128,11 +132,8 @@ func atualizar_mapa_backend() -> void:
 	]
 
 	# Horário atual + 10 segundos.
-	var inicio_unix: int = int(Time.get_unix_time_from_system()) + 10
-	var inicio_timer: String = Time.get_datetime_string_from_unix_time(
-		inicio_unix,
-		true
-	) + "+00:00"
+	var inicio_timer: String = objetivos.inicio_timer_iso()
+	var duracao_timer: int = objetivos.duracao_timer_backend()
 
 	# Pontos do mundo.
 	var pontos_position: Array = Global.pontos_position

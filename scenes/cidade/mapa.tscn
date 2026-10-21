@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://cb77w4uqmna7t" path="res://assets/textures/grass.png" id="4_derue"]
 [ext_resource type="Script" uid="uid://bjh12mpg1yqjk" path="res://scripts/geracaoMundo/geracaoQuadras.gd" id="4_i0q3m"]
 [ext_resource type="Script" uid="uid://ca0jadlijewox" path="res://scripts/geracaoMundo/geracaoPredios.gd" id="5_derue"]
+[ext_resource type="Script" uid="uid://bgd2xc48neldq" path="res://scripts/geracaoMundo/pontos.gd" id="8_i0q3m"]
 
 [node name="Mapa" type="Node3D" unique_id=1091553734]
 script = ExtResource("1_orvpg")
@@ -34,5 +35,8 @@ imprimir_relatorio = false
 script = ExtResource("5_derue")
 distancia_render = 80.0
 imprimir_relatorio = false
+
+[node name="Pontos" type="Node3D" parent="." unique_id=1446858883]
+script = ExtResource("8_i0q3m")
 
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1387345646]
