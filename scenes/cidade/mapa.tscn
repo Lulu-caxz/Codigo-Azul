@@ -14,6 +14,7 @@ script = ExtResource("1_orvpg")
 script = ExtResource("2_u4a18")
 texturas_topo = Array[Texture2D]([null, null, ExtResource("3_u4a18")])
 texturas_lateral = Array[Texture2D]([null, null, ExtResource("3_u4a18")])
+renderizar_so_proximo = false
 distancia_render = 80.0
 
 [node name="Ruas" type="Node3D" parent="." unique_id=1605538390]
@@ -24,6 +25,7 @@ script = ExtResource("4_i0q3m")
 
 [node name="Predios" type="Node3D" parent="." unique_id=990130025]
 script = ExtResource("5_derue")
+renderizar_so_proximo = false
 distancia_render = 80.0
 
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1387345646]
