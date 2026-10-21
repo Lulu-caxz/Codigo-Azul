@@ -10,9 +10,6 @@ var player: CharacterBody3D
 var modo_camera_teste: bool = false
 
 
-
-
-
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	camera_teste.current = true
@@ -34,7 +31,11 @@ func _ready() -> void:
 	# 3. Assim que a matriz lógica do mapa estiver pronta, posiciona o player e a câmera
 	mundo.dados_prontos.connect(func():
 		mundo.add_child(player)
-		player.teleportar(mundo.ponto_de_nascimento())
+		
+		# Usamos call_deferred para garantir que o player já entrou na árvore 
+		# e executou seu _ready() antes de rodar a função teleportar()
+		player.call_deferred("teleportar", mundo.ponto_de_nascimento())
+		
 		var cam_p: Camera3D = player.get_node_or_null("Camera3D")
 		if cam_p:
 			camera_teste.current = false
@@ -44,19 +45,36 @@ func _ready() -> void:
 	add_child(mundo)
 
 	await mundo.mundo_pronto
-	
+
+	# Chao real: so existe na fisica depois de alguns frames de fisica
+	await _posicionar_no_chao()
+
 	await Transicao.finalizar_carregamento(1.0)
 	player.set_physics_process(true)
 
 
-	for i in 10:
-		await get_tree().process_frame
+# Joga um raio de cima para baixo e coloca o player em cima da primeira superficie.
+func _posicionar_no_chao() -> void:
+	if not is_instance_valid(player) or not player.is_inside_tree():
+		return
 
-	player.teleportar(player.global_position)
-	await get_tree().process_frame
+	# Colisoes recem-criadas so entram no espaco de fisica apos estes frames.
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 
+	var espaco := get_world_3d().direct_space_state
+	var pos := player.global_position
+	var consulta := PhysicsRayQueryParameters3D.create(
+		pos + Vector3.UP * 500.0,
+		pos + Vector3.DOWN * 500.0)
+	consulta.exclude = [player.get_rid()]
 
+	var hit := espaco.intersect_ray(consulta)
+	if hit.is_empty():
+		push_warning("Nenhum chao encontrado sob o spawn: o terreno tem colisao?")
+		return
 
+	player.teleportar(hit.position + Vector3.UP * 2.0)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

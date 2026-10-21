@@ -10,7 +10,8 @@ extends CharacterBody3D
 
 @onready var sprite: AnimatedSprite3D = $AnimatedSprite3D
 
-@onready var camera: Camera3D = $Camera3D
+@export var camera: Camera3D
+
 
 var _offset_camera := Vector3.ZERO
 var _olhando := "baixo"
