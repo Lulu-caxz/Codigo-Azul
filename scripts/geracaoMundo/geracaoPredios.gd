@@ -1,26 +1,31 @@
 extends Node3D
 
 # =============================================================================
-#  GERADOR DE PREDIOS E CASAS
+#  GERADOR DE PREDIOS E CASAS  (versao refinada)
 # =============================================================================
 # Preenche as quadras geradas por geracaoQuadras.gd com construcoes 3D.
-# As construcoes sao blocos (retangulares, quadrados ou em L) de alturas
-# variadas, respeitando a calcada e maximizando o preenchimento da quadra.
 #
-# Tipos de construcao:
-#   - Casa: 1-2 andares, base menor
-#   - Predio: 3-8+ andares, base maior
-#   - Em L: duas caixas retangulares unidas formando um L
+# O QUE MUDOU EM RELACAO A VERSAO ANTERIOR
+#   * Portas, janelas e detalhes (ar condicionado...) NUNCA se sobrepoem: cada
+#     face guarda uma lista de retangulos ocupados e todo sprite novo e testado
+#     contra ela. Sprites tambem ficam afastados das quinas.
+#   * Construcao em L agora e feita com caixas que NAO se sobrepoem. Faces
+#     internas (onde uma caixa encosta na outra) nao sao geradas, nem recebem
+#     janelas. Antes havia telhados coplanares (z-fighting) e janelas dentro
+#     da outra caixa.
+#   * Uma porta por construcao, na face da frente (a maior parede voltada p/ rua).
+#   * Texturas nao sao mais espelhadas nas paredes.
+#   * Geometria MESCLADA: cada chunk vira 1 malha solida (paredes+telhados) e
+#     1 malha de sprites, com 1 surface por material. Antes eram ~2 + dezenas
+#     de MeshInstance3D POR construcao (cada janela era um no).
+#   * Cor das paredes/telhados vai no vertex color (1 material para todas as cores).
+#   * Chunks sao gerados em thread (WorkerThreadPool) e so existem perto da
+#     camera: entram ao chegar perto e sao liberados ao se afastar.
+#   * Coerencia de altura usa grade espacial (antes era O(n^2)).
+#   * Frente da construcao detectada olhando a rua alem da borda da quadra.
+#   * Base da construcao = menor altura do terreno sob ela (sem buracos).
 #
-# As construcoes sao geradas como malhas 3D independentes (MeshInstance3D)
-# com materiais configuráveis. Sprites decorativos (portas, janelas, etc)
-# sao aplicados como quads nas faces dos predios.
-#
-# TEXTURAS: use os exports texturas_parede, texturas_telhado para trocar.
-# SPRITES: use os exports sprites_porta, sprites_janela, sprites_detalhe
-# para trocar os elementos decorativos dos predios.
-#
-# Ordem de chamada:
+# Ordem de chamada (igual a antes):
 #   terreno.gerar_alturas()
 #   ruas.gerar_ruas()
 #   quadras.gerar_quadras()
@@ -35,12 +40,31 @@ const T_PONTE := 5
 
 const DIRS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 
+## Tamanho (em celulas) do chunk de construcoes usado no streaming.
+const CHUNK_PREDIOS := 32
+
 # -----------------------------------------------------------------------------
 #  CONFIGURACOES
 # -----------------------------------------------------------------------------
 @export_group("Ligacao")
 ## Caminho do no de quadras.
 @export var no_quadras: NodePath = ^"../Quadras"
+
+@export_group("Renderizacao por Distancia")
+## Gera/mostra construcoes apenas perto da camera. Desligue para gerar tudo de uma vez.
+@export var renderizar_so_proximo := true
+## Distancia (unidades do mundo) em que um chunk de construcoes passa a ser gerado.
+@export_range(30.0, 600.0, 1.0) var distancia_render := 110.0
+## Folga extra antes de liberar um chunk (evita liga/desliga na fronteira).
+@export_range(0.0, 200.0, 1.0) var histerese_render := 30.0
+## Intervalo (segundos) entre verificacoes da posicao da camera.
+@export_range(0.05, 2.0, 0.05) var intervalo_atualizacao := 0.25
+## Quantos chunks podem ser calculados em thread ao mesmo tempo.
+@export_range(1, 8) var tarefas_simultaneas := 2
+## Quantos chunks prontos sao montados (viram nos) por frame.
+@export_range(1, 8) var montagens_por_frame := 2
+## Construcoes projetam sombra (paredes e telhados; sprites nunca projetam).
+@export var projetar_sombras := true
 
 @export_group("Dimensoes")
 ## Menor lado de uma construcao (em blocos).
@@ -53,7 +77,7 @@ const DIRS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 @export_range(0, 3) var espaco_entre := 1
 
 @export_group("Alturas")
-## Altura minima de uma casa (em andares, 1 andar = 3 blocos).
+## Altura minima de uma casa (em andares).
 @export_range(1, 3) var andares_casa_min := 1
 ## Altura maxima de uma casa (em andares).
 @export_range(1, 4) var andares_casa_max := 2
@@ -87,14 +111,11 @@ const DIRS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 @export var texturas_telhado: Array[Texture2D] = []
 
 @export_group("Sprites Decorativos")
-## Sprites de portas (colocadas no terreo, na face da frente).
-## Se vazio, gera sprites placeholder automaticamente.
+## Sprites de portas (terreo, na face da frente). Vazio = placeholder.
 @export var sprites_porta: Array[Texture2D] = []
-## Sprites de janelas (distribuidas pelas faces).
-## Se vazio, gera sprites placeholder automaticamente.
+## Sprites de janelas. Vazio = placeholder.
 @export var sprites_janela: Array[Texture2D] = []
-## Sprites de detalhes extras (ar condicionado, letreiros, etc).
-## Se vazio, gera sprites placeholder automaticamente.
+## Sprites de detalhes extras (ar condicionado, letreiros...). Vazio = placeholder.
 @export var sprites_detalhe: Array[Texture2D] = []
 ## Gerar sprites placeholder se nenhum for atribuido.
 @export var gerar_sprites_teste := true
@@ -106,14 +127,28 @@ const DIRS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 @export_range(0.8, 2.0, 0.1) var porta_largura := 1.0
 ## Altura de uma porta em blocos.
 @export_range(1.0, 3.0, 0.1) var porta_altura := 2.0
+## Largura de um detalhe (ar condicionado...) em blocos.
+@export_range(0.3, 2.0, 0.1) var detalhe_largura := 0.8
+## Altura de um detalhe em blocos.
+@export_range(0.3, 2.0, 0.1) var detalhe_altura := 0.6
 ## Espaco horizontal entre janelas (em blocos).
 @export_range(0.5, 4.0, 0.1) var janela_espacamento := 2.0
 ## Offset vertical da janela dentro do andar (0 = base do andar).
 @export_range(0.2, 2.0, 0.1) var janela_offset_y := 0.8
 ## Chance de uma janela aparecer em cada slot possivel.
 @export_range(0.0, 1.0, 0.05) var chance_janela := 0.85
-## Chance de detalhe extra em cada slot de andar.
+## Chance de detalhe extra em cada andar de cada parede.
 @export_range(0.0, 1.0, 0.05) var chance_detalhe := 0.15
+## Maximo de detalhes extras por parede.
+@export_range(0, 6) var detalhes_por_parede_max := 2
+## Distancia minima (blocos) entre qualquer sprite e a quina da parede.
+@export_range(0.2, 2.0, 0.1) var margem_borda_sprite := 0.6
+## Folga minima (blocos) entre dois sprites na mesma parede.
+@export_range(0.0, 1.0, 0.05) var folga_entre_sprites := 0.25
+## Quantas posicoes sao tentadas para cada detalhe antes de desistir.
+@export_range(1, 20) var tentativas_detalhe := 8
+## Quanto o sprite sai da parede (evita z-fighting).
+@export_range(0.005, 0.1, 0.005) var recuo_sprite := 0.03
 
 @export_group("Cores Padrao (sem textura)")
 ## Paleta de cores para paredes (usada quando nao ha texturas).
@@ -144,105 +179,174 @@ const DIRS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 #  DADOS INTERNOS
 # -----------------------------------------------------------------------------
 class Construcao:
-	var caixas: Array[Rect2i] = []     # 1 caixa = retangular/quadrado, 2 = L
-	var andares: int = 1
-	var altura_base: int = 0           # altura do chao (Global.mapa)
-	var cor_parede: Color = Color.WHITE
-	var cor_telhado: Color = Color.GRAY
-	var idx_textura_parede: int = -1   # -1 = usar cor
-	var idx_textura_telhado: int = -1
-	var frente: Vector2i = Vector2i.ZERO  # direcao da frente
+	var caixas: Array[Rect2i] = []     # caixas SEM sobreposicao (1 = retangulo, 2 = L)
+	var bbox := Rect2i()               # retangulo que envolve todas as caixas
+	var andares := 1
+	var altura_base := 0               # altura do chao (Global.mapa)
+	var cor_parede := Color.WHITE
+	var cor_telhado := Color.GRAY
+	var idx_textura_parede := -1       # -1 = usar cor
+	var idx_textura_telhado := -1
+	var frente := Vector2i.ZERO        # direcao da frente
+	var semente := 0                   # semente propria das decoracoes (deterministico)
+
+
+# Acumulador de geometria (um por material dentro de um chunk).
+class Acum:
+	var vert := PackedVector3Array()
+	var norm := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var cores := PackedColorArray()
+	var indices := PackedInt32Array()
+
+	# Quad por origem + dois vetores de aresta. O sentido dos triangulos e
+	# ajustado para a face frontal (horario no Godot) apontar para a normal.
+	func quad(origem: Vector3, du: Vector3, dv: Vector3, normal: Vector3,
+			tile_u: float, tile_v: float, cor: Color, v_invertido: bool) -> void:
+		var base := vert.size()
+		vert.append(origem)
+		vert.append(origem + du)
+		vert.append(origem + du + dv)
+		vert.append(origem + dv)
+		if v_invertido:
+			# origem embaixo (v = maximo): imagem fica de pe nas paredes
+			uvs.append(Vector2(0.0, tile_v))
+			uvs.append(Vector2(tile_u, tile_v))
+			uvs.append(Vector2(tile_u, 0.0))
+			uvs.append(Vector2(0.0, 0.0))
+		else:
+			uvs.append(Vector2(0.0, 0.0))
+			uvs.append(Vector2(tile_u, 0.0))
+			uvs.append(Vector2(tile_u, tile_v))
+			uvs.append(Vector2(0.0, tile_v))
+		for i in 4:
+			norm.append(normal)
+			cores.append(cor)
+		if du.cross(dv).dot(normal) > 0.0:
+			indices.append_array(PackedInt32Array([base, base + 2, base + 1, base, base + 3, base + 2]))
+		else:
+			indices.append_array(PackedInt32Array([base, base + 1, base + 2, base, base + 2, base + 3]))
+
 
 var _rng := RandomNumberGenerator.new()
 var _larg := 0
 var _prof := 0
-var _ocupado: PackedByteArray = PackedByteArray()   # 1 = ja tem construcao
+var _mapa := PackedInt32Array()
+var _tipos := PackedByteArray()
+var _ocupado := PackedByteArray()                 # 1 = ja tem construcao
 var _construcoes: Array[Construcao] = []
+var _grade_coer: Dictionary = {}                  # Vector2i -> Array[Construcao]
 var _raiz: Node3D
 
-# Materiais cacheados
-var _mat_cache: Dictionary = {}  # chave: cor -> material
-var _sprite_mats: Dictionary = {}
+# Chunks de construcoes
+var _chunks: Dictionary = {}          # Vector2i -> Array[Construcao]
+var _chunk_rects: Dictionary = {}     # Vector2i -> Rect2 (x,z em unidades do mundo)
+var _chunk_nos: Dictionary = {}       # Vector2i -> Node3D (chunks existentes)
+var _tarefas: Dictionary = {}         # Vector2i -> {"id": int, "dados": Dictionary}
+var _desejados: Dictionary = {}       # Vector2i -> true (dentro do raio de saida)
+var _fila: Array = []                 # chunks a gerar, do mais perto ao mais longe
+var _tempo := 0.0
+var _gerado := false
 
-# Shader para predios
+# Sprites (indices em _tex_sprites; -1 = cor solida de fallback)
+var _tex_sprites: Array[Texture2D] = []
+var _idx_portas: Array[int] = []
+var _idx_janelas: Array[int] = []
+var _idx_detalhes: Array[int] = []
+
+var _cores_janela: Array[Color] = [Color("8ec8e8"), Color("a8d8f0"), Color("78b8d8"), Color("c8d8e0")]
+var _cores_detalhe: Array[Color] = [Color("888888"), Color("666666"), Color("998877")]
+var _cor_porta := Color("5a3a1a")
+
+# Materiais
+var _mats_pred: Dictionary = {}
+var _mats_sprite: Dictionary = {}
+var _shader_predio: Shader
+var _shader_sprite: Shader
+
+# Cor vem do vertex color (ja em espaco linear); textura, se houver, e multiplicada.
 const PREDIO_SHADER_CODE := """
 shader_type spatial;
 render_mode diffuse_lambert, specular_disabled;
 
-uniform vec4 cor_albedo : source_color = vec4(1.0);
 uniform sampler2D textura_albedo : source_color, filter_nearest_mipmap, repeat_enable;
 uniform bool usar_textura = false;
 
 void fragment() {
+	vec3 base = COLOR.rgb;
 	if (usar_textura) {
-		ALBEDO = texture(textura_albedo, UV).rgb;
-	} else {
-		ALBEDO = cor_albedo.rgb;
+		base = texture(textura_albedo, UV).rgb * COLOR.rgb;
 	}
+	ALBEDO = base;
 	ROUGHNESS = 1.0;
 }
 """
 
-# Shader para sprites decorativos (com transparencia)
+# Sprites decorativos: recorte por alpha (opaco, sem ordenacao de transparencia).
 const SPRITE_SHADER_CODE := """
 shader_type spatial;
 render_mode diffuse_lambert, specular_disabled, cull_back;
 
-uniform sampler2D textura : source_color, filter_nearest;
-uniform vec4 cor_fallback : source_color = vec4(0.2, 0.15, 0.1, 1.0);
+uniform sampler2D textura : source_color, filter_nearest_mipmap, repeat_disable;
 uniform bool usar_textura = false;
 
 void fragment() {
+	vec4 c = vec4(1.0);
 	if (usar_textura) {
-		vec4 c = texture(textura, UV);
-		ALBEDO = c.rgb;
-		ALPHA = c.a;
-		ALPHA_SCISSOR_THRESHOLD = 0.5;
-	} else {
-		ALBEDO = cor_fallback.rgb;
-		ALPHA = cor_fallback.a;
+		c = texture(textura, UV);
 	}
+	ALBEDO = c.rgb * COLOR.rgb;
+	ALPHA = c.a;
+	ALPHA_SCISSOR_THRESHOLD = 0.5;
 	ROUGHNESS = 1.0;
 }
 """
 
-var _shader_predio: Shader
-var _shader_sprite: Shader
 
-
+# ---------------------------------------------------------------------------
+# GERACAO (planejamento das construcoes: so dados, sem nos)
+# ---------------------------------------------------------------------------
 func gerar_predios() -> void:
 	if Global.mapa.is_empty():
 		push_error("Predios: chame terreno/ruas/quadras antes de gerar_predios().")
 		return
 
+	_esperar_tarefas()
+	_gerado = false
+
 	_larg = Global.largura
 	_prof = Global.profundidade
+	_mapa = Global.mapa
+	_tipos = Global.tipos
 	_rng.seed = Global.seed + 31337
 
 	_ocupado.resize(_larg * _prof)
 	_ocupado.fill(0)
 	_construcoes.clear()
-	_mat_cache.clear()
-	_sprite_mats.clear()
+	_grade_coer.clear()
+	_chunks.clear()
+	_chunk_rects.clear()
+	_chunk_nos.clear()
+	_desejados.clear()
+	_fila.clear()
+	_mats_pred.clear()
+	_mats_sprite.clear()
 
-	# Gerar sprites placeholder se necessario
-	if gerar_sprites_teste:
-		_gerar_sprites_placeholder()
+	_preparar_sprites()
 
-	# Preparar shaders
-	_shader_predio = Shader.new()
-	_shader_predio.code = PREDIO_SHADER_CODE
-	_shader_sprite = Shader.new()
-	_shader_sprite.code = SPRITE_SHADER_CODE
+	if _shader_predio == null:
+		_shader_predio = Shader.new()
+		_shader_predio.code = PREDIO_SHADER_CODE
+	if _shader_sprite == null:
+		_shader_sprite = Shader.new()
+		_shader_sprite.code = SPRITE_SHADER_CODE
 
-	# Limpar nos anteriores
-	if _raiz:
+	if is_instance_valid(_raiz):
 		_raiz.queue_free()
 	_raiz = Node3D.new()
 	_raiz.name = "ConstrucoesRoot"
 	add_child(_raiz)
 
-	# Buscar quadras
 	var quadras_node = get_node_or_null(no_quadras)
 	if quadras_node == null:
 		push_warning("Predios: no de quadras nao encontrado em '%s'." % [no_quadras])
@@ -253,16 +357,181 @@ func gerar_predios() -> void:
 		push_warning("Predios: nenhuma quadra disponivel.")
 		return
 
-	# Gerar construcoes para cada quadra
 	for quadra in lista:
 		_preencher_quadra(quadra)
 
-	# Construir malhas 3D
-	for c in _construcoes:
-		_construir_malha(c)
+	_indexar_chunks()
 
 	if imprimir_relatorio:
-		print("Predios: %d construcoes geradas." % [_construcoes.size()])
+		print("Predios: %d construcoes em %d chunks (streaming: %s)." % [
+			_construcoes.size(), _chunks.size(), str(renderizar_so_proximo)])
+
+	_tempo = intervalo_atualizacao   # forca atualizacao imediata
+	_gerado = true
+
+	if not renderizar_so_proximo:
+		# Modo antigo: gera tudo agora, sem threads.
+		for ch in _chunks:
+			var dados := {"paredes": {}, "telhados": {}, "sprites": {}}
+			for c in _chunks[ch]:
+				_gerar_geometria(c, dados["paredes"], dados["telhados"], dados["sprites"])
+			_montar_chunk(ch, dados)
+
+
+# ---------------------------------------------------------------------------
+# STREAMING POR DISTANCIA DA CAMERA
+# ---------------------------------------------------------------------------
+func _process(delta: float) -> void:
+	if not _gerado or not renderizar_so_proximo:
+		return
+
+	_tempo += delta
+	if _tempo >= intervalo_atualizacao:
+		_tempo = 0.0
+		_atualizar_chunks()
+
+	# 1) monta chunks cujas threads terminaram
+	var montados := 0
+	for ch in _tarefas.keys():
+		if montados >= montagens_por_frame:
+			break
+		var t: Dictionary = _tarefas[ch]
+		if WorkerThreadPool.is_task_completed(t["id"]):
+			WorkerThreadPool.wait_for_task_completion(t["id"])
+			_tarefas.erase(ch)
+			if _desejados.has(ch) and not _chunk_nos.has(ch):
+				_montar_chunk(ch, t["dados"])
+				montados += 1
+
+	# 2) inicia novas tarefas (do mais perto ao mais longe)
+	while _tarefas.size() < tarefas_simultaneas and not _fila.is_empty():
+		var ch: Vector2i = _fila.pop_front()
+		if _chunk_nos.has(ch) or _tarefas.has(ch) or not _desejados.has(ch):
+			continue
+		_iniciar_chunk(ch)
+
+
+func _atualizar_chunks() -> void:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var p := to_local(cam.global_position)
+	var pxz := Vector2(p.x, p.z)
+	var r_entra := distancia_render
+	var r_sai := distancia_render + histerese_render
+
+	var candidatos: Array = []
+	for ch in _chunks:
+		var d := _dist_rect(pxz, _chunk_rects[ch])
+		if d > r_sai:
+			_desejados.erase(ch)
+			if _chunk_nos.has(ch):
+				(_chunk_nos[ch] as Node3D).queue_free()
+				_chunk_nos.erase(ch)
+		elif d <= r_entra:
+			_desejados[ch] = true
+			if not _chunk_nos.has(ch) and not _tarefas.has(ch):
+				candidatos.append([d, ch])
+
+	candidatos.sort_custom(func(a, b): return a[0] < b[0])
+	_fila.clear()
+	for item in candidatos:
+		_fila.append(item[1])
+
+
+func _dist_rect(p: Vector2, r: Rect2) -> float:
+	var dx := maxf(maxf(r.position.x - p.x, p.x - r.end.x), 0.0)
+	var dz := maxf(maxf(r.position.y - p.y, p.y - r.end.y), 0.0)
+	return sqrt(dx * dx + dz * dz)
+
+
+func _iniciar_chunk(ch: Vector2i) -> void:
+	var dados := {"paredes": {}, "telhados": {}, "sprites": {}}
+	var id := WorkerThreadPool.add_task(_gerar_chunk_thread.bind(ch, dados), false, "Predios")
+	_tarefas[ch] = {"id": id, "dados": dados}
+
+
+# Roda em thread: so calcula arrays (nenhum no/recurso e tocado aqui).
+func _gerar_chunk_thread(ch: Vector2i, dados: Dictionary) -> void:
+	for c in _chunks[ch]:
+		_gerar_geometria(c, dados["paredes"], dados["telhados"], dados["sprites"])
+
+
+func _esperar_tarefas() -> void:
+	for ch in _tarefas:
+		WorkerThreadPool.wait_for_task_completion(_tarefas[ch]["id"])
+	_tarefas.clear()
+
+
+func _exit_tree() -> void:
+	_esperar_tarefas()
+
+
+# Thread principal: transforma os arrays em malhas + nos.
+func _montar_chunk(ch: Vector2i, dados: Dictionary) -> void:
+	if not is_instance_valid(_raiz):
+		return
+	var no := Node3D.new()
+	no.name = "Chunk_%d_%d" % [ch.x, ch.y]
+
+	var solido := ArrayMesh.new()
+	_commit(solido, dados["paredes"], 0)
+	_commit(solido, dados["telhados"], 1)
+	if solido.get_surface_count() > 0:
+		var mi := MeshInstance3D.new()
+		mi.mesh = solido
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if projetar_sombras \
+			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		no.add_child(mi)
+
+	var deco := ArrayMesh.new()
+	_commit(deco, dados["sprites"], 2)
+	if deco.get_surface_count() > 0:
+		var mi2 := MeshInstance3D.new()
+		mi2.mesh = deco
+		mi2.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		no.add_child(mi2)
+
+	_raiz.add_child(no)
+	_chunk_nos[ch] = no
+
+
+# tipo: 0 = paredes, 1 = telhados, 2 = sprites
+func _commit(malha: ArrayMesh, grupos: Dictionary, tipo: int) -> void:
+	for k in grupos:
+		var a: Acum = grupos[k]
+		if a.vert.is_empty():
+			continue
+		var arrays := []
+		arrays.resize(Mesh.ARRAY_MAX)
+		arrays[Mesh.ARRAY_VERTEX] = a.vert
+		arrays[Mesh.ARRAY_NORMAL] = a.norm
+		arrays[Mesh.ARRAY_TEX_UV] = a.uvs
+		arrays[Mesh.ARRAY_COLOR] = a.cores
+		arrays[Mesh.ARRAY_INDEX] = a.indices
+		malha.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		var mat: ShaderMaterial
+		match tipo:
+			0:
+				mat = _mat_predio(int(k), false)
+			1:
+				mat = _mat_predio(int(k), true)
+			_:
+				mat = _mat_sprite(int(k))
+		malha.surface_set_material(malha.get_surface_count() - 1, mat)
+
+
+func _indexar_chunks() -> void:
+	var s: float = Global.tamanho_cubo
+	for c in _construcoes:
+		var ch := Vector2i(c.bbox.get_center() / CHUNK_PREDIOS)
+		var r := Rect2(Vector2(c.bbox.position) * s, Vector2(c.bbox.size) * s)
+		if not _chunks.has(ch):
+			_chunks[ch] = []
+			_chunk_rects[ch] = r
+		else:
+			_chunk_rects[ch] = (_chunk_rects[ch] as Rect2).merge(r)
+		(_chunks[ch] as Array).append(c)
 
 
 # ---------------------------------------------------------------------------
@@ -270,7 +539,6 @@ func gerar_predios() -> void:
 # ---------------------------------------------------------------------------
 func _preencher_quadra(quadra) -> void:
 	var rect: Rect2i = quadra.rect
-	# Area util = quadra menos margem de calcada
 	var util := Rect2i(
 		rect.position.x + margem_calcada,
 		rect.position.y + margem_calcada,
@@ -280,10 +548,7 @@ func _preencher_quadra(quadra) -> void:
 	if util.size.x < construcao_min or util.size.y < construcao_min:
 		return
 
-	# Tentar preencher a area util com construcoes
-	# Usa uma abordagem de subdivisao + empacotamento
-	var blocos := _subdividir_area(util)
-	for bloco in blocos:
+	for bloco in _subdividir_area(util):
 		_colocar_construcao(bloco, rect)
 
 
@@ -300,33 +565,26 @@ func _subdividir_area(area: Rect2i) -> Array[Rect2i]:
 		if w < construcao_min or h < construcao_min:
 			continue
 
-		# Se cabe como construcao unica, aceitar
 		if w <= construcao_max and h <= construcao_max:
 			saida.append(r)
 			continue
 
-		# Precisa dividir - corta no lado maior
 		if w >= h:
-			# Cortar em X
-			var min_corte := construcao_min
 			var max_corte := w - construcao_min - espaco_entre
-			if min_corte > max_corte:
-				# Nao da pra dividir bem, aceita inteiro se nao for absurdo
+			if construcao_min > max_corte:
 				saida.append(r)
 				continue
-			var corte := _rng.randi_range(min_corte, max_corte)
+			var corte := _rng.randi_range(construcao_min, max_corte)
 			fila.append(Rect2i(r.position.x, r.position.y, corte, h))
 			var resto := w - corte - espaco_entre
 			if resto >= construcao_min:
 				fila.append(Rect2i(r.position.x + corte + espaco_entre, r.position.y, resto, h))
 		else:
-			# Cortar em Z
-			var min_corte := construcao_min
 			var max_corte := h - construcao_min - espaco_entre
-			if min_corte > max_corte:
+			if construcao_min > max_corte:
 				saida.append(r)
 				continue
-			var corte := _rng.randi_range(min_corte, max_corte)
+			var corte := _rng.randi_range(construcao_min, max_corte)
 			fila.append(Rect2i(r.position.x, r.position.y, w, corte))
 			var resto := h - corte - espaco_entre
 			if resto >= construcao_min:
@@ -335,35 +593,22 @@ func _subdividir_area(area: Rect2i) -> Array[Rect2i]:
 	return saida
 
 
-# Coloca uma construcao dentro de um bloco
 func _colocar_construcao(bloco: Rect2i, quadra_rect: Rect2i) -> void:
 	if bloco.size.x < construcao_min or bloco.size.y < construcao_min:
 		return
-
-	# Verificar se a area esta livre
-	if not _area_livre(bloco):
-		return
-
-	# Verificar se e tudo quadra valida
-	if not _area_valida(bloco):
+	if not _area_livre(bloco) or not _area_valida(bloco):
 		return
 
 	var c := Construcao.new()
-	c.altura_base = _altura_media(bloco)
-	c.frente = _detectar_frente(bloco, quadra_rect)
 
-	# Decidir forma: L, retangular ou quadrado
+	# Forma: L, retangular ou quadrada
 	var forma := _rng.randf()
 	if forma < chance_forma_L and bloco.size.x >= construcao_min * 2 and bloco.size.y >= construcao_min * 2:
-		# Forma em L
 		c.caixas = _gerar_forma_L(bloco)
 	elif forma < chance_forma_L + chance_retangular:
-		# Retangular (usar o bloco inteiro ou parte dele)
 		c.caixas = [_ajustar_retangulo(bloco)]
 	else:
-		# Quadrado
-		var lado := mini(bloco.size.x, bloco.size.y)
-		lado = mini(lado, construcao_max)
+		var lado := mini(mini(bloco.size.x, bloco.size.y), construcao_max)
 		var ox := _rng.randi_range(0, maxi(bloco.size.x - lado, 0))
 		var oz := _rng.randi_range(0, maxi(bloco.size.y - lado, 0))
 		c.caixas = [Rect2i(bloco.position.x + ox, bloco.position.y + oz, lado, lado)]
@@ -371,23 +616,27 @@ func _colocar_construcao(bloco: Rect2i, quadra_rect: Rect2i) -> void:
 	if c.caixas.is_empty():
 		return
 
-	# Decidir se e casa ou predio
+	var bb := c.caixas[0]
 	var area_total := 0
-	for cx in c.caixas:
-		area_total += cx.get_area()
+	for k in c.caixas.size():
+		bb = bb.merge(c.caixas[k])
+		area_total += c.caixas[k].get_area()
+	c.bbox = bb
+	c.altura_base = _altura_minima(c.caixas)
+	c.frente = _detectar_frente(bb, quadra_rect)
+	c.semente = _rng.randi()
 
+	# Casa ou predio
 	var e_predio := _rng.randf() < chance_predio and area_total >= construcao_min * construcao_min * 2
-
 	if e_predio:
 		c.andares = _rng.randi_range(andares_predio_min, andares_predio_max)
 	else:
 		c.andares = _rng.randi_range(andares_casa_min, andares_casa_max)
 
-	# Aplicar coerencia de altura
 	if coerencia_altura:
 		c.andares = _aplicar_coerencia(c)
 
-	# Cores/texturas
+	# Cores / texturas
 	if not cores_parede.is_empty():
 		c.cor_parede = cores_parede[_rng.randi() % cores_parede.size()]
 	if not cores_telhado.is_empty():
@@ -397,61 +646,49 @@ func _colocar_construcao(bloco: Rect2i, quadra_rect: Rect2i) -> void:
 	if not texturas_telhado.is_empty():
 		c.idx_textura_telhado = _rng.randi() % texturas_telhado.size()
 
-	# Marcar area como ocupada
 	for cx in c.caixas:
 		_marcar_ocupado(cx)
 
 	_construcoes.append(c)
+	var chave := _chave_coer(c)
+	if not _grade_coer.has(chave):
+		_grade_coer[chave] = []
+	(_grade_coer[chave] as Array).append(c)
 
 
 # ---------------------------------------------------------------------------
 # FORMAS
 # ---------------------------------------------------------------------------
+# L formado por DUAS CAIXAS QUE NAO SE SOBREPOEM:
+#   - braco vertical: faixa de largura bw em toda a profundidade do bloco
+#   - braco horizontal: o que sobra da largura, com altura bh, colado em cima ou embaixo
 func _gerar_forma_L(bloco: Rect2i) -> Array[Rect2i]:
 	var w := bloco.size.x
 	var h := bloco.size.y
 	var x0 := bloco.position.x
 	var z0 := bloco.position.y
 
-	# Dividir o bloco em L: duas caixas que se sobrepoem em um canto
-	var tipo_L := _rng.randi_range(0, 3)  # 4 rotacoes do L
+	if w < construcao_min * 2 or h < construcao_min * 2:
+		return [_ajustar_retangulo(bloco)]
 
-	# Tamanho dos dois bracos do L
-	var bw1 := _rng.randi_range(construcao_min, maxi(w - construcao_min, construcao_min))
-	var bh1 := h
-	var bw2 := w
-	var bh2 := _rng.randi_range(construcao_min, maxi(h - construcao_min, construcao_min))
+	var bw := _rng.randi_range(construcao_min, w - construcao_min)
+	var bh := _rng.randi_range(construcao_min, h - construcao_min)
+	var esquerda := _rng.randf() < 0.5
+	var em_cima := _rng.randf() < 0.5
 
 	var caixas: Array[Rect2i] = []
+	var xv := x0 if esquerda else x0 + w - bw
+	caixas.append(Rect2i(xv, z0, bw, h))
 
-	match tipo_L:
-		0:  # L normal (canto superior esquerdo)
-			caixas.append(Rect2i(x0, z0, bw1, bh1))       # braco vertical
-			caixas.append(Rect2i(x0, z0, bw2, bh2))       # braco horizontal
-		1:  # L invertido (canto superior direito)
-			caixas.append(Rect2i(x0 + w - bw1, z0, bw1, bh1))
-			caixas.append(Rect2i(x0, z0, bw2, bh2))
-		2:  # L de cabeca (canto inferior esquerdo)
-			caixas.append(Rect2i(x0, z0, bw1, bh1))
-			caixas.append(Rect2i(x0, z0 + h - bh2, bw2, bh2))
-		3:  # L invertido de cabeca (canto inferior direito)
-			caixas.append(Rect2i(x0 + w - bw1, z0, bw1, bh1))
-			caixas.append(Rect2i(x0, z0 + h - bh2, bw2, bh2))
-
-	# Verificar validade
-	for cx in caixas:
-		if cx.size.x < construcao_min or cx.size.y < construcao_min:
-			return [_ajustar_retangulo(bloco)]  # fallback para retangulo
-		if not _area_valida(cx):
-			return [_ajustar_retangulo(bloco)]
-
+	var xh := x0 + bw if esquerda else x0
+	var zh := z0 if em_cima else z0 + h - bh
+	caixas.append(Rect2i(xh, zh, w - bw, bh))
 	return caixas
 
 
 func _ajustar_retangulo(bloco: Rect2i) -> Rect2i:
 	var w := mini(bloco.size.x, construcao_max)
 	var h := mini(bloco.size.y, construcao_max)
-	# Pequena variacao para nao ficar tudo do mesmo tamanho
 	if w > construcao_min + 1:
 		w = _rng.randi_range(maxi(construcao_min, w - 3), w)
 	if h > construcao_min + 1:
@@ -462,84 +699,76 @@ func _ajustar_retangulo(bloco: Rect2i) -> Rect2i:
 
 
 # ---------------------------------------------------------------------------
-# COERENCIA DE ALTURA
+# COERENCIA DE ALTURA (grade espacial: so olha as celulas vizinhas)
 # ---------------------------------------------------------------------------
+func _chave_coer(c: Construcao) -> Vector2i:
+	return Vector2i(Vector2(c.bbox.get_center()) / float(raio_coerencia))
+
+
 func _aplicar_coerencia(c: Construcao) -> int:
-	if _construcoes.is_empty():
-		return c.andares
-
-	var centro := Vector2(c.caixas[0].position.x + c.caixas[0].size.x * 0.5,
-						  c.caixas[0].position.y + c.caixas[0].size.y * 0.5)
-
+	var centro := Vector2(c.bbox.get_center())
+	var base := _chave_coer(c)
 	var soma := 0.0
 	var peso_total := 0.0
 
-	for outra in _construcoes:
-		var outro_centro := Vector2(outra.caixas[0].position.x + outra.caixas[0].size.x * 0.5,
-									outra.caixas[0].position.y + outra.caixas[0].size.y * 0.5)
-		var dist := centro.distance_to(outro_centro)
-		if dist < raio_coerencia:
-			var peso := 1.0 - (dist / raio_coerencia)
-			soma += outra.andares * peso
-			peso_total += peso
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			var chave := base + Vector2i(dx, dz)
+			if not _grade_coer.has(chave):
+				continue
+			for outra in _grade_coer[chave]:
+				var dist := centro.distance_to(Vector2(outra.bbox.get_center()))
+				if dist < raio_coerencia:
+					var peso := 1.0 - (dist / raio_coerencia)
+					soma += outra.andares * peso
+					peso_total += peso
 
 	if peso_total < 0.01:
 		return c.andares
 
-	var media := soma / peso_total
-	var alvo := lerpf(float(c.andares), media, forca_coerencia)
+	var alvo := lerpf(float(c.andares), soma / peso_total, forca_coerencia)
 	return clampi(roundi(alvo), andares_casa_min, andares_predio_max)
 
 
 # ---------------------------------------------------------------------------
-# DETECCAO DE FRENTE (lado mais proximo da rua)
+# FRENTE: lado cuja borda da quadra encosta mais em rua/calcada
 # ---------------------------------------------------------------------------
-func _detectar_frente(bloco: Rect2i, quadra_rect: Rect2i) -> Vector2i:
+func _detectar_frente(bb: Rect2i, q: Rect2i) -> Vector2i:
 	var melhor := Vector2i.ZERO
-	var melhor_n := 0
+	var melhor_n := -1
+	var melhor_gap := 1 << 20
 
 	for d in 4:
 		var dv: Vector2i = DIRS[d]
 		var n := 0
+		var gap := 0
 		if dv.x != 0:
-			var x: int = bloco.end.x if dv.x > 0 else bloco.position.x - 1
-			for z in range(bloco.position.y, bloco.end.y):
+			var borda_c := bb.end.x if dv.x > 0 else bb.position.x
+			var borda_q := q.end.x if dv.x > 0 else q.position.x
+			gap = absi(borda_q - borda_c)
+			var x := borda_q if dv.x > 0 else borda_q - 1
+			for z in range(bb.position.y, bb.end.y):
 				if _e_via(x, z):
 					n += 1
 		else:
-			var z: int = bloco.end.y if dv.y > 0 else bloco.position.y - 1
-			for x in range(bloco.position.x, bloco.end.x):
+			var borda_c := bb.end.y if dv.y > 0 else bb.position.y
+			var borda_q := q.end.y if dv.y > 0 else q.position.y
+			gap = absi(borda_q - borda_c)
+			var z := borda_q if dv.y > 0 else borda_q - 1
+			for x in range(bb.position.x, bb.end.x):
 				if _e_via(x, z):
 					n += 1
-		if n > melhor_n:
+		if n > melhor_n or (n == melhor_n and gap < melhor_gap):
 			melhor_n = n
+			melhor_gap = gap
 			melhor = dv
-
-	# Fallback: usar o lado mais proximo da borda da quadra
-	if melhor == Vector2i.ZERO:
-		var cx := bloco.position.x + bloco.size.x / 2
-		var cz := bloco.position.y + bloco.size.y / 2
-		var dist_esq := cx - quadra_rect.position.x
-		var dist_dir := quadra_rect.end.x - cx
-		var dist_cim := cz - quadra_rect.position.y
-		var dist_bai := quadra_rect.end.y - cz
-		var menor := mini(mini(dist_esq, dist_dir), mini(dist_cim, dist_bai))
-		if menor == dist_esq:
-			melhor = Vector2i(-1, 0)
-		elif menor == dist_dir:
-			melhor = Vector2i(1, 0)
-		elif menor == dist_cim:
-			melhor = Vector2i(0, -1)
-		else:
-			melhor = Vector2i(0, 1)
-
 	return melhor
 
 
 func _e_via(x: int, z: int) -> bool:
 	if x < 0 or z < 0 or x >= _larg or z >= _prof:
 		return false
-	var t = Global.tipos[x * _prof + z]
+	var t := _tipos[x * _prof + z]
 	return t == T_RUA or t == T_CALCADA or t == T_PONTE
 
 
@@ -561,7 +790,7 @@ func _area_valida(r: Rect2i) -> bool:
 		for z in range(r.position.y, r.end.y):
 			if x < 0 or z < 0 or x >= _larg or z >= _prof:
 				return false
-			if Global.tipos[x * _prof + z] != T_QUADRA:
+			if _tipos[x * _prof + z] != T_QUADRA:
 				return false
 	return true
 
@@ -573,363 +802,327 @@ func _marcar_ocupado(r: Rect2i) -> void:
 				_ocupado[x * _prof + z] = 1
 
 
-func _altura_media(r: Rect2i) -> int:
-	var soma := 0
-	var n := 0
-	for x in range(r.position.x, r.end.x):
-		for z in range(r.position.y, r.end.y):
-			if x >= 0 and z >= 0 and x < _larg and z < _prof:
-				soma += Global.mapa[x * _prof + z]
-				n += 1
-	if n == 0:
+# Menor altura do terreno sob as caixas: a parede comeca ali e nunca sobra buraco.
+func _altura_minima(caixas: Array[Rect2i]) -> int:
+	var menor := 1 << 20
+	for r in caixas:
+		for x in range(r.position.x, r.end.x):
+			for z in range(r.position.y, r.end.y):
+				if x >= 0 and z >= 0 and x < _larg and z < _prof:
+					menor = mini(menor, _mapa[x * _prof + z])
+	if menor == 1 << 20:
 		return 1
-	return roundi(float(soma) / n)
+	return menor
 
 
 # ---------------------------------------------------------------------------
-# CONSTRUCAO DA MALHA 3D
+# GEOMETRIA DE UMA CONSTRUCAO (pode rodar em thread: so usa dados locais)
 # ---------------------------------------------------------------------------
-func _construir_malha(c: Construcao) -> void:
+func _gerar_geometria(c: Construcao, paredes: Dictionary, telhados: Dictionary, sprites: Dictionary) -> void:
 	var s: float = Global.tamanho_cubo
 	var altura_total: float = c.andares * blocos_por_andar * s
 	var base_y: float = c.altura_base * s
+	var topo_y: float = base_y + altura_total
 
-	# Material da parede
-	var mat_parede := _obter_material_predio(c.cor_parede, c.idx_textura_parede, false)
-	# Material do telhado
-	var mat_telhado := _obter_material_predio(c.cor_telhado, c.idx_textura_telhado, true)
+	var cor_p: Color = Color.WHITE if c.idx_textura_parede >= 0 else c.cor_parede.srgb_to_linear()
+	var cor_t: Color = Color.WHITE if c.idx_textura_telhado >= 0 else c.cor_telhado.srgb_to_linear()
+	var ap := _acum(paredes, c.idx_textura_parede)
+	var at := _acum(telhados, c.idx_textura_telhado)
 
+	# Telhados (caixas nao se sobrepoem, entao nao ha z-fighting)
 	for caixa in c.caixas:
-		var no_caixa := Node3D.new()
-		no_caixa.name = "Construcao_%d_%d" % [caixa.position.x, caixa.position.y]
+		at.quad(
+			Vector3(caixa.position.x * s, topo_y, caixa.position.y * s),
+			Vector3(caixa.size.x * s, 0.0, 0.0),
+			Vector3(0.0, 0.0, caixa.size.y * s),
+			Vector3.UP, caixa.size.x, caixa.size.y, cor_t, false)
 
-		# === PAREDES ===
-		var mesh_paredes := _gerar_mesh_paredes(caixa, base_y, altura_total, s)
-		var mi_paredes := MeshInstance3D.new()
-		mi_paredes.mesh = mesh_paredes
-		mi_paredes.material_override = mat_parede
-		mi_paredes.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		no_caixa.add_child(mi_paredes)
+	# Paredes: so os trechos expostos (sem a parte que encosta em outra caixa)
+	var segs: Array[Dictionary] = []
+	for caixa in c.caixas:
+		_segmentos_da_caixa(c, caixa, base_y, s, segs)
 
-		# === TELHADO ===
-		var mesh_telhado := _gerar_mesh_telhado(caixa, base_y + altura_total, s)
-		var mi_telhado := MeshInstance3D.new()
-		mi_telhado.mesh = mesh_telhado
-		mi_telhado.material_override = mat_telhado
-		mi_telhado.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		no_caixa.add_child(mi_telhado)
+	for seg in segs:
+		var comp: float = seg["comp"]
+		ap.quad(seg["origem"], (seg["ao_longo"] as Vector3) * comp, Vector3(0.0, altura_total, 0.0),
+			seg["normal"], comp / s, altura_total / s, cor_p, true)
 
-		# === SPRITES DECORATIVOS ===
-		_adicionar_decoracoes(no_caixa, c, caixa, base_y, altura_total, s)
+	# Escolhe o trecho da porta: preferencia para a frente, depois o mais longo
+	var minimo_porta := (porta_largura + margem_borda_sprite * 2.0) * s
+	var seg_porta := -1
+	var melhor_nota := -1.0
+	for i in segs.size():
+		var comp: float = segs[i]["comp"]
+		if comp < minimo_porta:
+			continue
+		var nota := comp
+		if (segs[i]["dir"] as Vector2i) == c.frente:
+			nota += 1000.0
+		if nota > melhor_nota:
+			melhor_nota = nota
+			seg_porta = i
 
-		_raiz.add_child(no_caixa)
-
-
-func _gerar_mesh_paredes(caixa: Rect2i, base_y: float, altura: float, s: float) -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-
-	var x0: float = caixa.position.x * s
-	var z0: float = caixa.position.y * s
-	var x1: float = caixa.end.x * s
-	var z1: float = caixa.end.y * s
-	var w: float = (x1 - x0)
-	var h: float = (z1 - z0)
-	var y0: float = base_y
-	var y1: float = base_y + altura
-
-	# Face Norte (Z-)
-	_quad_st(st, Vector3(x0, y0, z0), Vector3(w, 0, 0), Vector3(0, altura, 0), Vector3(0, 0, -1), w / s, altura / s)
-	# Face Sul (Z+)
-	_quad_st(st, Vector3(x1, y0, z1), Vector3(-w, 0, 0), Vector3(0, altura, 0), Vector3(0, 0, 1), w / s, altura / s)
-	# Face Oeste (X-)
-	_quad_st(st, Vector3(x0, y0, z1), Vector3(0, 0, -h), Vector3(0, altura, 0), Vector3(-1, 0, 0), h / s, altura / s)
-	# Face Leste (X+)
-	_quad_st(st, Vector3(x1, y0, z0), Vector3(0, 0, h), Vector3(0, altura, 0), Vector3(1, 0, 0), h / s, altura / s)
-
-	st.generate_tangents()
-	return st.commit()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = c.semente
+	for i in segs.size():
+		_decorar_segmento(segs[i], i == seg_porta, c.andares, rng, sprites, s)
 
 
-func _gerar_mesh_telhado(caixa: Rect2i, topo_y: float, s: float) -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+# Trechos de parede expostos de uma caixa. Cada trecho:
+# origem (ponto inicial no chao), ao_longo (unitario, esquerda->direita visto de fora),
+# normal, comp (comprimento no mundo), dir (direcao da face).
+func _segmentos_da_caixa(c: Construcao, caixa: Rect2i, base_y: float, s: float, saida: Array[Dictionary]) -> void:
+	for d in 4:
+		var dv: Vector2i = DIRS[d]
+		var normal := Vector3(dv.x, 0.0, dv.y)
+		var ao_longo := Vector3.UP.cross(normal)   # direita de quem olha a parede de fora
+		var corre_em_z := dv.x != 0
+		var a_ini := caixa.position.y if corre_em_z else caixa.position.x
+		var a_fim := caixa.end.y if corre_em_z else caixa.end.x
+		var ini := -1
 
-	var x0: float = caixa.position.x * s
-	var z0: float = caixa.position.y * s
-	var x1: float = caixa.end.x * s
-	var z1: float = caixa.end.y * s
-	var w: float = x1 - x0
-	var h: float = z1 - z0
+		for k in range(a_ini, a_fim + 1):
+			var exposto := false
+			if k < a_fim:
+				var vx := k
+				var vz := k
+				if corre_em_z:
+					vx = caixa.end.x if dv.x > 0 else caixa.position.x - 1
+				else:
+					vz = caixa.end.y if dv.y > 0 else caixa.position.y - 1
+				exposto = not _cel_na_construcao(c, vx, vz)
 
-	# Topo
-	_quad_st(st, Vector3(x0, topo_y, z0), Vector3(w, 0, 0), Vector3(0, 0, h), Vector3(0, 1, 0), w / s, h / s)
+			if exposto:
+				if ini < 0:
+					ini = k
+			elif ini >= 0:
+				var origem: Vector3
+				if corre_em_z:
+					var xf: float = (caixa.end.x if dv.x > 0 else caixa.position.x) * s
+					var zs: float = (ini if ao_longo.z > 0.0 else k) * s
+					origem = Vector3(xf, base_y, zs)
+				else:
+					var zf: float = (caixa.end.y if dv.y > 0 else caixa.position.y) * s
+					var xs: float = (ini if ao_longo.x > 0.0 else k) * s
+					origem = Vector3(xs, base_y, zf)
+				saida.append({
+					"origem": origem,
+					"ao_longo": ao_longo,
+					"normal": normal,
+					"comp": (k - ini) * s,
+					"dir": dv,
+				})
+				ini = -1
 
-	st.generate_tangents()
-	return st.commit()
 
-
-func _quad_st(st: SurfaceTool, origem: Vector3, du: Vector3, dv: Vector3, normal: Vector3, u_tile: float, v_tile: float) -> void:
-	# 4 vertices: origem, origem+du, origem+du+dv, origem+dv
-	var p0 := origem
-	var p1 := origem + du
-	var p2 := origem + du + dv
-	var p3 := origem + dv
-
-	st.set_normal(normal)
-
-	# No Godot, a face frontal usa sentido horario (clockwise).
-	# Se du.cross(dv) aponta no mesmo sentido da normal, o sentido horario e p0 -> p2 -> p1 e p0 -> p3 -> p2.
-	if du.cross(dv).dot(normal) > 0.0:
-		# Tri 1
-		st.set_uv(Vector2(0, v_tile)); st.add_vertex(p0)
-		st.set_uv(Vector2(u_tile, 0)); st.add_vertex(p2)
-		st.set_uv(Vector2(u_tile, v_tile)); st.add_vertex(p1)
-		# Tri 2
-		st.set_uv(Vector2(0, v_tile)); st.add_vertex(p0)
-		st.set_uv(Vector2(0, 0)); st.add_vertex(p3)
-		st.set_uv(Vector2(u_tile, 0)); st.add_vertex(p2)
-	else:
-		# Tri 1
-		st.set_uv(Vector2(0, v_tile)); st.add_vertex(p0)
-		st.set_uv(Vector2(u_tile, v_tile)); st.add_vertex(p1)
-		st.set_uv(Vector2(u_tile, 0)); st.add_vertex(p2)
-		# Tri 2
-		st.set_uv(Vector2(0, v_tile)); st.add_vertex(p0)
-		st.set_uv(Vector2(u_tile, 0)); st.add_vertex(p2)
-		st.set_uv(Vector2(0, 0)); st.add_vertex(p3)
+func _cel_na_construcao(c: Construcao, x: int, z: int) -> bool:
+	var p := Vector2i(x, z)
+	for cx in c.caixas:
+		if cx.has_point(p):
+			return true
+	return false
 
 
 # ---------------------------------------------------------------------------
-# MATERIAIS
+# DECORACOES (porta, janelas, detalhes) SEM SOBREPOSICAO
 # ---------------------------------------------------------------------------
-func _obter_material_predio(cor: Color, idx_tex: int, e_telhado: bool) -> ShaderMaterial:
-	var chave := "%s_%d_%s" % [cor.to_html(), idx_tex, str(e_telhado)]
-	if chave in _mat_cache:
-		return _mat_cache[chave]
+# Sistema de coordenadas da parede: u = ao longo (0..comp), y = altura (0..)
+# `ocup` guarda os retangulos ja usados; todo sprite novo e testado contra ele.
+func _decorar_segmento(seg: Dictionary, tem_porta: bool, andares: int,
+		rng: RandomNumberGenerator, sprites: Dictionary, s: float) -> void:
+	var comp: float = seg["comp"]
+	var altura_andar := blocos_por_andar * s
+	var margem := margem_borda_sprite * s
+	var folga := folga_entre_sprites * s
+	var ocup: Array[Rect2] = []
+
+	# --- PORTA -----------------------------------------------------------------
+	if tem_porta:
+		var pw := porta_largura * s
+		var ph := minf(porta_altura * s, altura_andar - 0.3 * s)
+		var u := (comp - pw) * 0.5
+		var idx := _escolher_idx(_idx_portas, rng)
+		var cor := Color.WHITE if idx >= 0 else _cor_porta.srgb_to_linear()
+		_sprite(sprites, seg, idx, cor, u, 0.0, pw, ph)
+		ocup.append(Rect2(u, 0.0, pw, ph).grow(folga))
+
+	# --- JANELAS (grade regular; pula o que colidir com algo) -------------------
+	var jw := janela_largura * s
+	var jh := janela_altura * s
+	var util := comp - margem * 2.0
+	var n := 0
+	if util >= jw:
+		n = mini(floori(util / (janela_espacamento * s)), floori(util / (jw + folga)))
+	if n > 0:
+		var passo := util / n
+		for andar in andares:
+			var y := andar * altura_andar + janela_offset_y * s
+			y = minf(y, (andar + 1) * altura_andar - jh - 0.15 * s)
+			y = maxf(y, andar * altura_andar + 0.1 * s)
+			for j in n:
+				var u := margem + (j + 0.5) * passo - jw * 0.5
+				var r := Rect2(u, y, jw, jh)
+				if _colide(ocup, r.grow(folga)):
+					continue
+				if rng.randf() > chance_janela:
+					continue
+				var idx := _escolher_idx(_idx_janelas, rng)
+				var cor := Color.WHITE
+				if idx < 0:
+					cor = _cores_janela[rng.randi() % _cores_janela.size()].srgb_to_linear()
+				_sprite(sprites, seg, idx, cor, u, y, jw, jh)
+				ocup.append(r)
+
+	# --- DETALHES EXTRAS (so em espaco livre) ----------------------------------
+	var dw := detalhe_largura * s
+	var dh := detalhe_altura * s
+	if chance_detalhe > 0.0 and andares > 1 and detalhes_por_parede_max > 0 \
+			and comp - margem * 2.0 > dw and altura_andar - dh > 0.4 * s:
+		var colocados := 0
+		for andar in range(1, andares):
+			if colocados >= detalhes_por_parede_max:
+				break
+			if rng.randf() > chance_detalhe:
+				continue
+			for t in tentativas_detalhe:
+				var u := rng.randf_range(margem, comp - margem - dw)
+				var y := andar * altura_andar + rng.randf_range(0.2 * s, altura_andar - dh - 0.2 * s)
+				var r := Rect2(u, y, dw, dh)
+				if _colide(ocup, r.grow(folga)):
+					continue
+				var idx := _escolher_idx(_idx_detalhes, rng)
+				var cor := Color.WHITE
+				if idx < 0:
+					cor = _cores_detalhe[rng.randi() % _cores_detalhe.size()].srgb_to_linear()
+				_sprite(sprites, seg, idx, cor, u, y, dw, dh)
+				ocup.append(r)
+				colocados += 1
+				break
+
+
+func _colide(ocup: Array[Rect2], r: Rect2) -> bool:
+	for o in ocup:
+		if o.intersects(r):
+			return true
+	return false
+
+
+func _escolher_idx(lista: Array[int], rng: RandomNumberGenerator) -> int:
+	if lista.is_empty():
+		return -1
+	return lista[rng.randi() % lista.size()]
+
+
+func _sprite(sprites: Dictionary, seg: Dictionary, idx_tex: int, cor: Color,
+		u: float, y: float, largura: float, altura: float) -> void:
+	var normal: Vector3 = seg["normal"]
+	var ao_longo: Vector3 = seg["ao_longo"]
+	var origem: Vector3 = seg["origem"]
+	var p := origem + ao_longo * u + normal * recuo_sprite + Vector3(0.0, y, 0.0)
+	_acum(sprites, idx_tex).quad(p, ao_longo * largura, Vector3(0.0, altura, 0.0),
+		normal, 1.0, 1.0, cor, true)
+
+
+func _acum(d: Dictionary, k: int) -> Acum:
+	if not d.has(k):
+		d[k] = Acum.new()
+	return d[k]
+
+
+# ---------------------------------------------------------------------------
+# MATERIAIS (criados so na thread principal)
+# ---------------------------------------------------------------------------
+func _mat_predio(idx: int, telhado: bool) -> ShaderMaterial:
+	var chave := idx * 2 + (1 if telhado else 0)
+	if _mats_pred.has(chave):
+		return _mats_pred[chave]
 
 	var mat := ShaderMaterial.new()
 	mat.shader = _shader_predio
-	mat.set_shader_parameter("cor_albedo", cor)
-
-	if idx_tex >= 0:
-		var tex: Texture2D
-		if e_telhado and idx_tex < texturas_telhado.size():
-			tex = texturas_telhado[idx_tex]
-		elif not e_telhado and idx_tex < texturas_parede.size():
-			tex = texturas_parede[idx_tex]
-		if tex:
-			mat.set_shader_parameter("textura_albedo", tex)
-			mat.set_shader_parameter("usar_textura", true)
-		else:
-			mat.set_shader_parameter("usar_textura", false)
-	else:
-		mat.set_shader_parameter("usar_textura", false)
-
-	_mat_cache[chave] = mat
-	return mat
-
-
-func _obter_material_sprite(tex: Texture2D, cor_fallback: Color) -> ShaderMaterial:
-	var chave: String
-	if tex:
-		chave = "spr_%d" % [tex.get_rid().get_id()]
-	else:
-		chave = "spr_%s" % [cor_fallback.to_html()]
-	if chave in _sprite_mats:
-		return _sprite_mats[chave]
-
-	var mat := ShaderMaterial.new()
-	mat.shader = _shader_sprite
-	mat.render_priority = 1
-	if tex:
-		mat.set_shader_parameter("textura", tex)
+	var tex: Texture2D = null
+	if idx >= 0:
+		var lista: Array[Texture2D] = texturas_telhado if telhado else texturas_parede
+		if idx < lista.size():
+			tex = lista[idx]
+	if tex != null:
+		mat.set_shader_parameter("textura_albedo", tex)
 		mat.set_shader_parameter("usar_textura", true)
 	else:
 		mat.set_shader_parameter("usar_textura", false)
-		mat.set_shader_parameter("cor_fallback", cor_fallback)
 
-	_sprite_mats[chave] = mat
+	_mats_pred[chave] = mat
+	return mat
+
+
+func _mat_sprite(idx: int) -> ShaderMaterial:
+	if _mats_sprite.has(idx):
+		return _mats_sprite[idx]
+
+	var mat := ShaderMaterial.new()
+	mat.shader = _shader_sprite
+	if idx >= 0 and idx < _tex_sprites.size():
+		mat.set_shader_parameter("textura", _tex_sprites[idx])
+		mat.set_shader_parameter("usar_textura", true)
+	else:
+		mat.set_shader_parameter("usar_textura", false)
+
+	_mats_sprite[idx] = mat
 	return mat
 
 
 # ---------------------------------------------------------------------------
-# DECORACOES (PORTAS, JANELAS, DETALHES)
+# SPRITES: exports do usuario + placeholders (sem alterar os exports)
 # ---------------------------------------------------------------------------
-func _adicionar_decoracoes(parent: Node3D, c: Construcao, caixa: Rect2i, base_y: float, altura_total: float, s: float) -> void:
-	var x0: float = caixa.position.x * s
-	var z0: float = caixa.position.y * s
-	var x1: float = caixa.end.x * s
-	var z1: float = caixa.end.y * s
+func _preparar_sprites() -> void:
+	_tex_sprites.clear()
+	_idx_portas.clear()
+	_idx_janelas.clear()
+	_idx_detalhes.clear()
 
-	# Dados das 4 faces: [ponto_inicio, direcao_ao_longo, normal, comprimento]
-	var faces := [
-		# Norte (Z-)
-		{"pos": Vector3(x0, base_y, z0), "ao_longo": Vector3(1, 0, 0), "normal": Vector3(0, 0, -1), "comp": x1 - x0, "dir": Vector2i(0, -1)},
-		# Sul (Z+)
-		{"pos": Vector3(x1, base_y, z1), "ao_longo": Vector3(-1, 0, 0), "normal": Vector3(0, 0, 1), "comp": x1 - x0, "dir": Vector2i(0, 1)},
-		# Oeste (X-)
-		{"pos": Vector3(x0, base_y, z1), "ao_longo": Vector3(0, 0, -1), "normal": Vector3(-1, 0, 0), "comp": z1 - z0, "dir": Vector2i(-1, 0)},
-		# Leste (X+)
-		{"pos": Vector3(x1, base_y, z0), "ao_longo": Vector3(0, 0, 1), "normal": Vector3(1, 0, 0), "comp": z1 - z0, "dir": Vector2i(1, 0)},
-	]
+	_adicionar_sprites(sprites_porta, _idx_portas)
+	_adicionar_sprites(sprites_janela, _idx_janelas)
+	_adicionar_sprites(sprites_detalhe, _idx_detalhes)
 
-	var altura_andar: float = blocos_por_andar * s
-	var porta_colocada := false
-
-	for face in faces:
-		var e_frente: bool = (face["dir"] as Vector2i) == c.frente
-		var pos: Vector3 = face["pos"]
-		var ao_longo: Vector3 = face["ao_longo"]
-		var normal: Vector3 = face["normal"]
-		var comp: float = face["comp"]
-
-		# === PORTA (apenas na frente, terreo) ===
-		if e_frente and not porta_colocada:
-			var porta_x: float = comp * 0.5 - porta_largura * s * 0.5
-			var porta_pos := pos + ao_longo * porta_x + normal * 0.03
-			_colocar_sprite_quad(parent, porta_pos, ao_longo, normal,
-				porta_largura * s, porta_altura * s, _escolher_sprite_porta())
-			porta_colocada = true
-
-		# === JANELAS (todos os andares) ===
-		for andar in c.andares:
-			var y_andar: float = andar * altura_andar
-
-			# Se e o terreo e e a frente, pular a regiao da porta
-			var num_janelas := floori(comp / (janela_espacamento * s))
-			if num_janelas <= 0:
-				continue
-
-			var espacamento_real: float = comp / num_janelas
-
-			for j in num_janelas:
-				# Pular o slot central no terreo da frente (porta)
-				if andar == 0 and e_frente:
-					var pos_j := (j + 0.5) * espacamento_real
-					if absf(pos_j - comp * 0.5) < porta_largura * s:
-						continue
-
-				if _rng.randf() > chance_janela:
-					continue
-
-				var off_x: float = (j + 0.5) * espacamento_real - janela_largura * s * 0.5
-				var jan_pos := pos + ao_longo * off_x + normal * 0.03 + Vector3(0, y_andar + janela_offset_y * s, 0)
-				_colocar_sprite_quad(parent, jan_pos, ao_longo, normal,
-					janela_largura * s, janela_altura * s, _escolher_sprite_janela())
-
-		# === DETALHES EXTRAS ===
-		if not sprites_detalhe.is_empty() or chance_detalhe > 0:
-			for andar in range(1, c.andares):
-				if _rng.randf() > chance_detalhe:
-					continue
-				var det_x: float = _rng.randf_range(1.0, comp - 1.0)
-				var det_y: float = andar * altura_andar + _rng.randf_range(0.5, altura_andar - 1.0) * s
-				var det_pos := pos + ao_longo * det_x + normal * 0.04 + Vector3(0, det_y, 0)
-				_colocar_sprite_quad(parent, det_pos, ao_longo, normal,
-					0.8 * s, 0.6 * s, _escolher_sprite_detalhe())
+	if gerar_sprites_teste:
+		if _idx_portas.is_empty():
+			_idx_portas.append(_nova_tex(_criar_textura_porta()))
+		if _idx_janelas.is_empty():
+			_idx_janelas.append(_nova_tex(_criar_textura_janela_residencial()))
+			_idx_janelas.append(_nova_tex(_criar_textura_janela_comercial()))
+		if _idx_detalhes.is_empty():
+			_idx_detalhes.append(_nova_tex(_criar_textura_ar_condicionado()))
 
 
-func _colocar_sprite_quad(parent: Node3D, pos: Vector3, ao_longo: Vector3, normal: Vector3,
-	largura: float, altura: float, material: ShaderMaterial) -> void:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-
-	var du := ao_longo.normalized() * largura
-	var dv := Vector3(0.0, altura, 0.0)
-
-	st.set_normal(normal)
-
-	var p0 := pos
-	var p1 := pos + du
-	var p2 := pos + du + dv
-	var p3 := pos + dv
-
-	if du.cross(dv).dot(normal) > 0.0:
-		st.set_uv(Vector2(0, 1)); st.add_vertex(p0)
-		st.set_uv(Vector2(1, 0)); st.add_vertex(p2)
-		st.set_uv(Vector2(1, 1)); st.add_vertex(p1)
-
-		st.set_uv(Vector2(0, 1)); st.add_vertex(p0)
-		st.set_uv(Vector2(0, 0)); st.add_vertex(p3)
-		st.set_uv(Vector2(1, 0)); st.add_vertex(p2)
-	else:
-		st.set_uv(Vector2(0, 1)); st.add_vertex(p0)
-		st.set_uv(Vector2(1, 1)); st.add_vertex(p1)
-		st.set_uv(Vector2(1, 0)); st.add_vertex(p2)
-
-		st.set_uv(Vector2(0, 1)); st.add_vertex(p0)
-		st.set_uv(Vector2(1, 0)); st.add_vertex(p2)
-		st.set_uv(Vector2(0, 0)); st.add_vertex(p3)
-
-	st.generate_tangents()
-	var mesh := st.commit()
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	mi.material_override = material
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(mi)
+func _adicionar_sprites(origem: Array[Texture2D], destino: Array[int]) -> void:
+	for t in origem:
+		if t != null:
+			destino.append(_nova_tex(t))
 
 
-# Escolher sprites com fallback para cor solida
-func _escolher_sprite_porta() -> ShaderMaterial:
-	if not sprites_porta.is_empty():
-		return _obter_material_sprite(sprites_porta[_rng.randi() % sprites_porta.size()], Color.TRANSPARENT)
-	return _obter_material_sprite(null, Color("5a3a1a"))  # marrom porta
-
-
-func _escolher_sprite_janela() -> ShaderMaterial:
-	if not sprites_janela.is_empty():
-		return _obter_material_sprite(sprites_janela[_rng.randi() % sprites_janela.size()], Color.TRANSPARENT)
-	# Janela = cor clara com transparencia parcial para simular vidro
-	var cores_janela := [
-		Color("8ec8e8"),  # azul claro (vidro)
-		Color("a8d8f0"),  # azul mais claro
-		Color("78b8d8"),  # azul medio
-		Color("c8d8e0"),  # cinza azulado
-	]
-	return _obter_material_sprite(null, cores_janela[_rng.randi() % cores_janela.size()])
-
-
-func _escolher_sprite_detalhe() -> ShaderMaterial:
-	if not sprites_detalhe.is_empty():
-		return _obter_material_sprite(sprites_detalhe[_rng.randi() % sprites_detalhe.size()], Color.TRANSPARENT)
-	var cores_det := [
-		Color("888888"),  # cinza (ar condicionado)
-		Color("666666"),  # cinza escuro
-		Color("998877"),  # bege (letreiro)
-	]
-	return _obter_material_sprite(null, cores_det[_rng.randi() % cores_det.size()])
-
+func _nova_tex(t: Texture2D) -> int:
+	_tex_sprites.append(t)
+	return _tex_sprites.size() - 1
 
 
 # ---------------------------------------------------------------------------
-# GERACAO DE SPRITES PLACEHOLDER (teste)
+# TEXTURAS PLACEHOLDER (pixel art procedural)
 # ---------------------------------------------------------------------------
-# Cria sprites procedurais pixel-art para portas, janelas e detalhes.
-# So gera se os arrays correspondentes estiverem vazios.
-# ---------------------------------------------------------------------------
-func _gerar_sprites_placeholder() -> void:
-	if sprites_porta.is_empty():
-		sprites_porta.append(_criar_textura_porta())
-	if sprites_janela.is_empty():
-		sprites_janela.append(_criar_textura_janela_residencial())
-		sprites_janela.append(_criar_textura_janela_comercial())
-	if sprites_detalhe.is_empty():
-		sprites_detalhe.append(_criar_textura_ar_condicionado())
+func _finalizar(img: Image) -> ImageTexture:
+	img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
 
 
 func _criar_textura_porta() -> ImageTexture:
 	var img := Image.create(16, 32, false, Image.FORMAT_RGBA8)
 	img.fill(Color.TRANSPARENT)
-	# Moldura
+	# Moldura e fundo
 	for x in 16:
 		for y in 32:
 			if x == 0 or x == 15 or y == 0:
 				img.set_pixel(x, y, Color("3a2a1a"))
 			elif x >= 1 and x <= 14 and y >= 1 and y <= 30:
 				img.set_pixel(x, y, Color("6b4226"))
-	# Paineis (sulcos na porta)
+	# Paineis
 	for x in range(3, 13):
 		for y in range(3, 13):
 			img.set_pixel(x, y, Color("7a5232"))
@@ -950,8 +1143,7 @@ func _criar_textura_porta() -> ImageTexture:
 	img.set_pixel(11, 20, Color("d4a830"))
 	img.set_pixel(12, 19, Color("b89028"))
 	img.set_pixel(12, 20, Color("b89028"))
-
-	return ImageTexture.create_from_image(img)
+	return _finalizar(img)
 
 
 func _criar_textura_janela_residencial() -> ImageTexture:
@@ -966,19 +1158,18 @@ func _criar_textura_janela_residencial() -> ImageTexture:
 			elif y == 7 or y == 8:
 				img.set_pixel(x, y, Color("e0d8d0"))  # barra horizontal
 			elif x >= 1 and x <= 6 and y >= 1 and y <= 6:
-				img.set_pixel(x, y, Color("90c8e8"))  # vidro sup esq
+				img.set_pixel(x, y, Color("90c8e8"))
 			elif x >= 9 and x <= 14 and y >= 1 and y <= 6:
-				img.set_pixel(x, y, Color("88c0e0"))  # vidro sup dir
+				img.set_pixel(x, y, Color("88c0e0"))
 			elif x >= 1 and x <= 6 and y >= 9 and y <= 14:
-				img.set_pixel(x, y, Color("80b8d8"))  # vidro inf esq
+				img.set_pixel(x, y, Color("80b8d8"))
 			elif x >= 9 and x <= 14 and y >= 9 and y <= 14:
-				img.set_pixel(x, y, Color("78b0d0"))  # vidro inf dir
+				img.set_pixel(x, y, Color("78b0d0"))
 	# Reflexo
 	img.set_pixel(3, 3, Color("b0e0f8"))
 	img.set_pixel(4, 3, Color("a8d8f0"))
 	img.set_pixel(3, 4, Color("a8d8f0"))
-
-	return ImageTexture.create_from_image(img)
+	return _finalizar(img)
 
 
 func _criar_textura_janela_comercial() -> ImageTexture:
@@ -991,20 +1182,17 @@ func _criar_textura_janela_comercial() -> ImageTexture:
 			elif y == 7 or y == 8:
 				img.set_pixel(x, y, Color("404040"))  # divisoria
 			else:
-				img.set_pixel(x, y, Color("406888"))  # vidro fumê
-	# Reflexo
+				img.set_pixel(x, y, Color("406888"))  # vidro fume
 	img.set_pixel(2, 2, Color("6090b0"))
 	img.set_pixel(3, 2, Color("5888a8"))
 	img.set_pixel(2, 3, Color("5888a8"))
 	img.set_pixel(3, 3, Color("5080a0"))
-
-	return ImageTexture.create_from_image(img)
+	return _finalizar(img)
 
 
 func _criar_textura_ar_condicionado() -> ImageTexture:
 	var img := Image.create(16, 12, false, Image.FORMAT_RGBA8)
 	img.fill(Color.TRANSPARENT)
-	# Corpo da unidade
 	for x in 16:
 		for y in 12:
 			if x == 0 or x == 15 or y == 0 or y == 11:
@@ -1013,11 +1201,9 @@ func _criar_textura_ar_condicionado() -> ImageTexture:
 				if x % 2 == 0:
 					img.set_pixel(x, y, Color("787878"))  # grade
 				else:
-					img.set_pixel(x, y, Color("b8b8b8"))  # espaco
+					img.set_pixel(x, y, Color("b8b8b8"))
 			else:
 				img.set_pixel(x, y, Color("c0c0c0"))  # corpo
-	# Detalhe da marca
 	img.set_pixel(7, 1, Color("4080a0"))
 	img.set_pixel(8, 1, Color("4080a0"))
-
-	return ImageTexture.create_from_image(img)
+	return _finalizar(img)

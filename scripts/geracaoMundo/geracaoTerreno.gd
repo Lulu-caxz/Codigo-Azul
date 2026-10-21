@@ -27,6 +27,14 @@ var _cores_topo: Array[Color] = [
 @export_group("Opcoes")
 @export var gerar_colisao: bool = true
 
+@export_group("Renderizacao por Distancia")
+## Esconde os chunks de terreno longe da camera.
+@export var renderizar_so_proximo := true
+## Distancia (unidades do mundo) ate a qual os chunks de terreno ficam visiveis.
+@export_range(30.0, 800.0, 1.0) var distancia_render := 160.0
+## Intervalo (segundos) entre verificacoes da posicao da camera.
+@export_range(0.05, 2.0, 0.05) var intervalo_atualizacao := 0.2
+
 const CHUNK := 32            # tamanho do chunk em blocos (16, 32, 64...)
 const CAMADA_LATERAL := 4    # indice da textura lateral no Texture2DArray
 
@@ -59,6 +67,10 @@ var _resultados: Array = []
 
 var _raiz: Node3D
 var _material: ShaderMaterial
+
+# Chunks montados: [{"mi": MeshInstance3D, "rect": Rect2}] (rect em x,z do mundo)
+var _chunks_vis: Array = []
+var _tempo_vis := 0.0
 
 
 # Acumulador de geometria de um chunk
@@ -117,6 +129,7 @@ func gerar_alturas() -> void:
 func gerar_malha() -> void:
 	_alturas = Global.mapa   # relê, já com as ruas aplicadas
 	_tipos = Global.tipos
+	_chunks_vis.clear()
 	if _raiz:
 		_raiz.queue_free()
 	_raiz = Node3D.new()
@@ -139,12 +152,36 @@ func gerar_malha() -> void:
 
 	# Criacao dos nos precisa ser na thread principal; espalha em varios frames
 	for i in total:
-		_montar_chunk(_resultados[i])
+		_montar_chunk(_resultados[i], i)
 		if i % 8 == 7:
 			await get_tree().process_frame
 
 	_resultados.clear()
+	_tempo_vis = intervalo_atualizacao   # atualiza visibilidade no proximo frame
 	terreno_pronto.emit()
+
+
+# ---------------------------------------------------------------------------
+# VISIBILIDADE POR DISTANCIA (so malha; a colisao continua ativa)
+# ---------------------------------------------------------------------------
+func _process(delta: float) -> void:
+	if not renderizar_so_proximo or _chunks_vis.is_empty():
+		return
+	_tempo_vis += delta
+	if _tempo_vis < intervalo_atualizacao:
+		return
+	_tempo_vis = 0.0
+
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var p := to_local(cam.global_position)
+	for item in _chunks_vis:
+		var r: Rect2 = item["rect"]
+		var dx := maxf(maxf(r.position.x - p.x, p.x - r.end.x), 0.0)
+		var dz := maxf(maxf(r.position.y - p.z, p.z - r.end.y), 0.0)
+		var mi: MeshInstance3D = item["mi"]
+		mi.visible = (dx * dx + dz * dz) <= distancia_render * distancia_render
 
 
 # ---------------------------------------------------------------------------
@@ -382,7 +419,8 @@ func _laterais(d: DadosMalha, dir: Vector2i, x_ini: int, x_fim: int, z_ini: int,
 # ---------------------------------------------------------------------------
 # CRIACAO DOS NOS (thread principal)
 # ---------------------------------------------------------------------------
-func _montar_chunk(r: Dictionary) -> void:
+@warning_ignore("integer_division")
+func _montar_chunk(r: Dictionary, indice: int) -> void:
 	if r["vertices"].is_empty():
 		return
 
@@ -401,6 +439,15 @@ func _montar_chunk(r: Dictionary) -> void:
 	mi.mesh = malha
 	mi.material_override = _material
 	_raiz.add_child(mi)
+
+	# registra para o corte por distancia (retangulo do chunk em x,z do mundo)
+	var cx := indice % _chunks_x
+	var cz := indice / _chunks_x
+	var lado := CHUNK * _tamanho
+	_chunks_vis.append({
+		"mi": mi,
+		"rect": Rect2(cx * lado, cz * lado, lado, lado),
+	})
 
 	if gerar_colisao:
 		var forma := ConcavePolygonShape3D.new()
