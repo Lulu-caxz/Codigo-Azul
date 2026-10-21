@@ -3,7 +3,8 @@
 [ext_resource type="Script" uid="uid://cygfkk2doc04y" path="res://scripts/geracaoMundo/mundoManager.gd" id="1_orvpg"]
 [ext_resource type="Script" uid="uid://bnlfwnww1u73g" path="res://scripts/geracaoMundo/geracaoTerreno.gd" id="2_u4a18"]
 [ext_resource type="Script" uid="uid://cnv0437t6ortb" path="res://scripts/geracaoMundo/geracaoRua.gd" id="3_b2qpp"]
-[ext_resource type="Texture2D" uid="uid://sapmdn7yiugy" path="res://assets/textures/grama.png" id="3_u4a18"]
+[ext_resource type="Texture2D" uid="uid://h3did4fephno" path="res://assets/textures/grasstop.png" id="3_i0q3m"]
+[ext_resource type="Texture2D" uid="uid://cb77w4uqmna7t" path="res://assets/textures/grass.png" id="4_derue"]
 [ext_resource type="Script" uid="uid://bjh12mpg1yqjk" path="res://scripts/geracaoMundo/geracaoQuadras.gd" id="4_i0q3m"]
 [ext_resource type="Script" uid="uid://ca0jadlijewox" path="res://scripts/geracaoMundo/geracaoPredios.gd" id="5_derue"]
 
@@ -12,10 +13,11 @@ script = ExtResource("1_orvpg")
 
 [node name="Terreno" type="Node3D" parent="." unique_id=1862711609]
 script = ExtResource("2_u4a18")
-texturas_topo = Array[Texture2D]([null, ExtResource("3_u4a18"), ExtResource("3_u4a18")])
-texturas_lateral = Array[Texture2D]([null, ExtResource("3_u4a18"), ExtResource("3_u4a18")])
+texturas_topo = Array[Texture2D]([null, ExtResource("3_i0q3m"), ExtResource("3_i0q3m")])
+texturas_lateral = Array[Texture2D]([null, ExtResource("4_derue"), ExtResource("4_derue")])
 pixels_por_bloco = 16.0
 fps_agua = 30.0
+rebaixo_agua = 0.4
 renderizar_so_proximo = false
 distancia_render = 80.0
 

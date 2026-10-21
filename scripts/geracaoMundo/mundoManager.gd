@@ -1,4 +1,7 @@
+
 extends Node3D
+
+signal mundo_pronto
 
 const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
 const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
@@ -22,12 +25,35 @@ func gerar_mundo() -> void:
 
 	await terreno.gerar_malha()
 
+	# Avisa que o mundo está pronto para receber o jogador.
+	mundo_pronto.emit()
+
 	# Atualiza o mapa da sala no Supabase.
 	await atualizar_mapa_backend()
 
+# Ponto de nascimento (posicao global), apenas apos o mundo estar pronto
+func ponto_de_nascimento() -> Vector3:
+	var cx = Global.largura >> 1
+	var cz = Global.profundidade >> 1
+	var melhor := Vector2i(cx, cz)
+	var melhor_d := INF
+	for pref in [4, -1]:   # 4 = rua; -1 = qualquer bloco que nao seja agua
+		for x in Global.largura:
+			for z in Global.profundidade:
+				var t = Global.tipos[x * Global.profundidade + z]
+				if (pref == 4 and t != 4) or (pref == -1 and t == 0):
+					continue
+				var d := Vector2(x - cx, z - cz).length_squared()
+				if d < melhor_d:
+					melhor_d = d
+					melhor = Vector2i(x, z)
+		if melhor_d < INF:
+			break
+	var s = Global.tamanho_cubo
+	return terreno.global_position + Vector3(
+		(melhor.x + 0.5) * s, Global.altura_em(melhor.x, melhor.y) * s + 1.0, (melhor.y + 0.5) * s)
 
 func atualizar_mapa_backend() -> void:
-	print("dsvsvsvsddddddddddddddddddddddddddddd",Global.salaID)
 	if Global.salaID.is_empty():
 		push_error("ID da sala não definido.")
 		return
@@ -44,7 +70,6 @@ func atualizar_mapa_backend() -> void:
 		"Prefer: return=representation"
 	])
 
-	# PackedInt32Array não é convertido diretamente para JSON.
 	var mapa_json: Array = Array(Global.mapa)
 
 	var corpo: String = JSON.stringify({
@@ -82,4 +107,6 @@ func atualizar_mapa_backend() -> void:
 		print("Mapa atualizado no backend!")
 		print("Quantidade de valores: ", Global.mapa.size())
 	else:
-		push_error("Nenhuma sala foi atualizada. Verifique o ID e as permissões.")
+		push_error(
+			"Nenhuma sala foi atualizada. Verifique o ID e as permissões."
+		)
