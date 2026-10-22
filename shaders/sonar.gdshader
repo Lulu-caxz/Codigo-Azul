@@ -15,6 +15,9 @@ uniform vec4 cor_sonar : source_color = vec4(0.1, 1.0, 0.15, 1.0);
 uniform vec2 centro = vec2(0.5, 0.5);
 uniform float proporcao = 1.77778;
 
+// Pixelizacao do sonar (1 = sem pixelizacao, maior = mais pixelado)
+uniform float pixelizacao : hint_range(1.0, 16.0) = 2.0;
+
 // --- Ondas de pulso ---
 uniform float velocidade : hint_range(0.01, 1.0) = 0.1;
 uniform float espessura : hint_range(0.002, 0.05) = 0.005;
@@ -68,7 +71,9 @@ vec2 anel_pulso(float dist, float raio, float esp) {
 }
 
 void fragment() {
-    vec2 uv = UV;
+    // Pixelizacao: quantiza as coordenadas para um grid, evitando formas arredondadas/smooth.
+    vec2 grid = TEXTURE_PIXEL_SIZE * pixelizacao;
+    vec2 uv = floor(UV / grid) * grid + grid * 0.5;
 
     // Aberração cromática radial leve
     vec2 dir_c = (uv - centro);

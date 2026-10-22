@@ -314,7 +314,7 @@ func _abrir_postit(idx: int) -> void:
 		tex.atlas = preload("res://assets/postIt_aberto.png")
 		tex.region = Rect2(idx * 52, 0, 52, 33)
 		sprite.texture = tex
-		sprite.scale = Vector2(10, 10)
+
 
 	no.position = get_viewport_rect().size * 0.5
 	no.z_index = 100
