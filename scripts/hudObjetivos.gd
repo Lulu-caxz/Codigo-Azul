@@ -107,7 +107,10 @@ func _ao_alvo(tipo: String) -> void:
 	if _gerenciador:
 		label_tecla.text = _gerenciador.tecla_interacao()
 
-	label_acao.text = "Colocar %s" % tipo.capitalize()
+	if tipo == "abrigo":
+		label_acao.text = "Entrar no abrigo"
+	else:
+		label_acao.text = "Colocar %s" % tipo.capitalize()
 	_animar_prompt(true)
 
 

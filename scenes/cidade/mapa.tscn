@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://bjh12mpg1yqjk" path="res://scripts/geracaoMundo/geracaoQuadras.gd" id="4_i0q3m"]
 [ext_resource type="Script" uid="uid://ca0jadlijewox" path="res://scripts/geracaoMundo/geracaoPredios.gd" id="5_derue"]
 [ext_resource type="Script" uid="uid://bgd2xc48neldq" path="res://scripts/geracaoMundo/pontos.gd" id="8_i0q3m"]
+[ext_resource type="Texture2D" uid="uid://b2a7xan02ra4u" path="res://assets/ui/CaixaDialogoSheet.png" id="8_imfwm"]
 [ext_resource type="Texture2D" uid="uid://c2sxvltrvpfr8" path="res://assets/props/image-removebg-preview (1).png" id="9_qd2dx"]
 [ext_resource type="Texture2D" uid="uid://dr3d06e88f1o5" path="res://assets/props/manhole-cover-isolated-on-transparent-background-png.webp" id="10_ohnse"]
 [ext_resource type="Texture2D" uid="uid://ce8a3opyhiohe" path="res://assets/props/image-removebg-preview.png" id="11_qd2dx"]
@@ -86,16 +87,13 @@ imprimir_relatorio = false
 [node name="Predios" type="Node3D" parent="." unique_id=990130025]
 script = ExtResource("5_derue")
 distancia_render = 80.0
+cor_abrigo_parede = Color(0.5091168, 0.7566427, 0.9979959, 1)
+cor_abrigo_telhado = Color(0.2901961, 0.2901961, 0.3137255, 1)
+sprite_abrigo = ExtResource("8_imfwm")
 imprimir_relatorio = false
 
 [node name="Pontos" type="Node3D" parent="." unique_id=1446858883]
 script = ExtResource("8_i0q3m")
-pesos_tipos = {
-"antena": 1.0,
-"bueiro": 1.0,
-"pluviometro": 1.0,
-"radar": 1.0
-}
 texturas_tipos = {
 "bueiro": ExtResource("10_ohnse"),
 "pluviometro": ExtResource("11_qd2dx"),

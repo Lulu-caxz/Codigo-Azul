@@ -30,4 +30,6 @@ var funcao: String = "C"
 
 var pontos_position: Array = []
 
+var abrigo_position: Vector3 = Vector3.ZERO
+
 var tempo: int = 60

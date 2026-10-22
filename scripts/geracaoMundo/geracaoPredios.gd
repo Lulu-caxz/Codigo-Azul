@@ -178,6 +178,18 @@ const CHUNK_PREDIOS := 32
 	Color("4a4a50"),  # cinza escuro
 ]
 
+@export_group("Abrigo")
+## Cor das paredes do abrigo.
+@export var cor_abrigo_parede: Color = Color("3a6ea8")
+## Cor do telhado do abrigo.
+@export var cor_abrigo_telhado: Color = Color("1f4f8a")
+## Sprite retangular exibido acima da porta do abrigo (se vazio, gera um retangulo com a cor das paredes).
+@export var sprite_abrigo: Texture2D
+## Tamanho (pixel_size) do sprite do abrigo.
+@export_range(0.001, 0.5, 0.001) var tamanho_sprite_abrigo: float = 0.02
+## Texto exibido no sinal do abrigo.
+@export var texto_abrigo: String = "ABRIGO"
+
 @export_group("Depuracao")
 @export var imprimir_relatorio := true
 
@@ -195,6 +207,9 @@ class Construcao:
 	var idx_textura_telhado := -1
 	var frente := Vector2i.ZERO        # direcao da frente
 	var semente := 0                   # semente propria das decoracoes (deterministico)
+	var eh_abrigo := false             # marca a construcao escolhida como abrigo
+	var tem_porta := false
+	var porta_mundo := Vector3.ZERO     # posicao da porta (interacao)
 
 
 # Acumulador de geometria (um por material dentro de um chunk).
@@ -243,6 +258,11 @@ var _ocupado := PackedByteArray()                 # 1 = ja tem construcao
 var _construcoes: Array[Construcao] = []
 var _grade_coer: Dictionary = {}                  # Vector2i -> Array[Construcao]
 var _raiz: Node3D
+
+# Abrigo escolhido na geracao
+var abrigo_construcao: Construcao = null
+var abrigo_posicao: Vector3 = Vector3.ZERO      # centro da construcao (para o mapa)
+var abrigo_porta_pos: Vector3 = Vector3.ZERO    # porta (interacao)
 
 # Chunks de construcoes
 var _chunks: Dictionary = {}          # Vector2i -> Array[Construcao]
@@ -365,6 +385,55 @@ func gerar_predios() -> void:
 
 	for quadra in lista:
 		_preencher_quadra(quadra)
+
+	# Escolhe uma construcao como abrigo: deve ter porta voltada para uma via.
+	# Candidatos: porta voltada para BAIXO (sul) e com via na frente.
+	var candidatos: Array[Construcao] = []
+	for c in _construcoes:
+		if c.frente == Vector2i(0, 1) and _porta_voltada_para_via(c):
+			candidatos.append(c)
+	if candidatos.is_empty():
+		for c in _construcoes:
+			if c.frente == Vector2i(0, 1):
+				candidatos.append(c)
+	if candidatos.is_empty():
+		candidatos = _construcoes.duplicate()
+
+	print("ABRIGO: construcoes=", _construcoes.size(), " candidatos=", candidatos.size())
+	if not candidatos.is_empty():
+		abrigo_construcao = candidatos[_rng.randi() % candidatos.size()]
+		abrigo_construcao.eh_abrigo = true
+		abrigo_construcao.cor_parede = cor_abrigo_parede.srgb_to_linear()
+		abrigo_construcao.cor_telhado = cor_abrigo_telhado.srgb_to_linear()
+		abrigo_construcao.idx_textura_parede = -1
+		abrigo_construcao.idx_textura_telhado = -1
+
+		var s := Global.tamanho_cubo
+		var bb := abrigo_construcao.bbox
+		var dv := abrigo_construcao.frente
+		var base_y := abrigo_construcao.altura_base * s
+		var door_x: float
+		var door_z: float
+		if dv.x > 0:
+			door_x = (bb.end.x) * s
+			door_z = (bb.position.y + bb.size.y * 0.5) * s
+		elif dv.x < 0:
+			door_x = (bb.position.x) * s
+			door_z = (bb.position.y + bb.size.y * 0.5) * s
+		elif dv.y > 0:
+			door_x = (bb.position.x + bb.size.x * 0.5) * s
+			door_z = (bb.end.y) * s
+		else:
+			door_x = (bb.position.x + bb.size.x * 0.5) * s
+			door_z = (bb.position.y) * s
+
+		abrigo_posicao = Vector3(bb.get_center().x * s, base_y, bb.get_center().y * s)
+		abrigo_porta_pos = Vector3(door_x, base_y + porta_altura * s * 0.5, door_z)
+		abrigo_construcao.porta_mundo = abrigo_porta_pos
+		Global.abrigo_position = Vector3(abrigo_posicao.x, 0.0, abrigo_posicao.z)
+		print(Global.abrigo_position)
+		print("ABRIGO selecionado: porta=", abrigo_porta_pos, " centro=", abrigo_posicao)
+		_criar_sinal_abrigo(abrigo_porta_pos, Vector3(0.0, 0.0, 1.0))
 
 	_indexar_chunks()
 
@@ -839,6 +908,55 @@ func _e_via(x: int, z: int) -> bool:
 	return t == T_RUA or t == T_CALCADA or t == T_PONTE
 
 
+func _porta_voltada_para_via(c: Construcao) -> bool:
+	var dv := c.frente
+	if dv == Vector2i.ZERO:
+		return false
+	if dv.x != 0:
+		var x := c.bbox.end.x if dv.x > 0 else c.bbox.position.x - 1
+		for z in range(c.bbox.position.y, c.bbox.end.y):
+			if _e_via(x, z):
+				return true
+	else:
+		var z := c.bbox.end.y if dv.y > 0 else c.bbox.position.y - 1
+		for x in range(c.bbox.position.x, c.bbox.end.x):
+			if _e_via(x, z):
+				return true
+	return false
+
+
+func _criar_sinal_abrigo(pos: Vector3, normal: Vector3) -> void:
+	var s := Global.tamanho_cubo
+	var no := Node3D.new()
+	no.name = "AbrigoSign"
+	# No plano da parede, acima da porta, levemente afastado para evitar z-fighting.
+	no.position = pos + normal * 0.03 + Vector3(0.0, porta_altura * s * 0.5 + 0.3, 0.0)
+
+	var tex: Texture2D = sprite_abrigo
+	if tex == null:
+		var img := Image.create(128, 32, false, Image.FORMAT_RGBA8)
+		img.fill(cor_abrigo_parede)
+		tex = ImageTexture.create_from_image(img)
+
+	var sprite := Sprite3D.new()
+	sprite.texture = tex
+	sprite.pixel_size = tamanho_sprite_abrigo
+	# Sem billboard: fica fixo no plano da parede.
+	sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	no.add_child(sprite)
+
+	var label := Label3D.new()
+	label.text = texto_abrigo
+	label.font_size = 48
+	label.modulate = Color.BLACK
+	label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	label.position = Vector3(0.0, 0.0, 0.03)
+	no.add_child(label)
+
+	if is_instance_valid(_raiz):
+		_raiz.add_child(no)
+
+
 # ---------------------------------------------------------------------------
 # VERIFICACOES
 # ---------------------------------------------------------------------------
@@ -928,6 +1046,17 @@ func _gerar_geometria(c: Construcao, paredes: Dictionary, telhados: Dictionary, 
 		if nota > melhor_nota:
 			melhor_nota = nota
 			seg_porta = i
+
+	# Registra a posicao da porta (se houver) para uso como abrigo/interacao.
+	if seg_porta >= 0:
+		c.tem_porta = true
+		var segp: Dictionary = segs[seg_porta]
+		var compp: float = segp["comp"]
+		var pwp: float = porta_largura * s
+		var up: float = (compp - pwp) * 0.5
+		var origem_p: Vector3 = segp["origem"]
+		var ao_p: Vector3 = segp["ao_longo"]
+		c.porta_mundo = origem_p + ao_p * (up + pwp * 0.5) + Vector3(0.0, 1.0, 0.0)
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = c.semente

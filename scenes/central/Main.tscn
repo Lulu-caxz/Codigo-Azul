@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://cxahkjtiaa00t" path="res://assets/fundo_painel_com_mapa.png" id="2_syw7i"]
 [ext_resource type="Script" uid="uid://xvqjm8ky3ip2" path="res://scripts/centralSync.gd" id="3_7nbwh"]
 [ext_resource type="Texture2D" uid="uid://s2thiaic07yy" path="res://assets/pin-radar.png" id="3_rbgpy"]
+[ext_resource type="Texture2D" path="res://assets/pin-abrigo.png" id="7_abrigo"]
 [ext_resource type="Texture2D" uid="uid://tt3nbvl2pr4g" path="res://assets/pin-bueiro.png" id="4_0vyqp"]
 [ext_resource type="Texture2D" uid="uid://bu5fgalwtu67m" path="res://assets/pin-pluviometro.png" id="5_ncnl4"]
 [ext_resource type="Texture2D" uid="uid://by0uqg5vk30g" path="res://assets/pin-antena.png" id="6_v8mop"]
@@ -24,6 +25,7 @@ texturas_tipos = {
 "pluviometro": ExtResource("5_ncnl4"),
 "radar": ExtResource("3_rbgpy")
 }
+textura_abrigo = ExtResource("7_abrigo")
 
 [node name="CentralSync" type="Node2D" parent="." unique_id=711618265]
 position = Vector2(715, 160)

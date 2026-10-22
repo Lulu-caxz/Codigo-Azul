@@ -154,6 +154,11 @@ var _container: Node3D
 var _jogador: Node3D
 var _nos: Array[Node3D] = []
 
+var _abrigo_porta: Vector3 = Vector3.ZERO
+var _abrigo_centro: Vector3 = Vector3.ZERO
+var _abrigo_carregado: bool = false
+var _alvo_tipo_atual: String = ""
+
 var _rng := RandomNumberGenerator.new()
 var _cand_idx := PackedInt32Array()    # indice x * profundidade + z de cada candidato
 var _cand_xz := PackedVector2Array()   # centro do candidato (unidades locais do terreno)
@@ -368,6 +373,14 @@ func _ao_mundo_pronto() -> void:
 		return
 	_mundo_pronto = true
 	_instanciar_objetivos()
+
+	# Localiza o abrigo gerado nas construcoes.
+	var predios = _mundo.find_child("Predios", true, false)
+	if predios != null:
+		_abrigo_porta = predios.abrigo_porta_pos
+		_abrigo_centro = predios.abrigo_posicao
+		_abrigo_carregado = _abrigo_porta != Vector3.ZERO
+
 	_iniciar_contagem(false)
 	await get_tree().create_timer(1).timeout
 	_criar_hud()
@@ -453,6 +466,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if jogador == null:
 		return
 
+	# Abrigo: so pode entrar apos concluir todos os objetivos.
+	if restantes() <= 0 and _abrigo_carregado and _jogador_perto_abrigo():
+		if imprimir_relatorio:
+			print("Objetivos: jogador entrou no abrigo; rodada concluida.")
+		_concluir_rodada()
+		get_viewport().set_input_as_handled()
+		return
+
 	var indice := _indice_alvo()
 	if indice < 0:
 		return
@@ -469,6 +490,7 @@ func _mudar_estado(novo: Estado) -> void:
 	_ultimo_segundo = -1
 	if anterior == Estado.RODADA_ATIVA and novo != Estado.RODADA_ATIVA:
 		_alvo_atual = -1
+		_alvo_tipo_atual = ""
 		alvo_proximo_mudou.emit("")
 	if novo != anterior:
 		estado_mudou.emit(novo, anterior)
@@ -514,10 +536,16 @@ func _perder_rodada() -> void:
 
 func _atualizar_alvo() -> void:
 	var i := _indice_alvo()
-	if i == _alvo_atual:
+	var tipo := ""
+	if i >= 0:
+		tipo = String(Global.pontos_position[i][I_TIPO])
+	elif restantes() <= 0 and _abrigo_carregado and _jogador_perto_abrigo():
+		tipo = "abrigo"
+
+	if tipo == _alvo_tipo_atual:
 		return
-	_alvo_atual = i
-	alvo_proximo_mudou.emit("" if i < 0 else String(Global.pontos_position[i][I_TIPO]))
+	_alvo_tipo_atual = tipo
+	alvo_proximo_mudou.emit(tipo)
 
 
 func _obter_jogador() -> Node3D:
@@ -547,6 +575,20 @@ func _obter_jogador() -> Node3D:
 		push_warning("Objetivos: jogador nao encontrado!")
 
 	return _jogador
+
+
+func _jogador_perto_abrigo() -> bool:
+	if not _abrigo_carregado:
+		return false
+	var jogador := _obter_jogador()
+	if jogador == null:
+		return false
+	var p := jogador.global_position
+	if absf(p.y - _abrigo_porta.y) > tolerancia_vertical:
+		return false
+	var dx := p.x - _abrigo_porta.x
+	var dz := p.z - _abrigo_porta.z
+	return (dx * dx + dz * dz) <= raio_interacao * raio_interacao
 
 
 # Objetivo incompleto mais proximo dentro do alcance, ou -1.
@@ -899,6 +941,12 @@ func _processar_envios() -> void:
 
 		var corpo := extras.duplicate()
 		corpo["pontos_position"] = Global.pontos_position.duplicate(true)
+
+		# Posicao do abrigo gerado (se houver).
+		var predios_node = _mundo.find_child("Predios", true, false)
+		if predios_node != null and predios_node.abrigo_posicao != Vector3.ZERO:
+			var ap: Vector3 = predios_node.abrigo_posicao
+			corpo["abrigo_position"] = [ap.x, ap.y, ap.z]
 
 		var url = "https://%s.supabase.co/rest/v1/salas" % _projeto_ref \
 			+ "?id=eq." + Global.salaID.uri_encode() + "&select=id"

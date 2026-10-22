@@ -52,6 +52,7 @@ const CORES := {
 @export_group("Aparencia")
 ## Sprite 2D de cada tipo (chave = nome do tipo, valor = Texture2D). Vazio = ponto simples.
 @export var texturas_tipos: Dictionary = {}
+@export var textura_abrigo: Texture2D
 ## Lado do marcador, em pixels do mapa 2D.
 @export var tamanho_marcador: float = 14.0
 ## Mostra tambem os objetivos ja concluidos (esmaecidos).
@@ -67,6 +68,7 @@ var _marcadores: Array[Dictionary] = []
 var _assinatura: String = ""
 var _consultando: bool = false
 var _pontos_simples: Dictionary = {}
+var _marcador_abrigo: Sprite2D
 
 
 func _ready() -> void:
@@ -121,8 +123,20 @@ func mundo_para_mapa(x: float, z: float) -> Vector2:
 		x - origem_mundo.x,
 		z - origem_mundo.y
 	) / tamanho_cubo * tile_size
-
 	return posicao + deslocamento_mapa
+
+
+func _atualizar_marcador_abrigo(mundo: Vector3) -> void:
+	if textura_abrigo == null:
+		return
+	if _marcador_abrigo == null:
+		_marcador_abrigo = Sprite2D.new()
+		_marcador_abrigo.texture = textura_abrigo
+		_marcador_abrigo.z_index = 11
+		add_child(_marcador_abrigo)
+	var escala := tamanho_marcador / maxf(float(textura_abrigo.get_width()), 1.0)
+	_marcador_abrigo.scale = Vector2.ONE * escala
+	_marcador_abrigo.position = mundo_para_mapa(mundo.x, mundo.z)
 
 
 ## Inverso: posicao no mapa 2D -> (x, z) do mundo 3D.
@@ -138,7 +152,7 @@ func atualizar_agora() -> void:
 
 	var url: String = "https://%s.supabase.co/rest/v1/salas" % PROJECT_REF \
 		+ "?id=eq." + Global.salaID.uri_encode() \
-		+ "&select=pontos_position"
+		+ "&select=pontos_position,abrigo_position"
 	var headers := PackedStringArray([
 		"apikey: " + SUPABASE_KEY,
 		"Authorization: Bearer " + SUPABASE_KEY,
@@ -175,6 +189,14 @@ func atualizar_agora() -> void:
 		return
 
 	_aplicar(bruto)
+
+	# Abrigo
+	var abrigo_raw = linhas[0].get("abrigo_position")
+	if abrigo_raw is String:
+		abrigo_raw = JSON.parse_string(abrigo_raw)
+	if abrigo_raw is Array and abrigo_raw.size() >= 3:
+		var mundo := Vector3(float(abrigo_raw[0]), float(abrigo_raw[1]), float(abrigo_raw[2]))
+		_atualizar_marcador_abrigo(mundo)
 
 
 # -----------------------------------------------------------------------------
