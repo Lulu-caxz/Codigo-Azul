@@ -57,7 +57,7 @@ imprimir_relatorio = false
 [node name="Bordas" type="Node3D" parent="." unique_id=279754874]
 script = ExtResource("12_tqtl5")
 texturas_arvores = Array[Texture2D]([ExtResource("13_gr8it"), ExtResource("14_rlxsh")])
-escala_maxima_distante = 10.92
+escala_maxima_distante = 10.0
 textura_nevoa = SubResource("CompressedTexture2D_gr8it")
 distancia_render = 80.0
 

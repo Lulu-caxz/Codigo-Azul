@@ -163,6 +163,10 @@ var _projeto_ref := ""
 var _chave := ""
 var _tipos_sem_cena_avisados: Dictionary = {}
 
+# --- Som de objetivo concluido ---
+var _som_concluido: AudioStream
+var _som_player: AudioStreamPlayer
+
 func _criar_hud() -> void:
 	if not criar_hud:
 		return
@@ -203,6 +207,12 @@ func _ready() -> void:
 	_http = HTTPRequest.new()
 	_http.name = "HTTPObjetivos"
 	add_child(_http)
+
+	_som_concluido = load("res://sounds/objetivoConcluido.mp3")
+	_som_player = AudioStreamPlayer.new()
+	_som_player.name = "SomObjetivoConcluido"
+	_som_player.volume_db = -4.0
+	add_child(_som_player)
 
 	_mundo.dados_prontos.connect(_ao_dados_prontos)
 	_mundo.mundo_pronto.connect(_ao_mundo_pronto)
@@ -290,6 +300,11 @@ func concluir_objetivo(indice: int) -> bool:
 
 	if indice < _nos.size() and is_instance_valid(_nos[indice]) and _nos[indice].has_method("marcar_completo"):
 		_nos[indice].call("marcar_completo")
+
+	# Toca o som de objetivo concluido.
+	if _som_player != null and _som_concluido is AudioStream:
+		_som_player.stream = _som_concluido
+		_som_player.play()
 
 	objetivo_concluido.emit(indice, String(dados[I_TIPO]))
 	progresso_mudou.emit(concluidos(), exigidos())

@@ -17,10 +17,18 @@ var _offset_camera := Vector3.ZERO
 var _olhando := "baixo"
 var _ultimo_chao := Vector3.ZERO
 
+var _passos: Array[AudioStream] = []
+var _passo_player: AudioStreamPlayer
+var _distancia_passo: float = 0.0
+var _ultimo_passo: int = -1
+
+var DISTANCIA_PASSO: float = 2
+
 
 func _ready() -> void:
 	
-	
+	DISTANCIA_PASSO = log(velocidade) + 1
+	sprite.speed_scale = velocidade/5
 	floor_snap_length = 1.1   # cola no chao ao descer degraus
 	
 	# A camera usa a posicao que voce deixou no editor como distancia do jogador,
@@ -30,6 +38,14 @@ func _ready() -> void:
 	camera.global_position = global_position + _offset_camera
 
 	_ultimo_chao = global_position
+
+	var s := load("res://sounds/passo.mp3")
+	if s is AudioStream:
+		_passos.append(s)
+	_passo_player = AudioStreamPlayer.new()
+	_passo_player.name = "PassoPlayer"
+	_passo_player.volume_db = -5.0
+	add_child(_passo_player)
 
 
 # Coloca o jogador num ponto e leva a camera junto, sem "voar" ate la.
@@ -58,6 +74,23 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_atualizar_animacao(entrada)
+
+	var movendo := entrada.length() > 0.1
+	if movendo and is_on_floor() and not _passos.is_empty():
+		var vel_horizontal := Vector2(velocity.x, velocity.z).length()
+		_distancia_passo += vel_horizontal * delta
+		if _distancia_passo >= DISTANCIA_PASSO:
+			_distancia_passo = fmod(_distancia_passo, DISTANCIA_PASSO)
+			var idx := randi() % _passos.size()
+			if _passos.size() > 1 and idx == _ultimo_passo:
+				idx = (idx + 1 + randi() % (_passos.size() - 1)) % _passos.size()
+			_ultimo_passo = idx
+			_passo_player.stream = _passos[idx]
+			# Alterna aleatoriamente o pitch a cada passo para variar o som.
+			_passo_player.pitch_scale = randf_range(0.85, 1.15)
+			_passo_player.play()
+	else:
+		_distancia_passo = 0.0
 
 	if global_position.y < altura_queda:
 		teleportar(_ultimo_chao + Vector3.UP)
