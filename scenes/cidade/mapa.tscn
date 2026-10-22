@@ -11,6 +11,12 @@
 [ext_resource type="Texture2D" uid="uid://c2sxvltrvpfr8" path="res://assets/image-removebg-preview (1).png" id="9_qd2dx"]
 [ext_resource type="Texture2D" uid="uid://dr3d06e88f1o5" path="res://assets/manhole-cover-isolated-on-transparent-background-png.webp" id="10_ohnse"]
 [ext_resource type="Texture2D" uid="uid://ce8a3opyhiohe" path="res://assets/image-removebg-preview.png" id="11_qd2dx"]
+[ext_resource type="Script" uid="uid://c80w7khawgwdd" path="res://scripts/geracaoMundo/geracaoBordas.gd" id="12_tqtl5"]
+[ext_resource type="Texture2D" uid="uid://d0ktwt44yfibp" path="res://assets/arvore.png" id="13_gr8it"]
+[ext_resource type="Texture2D" uid="uid://crk1cqgnrj6y" path="res://assets/arvore2.png" id="14_rlxsh"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_gr8it"]
+load_path = "res://.godot/imported/nevoa.png-da04151098472b28488166ae8bb9b10b.ctex"
 
 [node name="Mapa" type="Node3D" unique_id=1091553734]
 script = ExtResource("1_orvpg")
@@ -22,7 +28,6 @@ texturas_lateral = Array[Texture2D]([null, ExtResource("4_derue"), ExtResource("
 pixels_por_bloco = 16.0
 fps_agua = 30.0
 rebaixo_agua = 0.4
-renderizar_so_proximo = false
 distancia_render = 80.0
 
 [node name="Ruas" type="Node3D" parent="." unique_id=1605538390]
@@ -47,5 +52,13 @@ texturas_tipos = {
 "radar": ExtResource("9_qd2dx")
 }
 raio_interacao = 5.0
+imprimir_relatorio = false
+
+[node name="Bordas" type="Node3D" parent="." unique_id=279754874]
+script = ExtResource("12_tqtl5")
+texturas_arvores = Array[Texture2D]([ExtResource("13_gr8it"), ExtResource("14_rlxsh")])
+escala_maxima_distante = 10.92
+textura_nevoa = SubResource("CompressedTexture2D_gr8it")
+distancia_render = 80.0
 
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1387345646]

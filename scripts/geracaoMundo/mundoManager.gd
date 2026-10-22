@@ -10,8 +10,19 @@ const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 @onready var ruas = $Ruas
 @onready var quadras = $Quadras
 @onready var predios = $Predios
+@onready var bordas: GeracaoBordas = _obter_no_bordas()
 @onready var http_mapa: HTTPRequest = $HTTPRequest
 @onready var objetivos: GerenciadorObjetivos = get_node_or_null("Pontos") as GerenciadorObjetivos
+
+func _obter_no_bordas() -> GeracaoBordas:
+	var b = get_node_or_null("Bordas")
+	if b is GeracaoBordas:
+		return b
+	# Procura por qualquer filho que tenha a classe GeracaoBordas (mesmo com outro nome como "Node3D")
+	for filho in get_children():
+		if filho is GeracaoBordas:
+			return filho
+	return null
 
 var geracao_iniciada: bool = false
 var atualizando_mapa: bool = false
@@ -29,6 +40,11 @@ func _ready() -> void:
 		objetivos = GerenciadorObjetivos.new()
 		objetivos.name = "Pontos"
 		add_child(objetivos)
+	
+	if bordas == null:
+		bordas = GeracaoBordas.new()
+		bordas.name = "Bordas"
+		add_child(bordas)
 	
 	terreno.terreno_pronto.connect(mundo_pronto_func)
 	gerar_mundo()
@@ -50,6 +66,8 @@ func gerar_mundo() -> void:
 	ruas.gerar_ruas()
 	quadras.gerar_quadras()
 	predios.gerar_predios()
+	if bordas:
+		bordas.gerar_bordas()
 
 	# Dados lógicos prontos: o main adiciona o player e troca a câmera.
 	dados_prontos.emit()
