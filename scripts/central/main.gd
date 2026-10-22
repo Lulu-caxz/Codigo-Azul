@@ -211,10 +211,10 @@ func _ao_dados_sala_atualizados(
 	posicao: Vector3,
 	_pontos: Array
 ) -> void:
-	var posicao_mapa := Vector2(
+	var posicao_mapaa := Vector2(
 		posicao.x,
 		posicao.z
 	) / 1.0 * TILE_SIZE
 
-	marcador_jogador.position = posicao_mapa + posicao_mapa
+	marcador_jogador.position = posicao_mapaa + posicao_mapa
 	marcador_jogador.visible = true

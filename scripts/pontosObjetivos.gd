@@ -229,7 +229,7 @@ func _reconstruir_marcadores() -> void:
 			continue
 
 		var textura := _textura_do_tipo(String(p["tipo"]))
-		var escala := tamanho_marcador / maxf(float(textura.get_width()), 1.0)
+		var escala := (tamanho_marcador * 1.5) / maxf(float(textura.get_width()), 1.0)
 
 		var no := Sprite2D.new()
 		no.texture = textura
