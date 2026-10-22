@@ -69,10 +69,15 @@ func _ao_rodada_preparada(numero: int, exigidos: int) -> void:
 func _ao_contagem(segundos: int) -> void:
 	label_titulo_tempo.text = "COMEÇA EM"
 	label_tempo.text = "%ds" % segundos
+	# A contagem de inicio aparece agora na tela central (contagem.tscn).
+	label_tempo.visible = false
+	label_titulo_tempo.visible = false
 
 
 @warning_ignore("integer_division")
 func _ao_tempo(segundos: int) -> void:
+	label_titulo_tempo.visible = true
+	label_tempo.visible = true
 	label_titulo_tempo.text = "TEMPO RESTANTE"
 	label_tempo.text = "%02d:%02d" % [segundos / 60, segundos % 60]
 	

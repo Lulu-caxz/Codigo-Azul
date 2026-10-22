@@ -30,6 +30,7 @@ const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 var _gerenciador_objetivos: GerenciadorObjetivos
 var _http_posicao: HTTPRequest
 var _atualizando_posicao: bool = false
+var _jogo_iniciado: bool = false
 
 func _ready() -> void:
 	
@@ -77,6 +78,7 @@ func _ready() -> void:
 		)
 
 func _ao_tempo_de_jogo_iniciado() -> void:
+	_jogo_iniciado = true
 	if _atualizando_posicao:
 		return
 
@@ -159,6 +161,18 @@ func teleportar(destino: Vector3) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# So permite movimento apos o inicio da rodada (fim da contagem).
+	if _gerenciador_objetivos != null:
+		if _gerenciador_objetivos.estado == GerenciadorObjetivos.Estado.PREPARANDO_RODADA:
+			_jogo_iniciado = false
+	if not _jogo_iniciado:
+		velocity = Vector3.ZERO
+		move_and_slide()
+		_atualizar_animacao(Vector2.ZERO)
+		if global_position.y < altura_queda:
+			teleportar(_ultimo_chao + Vector3.UP)
+		return
+
 	var entrada := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	var direcao := Vector3(entrada.x, 0.0, entrada.y)
 

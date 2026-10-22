@@ -14,6 +14,9 @@ uniform float rgb_shift : hint_range(0.0, 0.005) = 0.0007;
 uniform float glitch_strength : hint_range(0.0, 0.02) = 0.001;
 uniform float glitch_frequency : hint_range(0.0, 1.0) = 0.12;
 
+// Saturacao: >1 deixa o jogo mais vibrante/divertido.
+uniform float saturacao : hint_range(0.0, 3.0) = 1.4;
+
 uniform bool glitch_enabled = true;
 
 float rand(float x) {
@@ -51,6 +54,10 @@ void fragment() {
 	).b;
 
 	vec3 color = vec3(red, original.g, blue);
+
+	// Aumenta a saturacao para deixar a cidade mais vibrante.
+	float cinza = dot(color, vec3(0.299, 0.587, 0.114));
+	color = mix(vec3(cinza), color, saturacao);
 
 	// Vinheta reduzida.
 	vec2 centered = SCREEN_UV - vec2(0.5);

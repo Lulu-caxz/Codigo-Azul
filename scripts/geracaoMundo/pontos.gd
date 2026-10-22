@@ -157,6 +157,7 @@ var _cand_idx := PackedInt32Array()    # indice x * profundidade + z de cada can
 var _cand_xz := PackedVector2Array()   # centro do candidato (unidades locais do terreno)
 
 var _http: HTTPRequest
+var _contagem: CanvasLayer
 var _enviando := false
 var _tem_pendente := false
 var _pendente: Dictionary = {}
@@ -177,16 +178,23 @@ func _criar_hud() -> void:
 	if hud_existente != null:
 		if hud_existente.has_method("conectar"):
 			hud_existente.conectar(self)
-		return
-
-	if cena_hud != null:
-		var hud = cena_hud.instantiate()
-		hud.name = "HudObjetivos"
-		add_child(hud)
-		if hud.has_method("conectar"):
-			hud.conectar(self)
 	else:
-		push_warning("Objetivos: Nenhuma cena de HUD configurada em cena_hud.")
+		if cena_hud != null:
+			var hud = cena_hud.instantiate()
+			hud.name = "HudObjetivos"
+			add_child(hud)
+			if hud.has_method("conectar"):
+				hud.conectar(self)
+		else:
+			push_warning("Objetivos: Nenhuma cena de HUD configurada em cena_hud.")
+
+	# Tela de contagem regressiva (cena nova) no meio da tela.
+	var cena_contagem := load("res://scenes/cidade/contagem.tscn")
+	if cena_contagem is PackedScene:
+		_contagem = cena_contagem.instantiate() as CanvasLayer
+		if _contagem != null:
+			add_child(_contagem)
+			_contagem.visible = false
 
 func _ready() -> void:
 	_mundo = get_node_or_null(no_mundo)
@@ -393,11 +401,18 @@ func _process(_delta: float) -> void:
 			if falta <= 0.0:
 				_mudar_estado(Estado.RODADA_ATIVA)
 				tempo_de_jogo_iniciado.emit()
+				if is_instance_valid(_contagem):
+					_contagem.tocar_inicio()
+					_contagem.visible = false
 			else:
 				var seg := ceili(falta)
 				if seg != _ultimo_segundo:
 					_ultimo_segundo = seg
 					contagem_inicio_atualizada.emit(seg)
+				# Puxa o tempo da variavel global para a tela de contagem.
+				Global.tempo = seg
+				if is_instance_valid(_contagem):
+					_contagem.visible = true
 		Estado.RODADA_ATIVA:
 			var restante := inicio_unix + _duracao_atual - agora
 			if restante <= 0.0:
@@ -408,6 +423,9 @@ func _process(_delta: float) -> void:
 				_ultimo_segundo = seg
 				tempo_atualizado.emit(seg)
 			_atualizar_alvo()
+			Global.tempo = seg
+			if is_instance_valid(_contagem):
+				_contagem.visible = false
 		Estado.RODADA_CONCLUIDA:
 			if agora >= _fim_pausa_unix:
 				preparar_rodada(rodada_atual + 1)
