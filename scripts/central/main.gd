@@ -10,6 +10,8 @@ const TILE_SIZE: int = 3
 
 const SONAR_SHADER = preload("res://shaders/sonar.gdshader")
 
+const TEXTURA_JOGADOR: Texture2D = preload("res://assets/pin-player.png")
+
 @onready var http: HTTPRequest = $HTTPRequest
 
 var mapa: Array = []
@@ -181,28 +183,15 @@ func _draw() -> void:
 	)
 
 func _criar_marcador_jogador() -> void:
-	var imagem := Image.create_empty(
-		16,
-		16,
-		false,
-		Image.FORMAT_RGBA8
-	)
-
-	for x in range(16):
-		for y in range(16):
-			var distancia := Vector2(x - 7.5, y - 7.5).length()
-
-			if distancia <= 5.0:
-				imagem.set_pixel(x, y, Color("ff4545"))
-			elif distancia <= 7.0:
-				imagem.set_pixel(x, y, Color.WHITE)
-
 	marcador_jogador = Sprite2D.new()
 	marcador_jogador.name = "MarcadorJogador"
-	marcador_jogador.texture = ImageTexture.create_from_image(imagem)
+	marcador_jogador.texture = TEXTURA_JOGADOR
 	marcador_jogador.z_index = 20
 	marcador_jogador.use_parent_material = false
 	marcador_jogador.visible = false
+
+	# Ajuste o tamanho da imagem no mapa.
+	marcador_jogador.scale = Vector2(1.5, 1.5)
 
 	add_child(marcador_jogador)
 
