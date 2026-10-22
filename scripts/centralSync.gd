@@ -239,5 +239,4 @@ func _atualizar_tela_contagem(
 
 	tela_contagem.visible = true
 	texto_titulo.text = "COMEÇA EM"
-	print("sdfljhdsbfljdshbfdslhjbfbfljsdhfbljfh", segundos)
 	texto_contagem.text = str(segundos)

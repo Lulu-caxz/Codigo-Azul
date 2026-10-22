@@ -35,6 +35,8 @@ const CORES := {
 	"pluviometro": Color("4f7dff"),
 }
 
+@export var deslocamento_mapa: Vector2 = Vector2.ZERO
+
 @export_group("Conversao mundo -> mapa 2D")
 ## Pixels de cada bloco no mapa 2D (TILE_SIZE do script do mapa).
 @export var tile_size: float = 3.0
@@ -115,7 +117,12 @@ func pontos_incompletos() -> Array:
 
 
 func mundo_para_mapa(x: float, z: float) -> Vector2:
-	return Vector2(x - origem_mundo.x, z - origem_mundo.y) / tamanho_cubo * tile_size
+	var posicao := Vector2(
+		x - origem_mundo.x,
+		z - origem_mundo.y
+	) / tamanho_cubo * tile_size
+
+	return posicao + deslocamento_mapa
 
 
 ## Inverso: posicao no mapa 2D -> (x, z) do mundo 3D.
@@ -222,7 +229,7 @@ func _reconstruir_marcadores() -> void:
 			continue
 
 		var textura := _textura_do_tipo(String(p["tipo"]))
-		var escala := tamanho_marcador / maxf(float(textura.get_width()), 1.0)
+		var escala := (tamanho_marcador * 1.5) / maxf(float(textura.get_width()), 1.0)
 
 		var no := Sprite2D.new()
 		no.texture = textura
