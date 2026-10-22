@@ -53,6 +53,11 @@ func configurar(p_tipo: String, textura: Texture2D, frames: SpriteFrames = null,
 
 
 func _criar_sprite_ponto() -> void:
+	# Bueiro animado fica no chao (sem ponto flutuante).
+	if tipo == "bueiro" and _frames_objeto != null and _frames_objeto.has_animation("aberto"):
+		_sprite_ponto = null
+		return
+
 	var cor: Color = CORES.get(tipo, COR_PADRAO)
 	var tex_ponto := _ponto_simples(cor)
 
@@ -78,7 +83,7 @@ func _criar_sprite_objeto() -> void:
 	if _frames_objeto != null:
 		var anim := AnimatedSprite3D.new()
 		anim.name = "SpriteObjeto"
-		anim.visible = false
+		anim.visible = (tipo == "bueiro" and _frames_objeto.has_animation("aberto"))
 		anim.sprite_frames = _frames_objeto
 		anim.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		anim.shaded = true
@@ -99,7 +104,9 @@ func _criar_sprite_objeto() -> void:
 		else:
 			# A base da imagem encosta no chao (pivot no centro -> sobe metade da altura).
 			anim.position = Vector3(0.0, altura_mundo * 0.5, 0.0)
-		if _frames_objeto.has_animation("default"):
+		if tipo == "bueiro" and _frames_objeto.has_animation("aberto"):
+			anim.animation = &"aberto"
+		elif _frames_objeto.has_animation("default"):
 			anim.animation = &"default"
 		elif not _frames_objeto.get_animation_names().is_empty():
 			anim.animation = _frames_objeto.get_animation_names()[0]
@@ -142,6 +149,14 @@ func marcar_completo() -> void:
 	if completo:
 		return
 	completo = true
+
+	# Bueiro animado: troca de "aberto" para "fechado".
+	if tipo == "bueiro" and _sprite_objeto is AnimatedSprite3D and _frames_objeto != null \
+			and _frames_objeto.has_animation("fechado"):
+		var anim := _sprite_objeto as AnimatedSprite3D
+		anim.animation = &"fechado"
+		anim.play()
+		return
 
 	# Some com o ponto simples
 	if is_instance_valid(_sprite_ponto):

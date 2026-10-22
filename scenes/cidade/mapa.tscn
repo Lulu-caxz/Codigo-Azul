@@ -15,6 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://belh8t6ugynxw" path="res://assets/props/AntenaSheet.png" id="12_rlxsh"]
 [ext_resource type="Script" uid="uid://c80w7khawgwdd" path="res://scripts/geracaoMundo/geracaoBordas.gd" id="12_tqtl5"]
 [ext_resource type="Texture2D" uid="uid://d0ktwt44yfibp" path="res://assets/props/arvore.png" id="13_gr8it"]
+[ext_resource type="Texture2D" uid="uid://banwajcf1j1x" path="res://assets/BueiroSheet.png" id="14_f5i74"]
 [ext_resource type="Texture2D" uid="uid://crk1cqgnrj6y" path="res://assets/props/arvore2.png" id="14_rlxsh"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rlxsh"]
@@ -60,6 +61,33 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_6bldn"]
+atlas = ExtResource("14_f5i74")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_trwb7"]
+atlas = ExtResource("14_f5i74")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_imfwm"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6bldn")
+}],
+"loop": 1,
+"name": &"aberto",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_trwb7")
+}],
+"loop": 1,
+"name": &"fechado",
+"speed": 5.0
+}]
+
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_gr8it"]
 load_path = "res://.godot/imported/nevoa.png-da04151098472b28488166ae8bb9b10b.ctex"
 
@@ -100,7 +128,8 @@ texturas_tipos = {
 "radar": ExtResource("9_qd2dx")
 }
 frames_tipos = {
-"antena": SubResource("SpriteFrames_gr8it")
+"antena": SubResource("SpriteFrames_gr8it"),
+"bueiro": SubResource("SpriteFrames_imfwm")
 }
 raio_interacao = 5.0
 imprimir_relatorio = false

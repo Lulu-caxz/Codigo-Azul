@@ -431,7 +431,6 @@ func gerar_predios() -> void:
 		abrigo_porta_pos = Vector3(door_x, base_y + porta_altura * s * 0.5, door_z)
 		abrigo_construcao.porta_mundo = abrigo_porta_pos
 		Global.abrigo_position = Vector3(abrigo_posicao.x, 0.0, abrigo_posicao.z)
-		print(Global.abrigo_position)
 		print("ABRIGO selecionado: porta=", abrigo_porta_pos, " centro=", abrigo_posicao)
 		_criar_sinal_abrigo(abrigo_porta_pos, Vector3(0.0, 0.0, 1.0))
 
