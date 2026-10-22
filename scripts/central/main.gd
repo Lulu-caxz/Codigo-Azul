@@ -14,6 +14,7 @@ const SONAR_SHADER = preload("res://shaders/sonar.gdshader")
 
 var mapa: Array = []
 var textura_mapa: ImageTexture
+@export var posicao_mapa: Vector2 = Vector2.ZERO
 
 var marcador_jogador: Sprite2D
 
@@ -30,7 +31,6 @@ var cores: Array[Color] = [
 
 
 func _ready() -> void:
-	position = Vector2(764, 215)
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 	var material_sonar := ShaderMaterial.new()
@@ -176,7 +176,7 @@ func _draw() -> void:
 
 	draw_texture_rect(
 		textura_mapa,
-		Rect2(Vector2.ZERO, tamanho),
+		Rect2(posicao_mapa, tamanho),
 		false
 	)
 
@@ -211,11 +211,10 @@ func _ao_dados_sala_atualizados(
 	posicao: Vector3,
 	_pontos: Array
 ) -> void:
-	# Converte as coordenadas do mundo 3D para o mapa 2D.
 	var posicao_mapa := Vector2(
 		posicao.x,
 		posicao.z
 	) / 1.0 * TILE_SIZE
 
-	marcador_jogador.position = posicao_mapa
+	marcador_jogador.position = posicao_mapa + posicao_mapa
 	marcador_jogador.visible = true
