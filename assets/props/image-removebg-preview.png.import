@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://buqbhrqyfuawx"
-path="res://.godot/imported/AdaFrente.png-53f48d9225188a9ce35d3ca94938eaac.ctex"
+uid="uid://ce8a3opyhiohe"
+path="res://.godot/imported/image-removebg-preview.png-f13d20948efe37ef559e0d4098d895cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/AdaFrente.png"
-dest_files=["res://.godot/imported/AdaFrente.png-53f48d9225188a9ce35d3ca94938eaac.ctex"]
+source_file="res://assets/props/image-removebg-preview.png"
+dest_files=["res://.godot/imported/image-removebg-preview.png-f13d20948efe37ef559e0d4098d895cd.ctex"]
 
 [params]
 
@@ -37,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=1

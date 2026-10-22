@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://byek3fwkokmhk"
-path="res://.godot/imported/AdaSheet.png-34e22264c9e108f822287b806c193058.ctex"
+uid="uid://crk1cqgnrj6y"
+path="res://.godot/imported/arvore2.png-98c842f6c5aa96d6aa524bef5803d45a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/AdaSheet.png"
-dest_files=["res://.godot/imported/AdaSheet.png-34e22264c9e108f822287b806c193058.ctex"]
+source_file="res://assets/props/arvore2.png"
+dest_files=["res://.godot/imported/arvore2.png-98c842f6c5aa96d6aa524bef5803d45a.ctex"]
 
 [params]
 
@@ -37,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=1

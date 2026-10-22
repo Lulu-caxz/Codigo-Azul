@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b2a7xan02ra4u"
-path="res://.godot/imported/CaixaDialogoSheet.png-2f713a47b124d631f4d0405f6c74b79b.ctex"
+uid="uid://d0ktwt44yfibp"
+path="res://.godot/imported/arvore.png-c4ecf2a7ad2ce0c75117a00d4816c4f9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/CaixaDialogoSheet.png"
-dest_files=["res://.godot/imported/CaixaDialogoSheet.png-2f713a47b124d631f4d0405f6c74b79b.ctex"]
+source_file="res://assets/props/arvore.png"
+dest_files=["res://.godot/imported/arvore.png-c4ecf2a7ad2ce0c75117a00d4816c4f9.ctex"]
 
 [params]
 

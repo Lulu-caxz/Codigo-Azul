@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dr3d06e88f1o5"
-path="res://.godot/imported/manhole-cover-isolated-on-transparent-background-png.webp-00ea355a0b2af05dd859e3c8ff25f3b8.ctex"
+uid="uid://df2yrj2pyvl2g"
+path="res://.godot/imported/nevoa.png-d36f848f5e910615ed4c0bf342e6592b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/manhole-cover-isolated-on-transparent-background-png.webp"
-dest_files=["res://.godot/imported/manhole-cover-isolated-on-transparent-background-png.webp-00ea355a0b2af05dd859e3c8ff25f3b8.ctex"]
+source_file="res://assets/props/nevoa.png"
+dest_files=["res://.godot/imported/nevoa.png-d36f848f5e910615ed4c0bf342e6592b.ctex"]
 
 [params]
 

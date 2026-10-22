@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c6q6g5hud0obj"]
 
 [ext_resource type="Script" uid="uid://dhlcpxr5picyx" path="res://scripts/hudObjetivos.gd" id="1_6rnlx"]
-[ext_resource type="Texture2D" uid="uid://b2a7xan02ra4u" path="res://assets/CaixaDialogoSheet.png" id="2_hntmq"]
+[ext_resource type="Texture2D" uid="uid://b2a7xan02ra4u" path="res://assets/ui/CaixaDialogoSheet.png" id="2_hntmq"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
 bg_color = Color(1, 1, 1, 1)

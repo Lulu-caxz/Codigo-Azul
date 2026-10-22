@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c2sxvltrvpfr8"
-path="res://.godot/imported/image-removebg-preview (1).png-47c65434f9ac3d57b41fb2ac15c88901.ctex"
+uid="uid://cvxix0ossjskv"
+path="res://.godot/imported/AdesivosSheet.png-b98ca83c1f09af65e869af4c74fdf570.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/image-removebg-preview (1).png"
-dest_files=["res://.godot/imported/image-removebg-preview (1).png-47c65434f9ac3d57b41fb2ac15c88901.ctex"]
+source_file="res://assets/central/AdesivosSheet.png"
+dest_files=["res://.godot/imported/AdesivosSheet.png-b98ca83c1f09af65e869af4c74fdf570.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bc4rhrv5kuwr0"
-path="res://.godot/imported/GraceFrente.png-689400d4464d34993ea595e90b422f89.ctex"
+uid="uid://b2a7xan02ra4u"
+path="res://.godot/imported/CaixaDialogoSheet.png-db3b9c114c656e945f12295305267b15.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/GraceFrente.png"
-dest_files=["res://.godot/imported/GraceFrente.png-689400d4464d34993ea595e90b422f89.ctex"]
+source_file="res://assets/ui/CaixaDialogoSheet.png"
+dest_files=["res://.godot/imported/CaixaDialogoSheet.png-db3b9c114c656e945f12295305267b15.ctex"]
 
 [params]
 

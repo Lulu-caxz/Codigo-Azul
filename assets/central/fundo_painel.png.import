@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://df2yrj2pyvl2g"
-path="res://.godot/imported/nevoa.png-da04151098472b28488166ae8bb9b10b.ctex"
+uid="uid://bnpxglucujtc7"
+path="res://.godot/imported/fundo_painel.png-7e2c994a46b331294adb94021ababe7f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/nevoa.png"
-dest_files=["res://.godot/imported/nevoa.png-da04151098472b28488166ae8bb9b10b.ctex"]
+source_file="res://assets/central/fundo_painel.png"
+dest_files=["res://.godot/imported/fundo_painel.png-7e2c994a46b331294adb94021ababe7f.ctex"]
 
 [params]
 
