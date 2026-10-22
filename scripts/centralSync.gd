@@ -19,6 +19,12 @@ var _consultando: bool = false
 var _ultimo_segundo: int = -1
 var _ultimo_estado_iniciado: bool = false
 
+const CONTAGEM_CENA: PackedScene = preload("res://scenes/cidade/contagem.tscn")
+
+var tela_contagem: CanvasLayer
+var texto_titulo: Label
+var texto_contagem: Label
+
 
 func _ready() -> void:
 	if http == null:
@@ -26,10 +32,16 @@ func _ready() -> void:
 		http.name = "HTTPSincronizacaoCentral"
 		add_child(http)
 
+	_criar_tela_contagem()
+
+	timer_atualizado.connect(_atualizar_tela_contagem)
+
 	print("Central: iniciando sincronização com o Supabase.")
 
 	_loop_sincronizacao()
 
+func _process(_delta: float) -> void:
+	_atualizar_timer()
 
 func _loop_sincronizacao() -> void:
 	while is_inside_tree():
@@ -131,10 +143,6 @@ func sincronizar_sala() -> void:
 			float(posicao[2])
 		)
 
-	# 4. Atualiza o tempo restante usando o relógio do sistema
-	# e o horário de início recebido do banco.
-	_atualizar_timer()
-
 	# A Central e seus marcadores recebem os dados sincronizados.
 	dados_sala_atualizados.emit(
 		posicao_jogador,
@@ -191,3 +199,45 @@ func _converter_data_iso(valor: String) -> float:
 	var data_hora: String = valor.substr(0, 19).replace("T", " ")
 
 	return float(Time.get_unix_time_from_datetime_string(data_hora))
+
+
+func _criar_tela_contagem() -> void:
+	tela_contagem = CONTAGEM_CENA.instantiate() as CanvasLayer
+
+	if tela_contagem == null:
+		push_error("Central: não foi possível instanciar Contagem.tscn.")
+		return
+
+	tela_contagem.name = "Contagem"
+	add_child(tela_contagem)
+
+	texto_titulo = tela_contagem.get_node(
+		"CenterContainer/VBox/LabelTexto"
+	) as Label
+
+	texto_contagem = tela_contagem.get_node(
+		"CenterContainer/VBox/LabelNumero"
+	) as Label
+
+	tela_contagem.visible = true
+
+	print("Central: cena de contagem carregada.")
+
+func _atualizar_tela_contagem(
+	segundos: int,
+	iniciado: bool
+) -> void:
+	if tela_contagem == null:
+		return
+
+	if texto_titulo == null or texto_contagem == null:
+		return
+
+	if iniciado:
+		tela_contagem.visible = false
+		return
+
+	tela_contagem.visible = true
+	texto_titulo.text = "COMEÇA EM"
+	print("sdfljhdsbfljdshbfdslhjbfbfljsdhfbljfh", segundos)
+	texto_contagem.text = str(segundos)

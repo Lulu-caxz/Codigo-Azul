@@ -7,10 +7,14 @@
 [node name="Main2" type="Node2D" unique_id=1576598560]
 script = ExtResource("1_dab24")
 
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1034705954]
+position = Vector2(764, 253)
+
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1498853042]
 
 [node name="Node2D" type="Node2D" parent="." unique_id=1283979250]
 script = ExtResource("2_cqy30")
 
 [node name="CentralSync" type="Node2D" parent="." unique_id=711618265]
+position = Vector2(764, 253)
 script = ExtResource("3_7nbwh")
