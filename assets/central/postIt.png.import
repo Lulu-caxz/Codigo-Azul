@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://clokeb6bnkhy8"
-path="res://.godot/imported/AntenaMiniGame.png-e2b685a638c3199eff307cd63d98868a.ctex"
+uid="uid://bhjk2ees0vnax"
+path="res://.godot/imported/postIt.png-be73cb20a2c6018cbba6f475ba28d676.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/AntenaMiniGame.png"
-dest_files=["res://.godot/imported/AntenaMiniGame.png-e2b685a638c3199eff307cd63d98868a.ctex"]
+source_file="res://assets/central/postIt.png"
+dest_files=["res://.godot/imported/postIt.png-be73cb20a2c6018cbba6f475ba28d676.ctex"]
 
 [params]
 

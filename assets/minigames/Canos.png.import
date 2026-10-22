@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b41w1xrms74si"
-path="res://.godot/imported/barra_vida.png-4a0eaad14ef5a0dd5598f1002dc69d4e.ctex"
+uid="uid://c8jgjag87udb5"
+path="res://.godot/imported/Canos.png-f375fa52c0700d870edf72f184c9b510.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/barra_vida.png"
-dest_files=["res://.godot/imported/barra_vida.png-4a0eaad14ef5a0dd5598f1002dc69d4e.ctex"]
+source_file="res://assets/minigames/Canos.png"
+dest_files=["res://.godot/imported/Canos.png-f375fa52c0700d870edf72f184c9b510.ctex"]
 
 [params]
 

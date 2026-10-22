@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://4w6e1lib86rv"
-path="res://.godot/imported/postIt_empilhado.png-171feefc403981fc398c6b3b52705b1a.ctex"
+uid="uid://b41w1xrms74si"
+path="res://.godot/imported/barra_vida.png-a16961425a168f56b0dfb33ed2de66f5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/postIt_empilhado.png"
-dest_files=["res://.godot/imported/postIt_empilhado.png-171feefc403981fc398c6b3b52705b1a.ctex"]
+source_file="res://assets/central/barra_vida.png"
+dest_files=["res://.godot/imported/barra_vida.png-a16961425a168f56b0dfb33ed2de66f5.ctex"]
 
 [params]
 

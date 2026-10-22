@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://eqpld1tejdcq"
-path="res://.godot/imported/postIt_aberto.png-47002510d0bec3ed8691a578d52164e8.ctex"
+uid="uid://cmjvr4tw5trtx"
+path="res://.godot/imported/botao_gerador.png-b29603722975f4e6d938cd7e554c1451.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/postIt_aberto.png"
-dest_files=["res://.godot/imported/postIt_aberto.png-47002510d0bec3ed8691a578d52164e8.ctex"]
+source_file="res://assets/central/botao_gerador.png"
+dest_files=["res://.godot/imported/botao_gerador.png-b29603722975f4e6d938cd7e554c1451.ctex"]
 
 [params]
 

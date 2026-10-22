@@ -22,6 +22,7 @@ var completo: bool = false
 var _sprite_ponto: Sprite3D
 var _sprite_objeto: SpriteBase3D
 var _frames_objeto: SpriteFrames
+var _tamanho_sprite_obj: float = 0.8
 
 var _altura_ponto: float = 0.8
 var _tamanho_sprite: float = 0.8
@@ -41,11 +42,12 @@ func _process(_delta: float) -> void:
 
 
 ## Configura o visual e propriedades fisicas/visuais do objetivo.
-func configurar(p_tipo: String, textura: Texture2D, frames: SpriteFrames = null, tamanho: float = 0.8, altura: float = 0.8, _ocultar: bool = false) -> void:
+func configurar(p_tipo: String, textura: Texture2D, frames: SpriteFrames = null, tamanho_ponto: float = 0.8, tamanho_objeto: float = 0.8, altura: float = 0.8, _ocultar: bool = false) -> void:
 	tipo = p_tipo
 	_textura_objeto = textura
 	_frames_objeto = frames
-	_tamanho_sprite = tamanho
+	_tamanho_sprite = tamanho_ponto
+	_tamanho_sprite_obj = tamanho_objeto
 	_altura_ponto = altura
 
 	_criar_sprite_ponto()
@@ -72,6 +74,7 @@ func _criar_sprite_ponto() -> void:
 
 	_sprite_ponto.pixel_size = _tamanho_sprite / maxf(float(tex_ponto.get_width()), 1.0)
 	_sprite_ponto.position = Vector3(0.0, _altura_ponto, 0.0)
+	_sprite_ponto.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	add_child(_sprite_ponto)
 
 
@@ -88,13 +91,14 @@ func _criar_sprite_objeto() -> void:
 		anim.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		anim.shaded = true
 		anim.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		anim.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
 		var anim_nome := &"default"
 		if not _frames_objeto.has_animation("default") and not _frames_objeto.get_animation_names().is_empty():
 			anim_nome = _frames_objeto.get_animation_names()[0]
 		var tex_frame: Texture2D = _frames_objeto.get_frame_texture(anim_nome, 0)
 		var frame_w := float(tex_frame.get_width()) if tex_frame != null else 32.0
 		var frame_h := float(tex_frame.get_height()) if tex_frame != null else 32.0
-		anim.pixel_size = _tamanho_sprite / maxf(frame_w, 1.0)
+		anim.pixel_size = _tamanho_sprite_obj / maxf(frame_w, 1.0)
 		var altura_mundo := anim.pixel_size * frame_h
 
 		anim.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y if not orientacao_chao else BaseMaterial3D.BILLBOARD_DISABLED
@@ -120,6 +124,7 @@ func _criar_sprite_objeto() -> void:
 		sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		sprite.shaded = true
 		sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
 
 		var tex := _textura_objeto
 		if tex == null:
@@ -131,10 +136,10 @@ func _criar_sprite_objeto() -> void:
 		if orientacao_chao:
 			sprite.axis = Vector3.AXIS_Y
 			sprite.position = Vector3(0.0, 0.03, 0.0)
-			sprite.pixel_size = (_tamanho_sprite * 1.2) / maxf(float(tex.get_width()), 1.0)
+			sprite.pixel_size = (_tamanho_sprite_obj * 1.2) / maxf(float(tex.get_width()), 1.0)
 		else:
 			sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-			sprite.pixel_size = (_tamanho_sprite * 1.1) / maxf(float(tex.get_width()), 1.0)
+			sprite.pixel_size = (_tamanho_sprite_obj * 1.1) / maxf(float(tex.get_width()), 1.0)
 			var altura_mundo := sprite.pixel_size * float(tex.get_height())
 			# A base da imagem encosta no chao.
 			sprite.position = Vector3(0.0, altura_mundo * 0.5, 0.0)

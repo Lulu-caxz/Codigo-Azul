@@ -76,6 +76,8 @@ const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 @export var texturas_tipos: Dictionary = {}
 ## SpriteFrames (animacao) de cada tipo para o objeto colocado (chave = tipo, valor = SpriteFrames).
 @export var frames_tipos: Dictionary = {}
+## Tamanho individual de cada tipo (chave = tipo, valor = float). Se ausente, usa tamanho_sprite.
+@export var tamanhos_tipos: Dictionary = {}
 
 @export_group("Sprite na cidade")
 ## Largura do sprite no mundo (unidades).
@@ -176,6 +178,15 @@ var _tipos_sem_cena_avisados: Dictionary = {}
 var _som_concluido: AudioStream
 var _som_player: AudioStreamPlayer
 
+func _criar_contagem() -> void:
+	var cena_contagem := load("res://scenes/cidade/contagem.tscn")
+	if cena_contagem is PackedScene:
+		_contagem = cena_contagem.instantiate() as CanvasLayer
+		if _contagem != null:
+			add_child(_contagem)
+			_contagem.visible = false
+
+
 func _criar_hud() -> void:
 	if not criar_hud:
 		return
@@ -195,13 +206,7 @@ func _criar_hud() -> void:
 		else:
 			push_warning("Objetivos: Nenhuma cena de HUD configurada em cena_hud.")
 
-	# Tela de contagem regressiva (cena nova) no meio da tela.
-	var cena_contagem := load("res://scenes/cidade/contagem.tscn")
-	if cena_contagem is PackedScene:
-		_contagem = cena_contagem.instantiate() as CanvasLayer
-		if _contagem != null:
-			add_child(_contagem)
-			_contagem.visible = false
+	pass
 
 func _ready() -> void:
 	_mundo = get_node_or_null(no_mundo)
@@ -380,6 +385,9 @@ func _ao_mundo_pronto() -> void:
 		_abrigo_porta = predios.abrigo_porta_pos
 		_abrigo_centro = predios.abrigo_posicao
 		_abrigo_carregado = _abrigo_porta != Vector3.ZERO
+
+	# Cria a tela de contagem antes de iniciar (para cobrir a transicao).
+	_criar_contagem()
 
 	_iniciar_contagem(false)
 	await get_tree().create_timer(1).timeout
@@ -858,11 +866,20 @@ func _criar_no(indice: int) -> Node3D:
 	if valor_frames is SpriteFrames:
 		frames = valor_frames
 
+	var tamanho := tamanho_sprite
+	if tamanhos_tipos.has(tipo):
+		tamanho = float(tamanhos_tipos[tipo])
+
+	# Tamanho do sprite gerado no chao: usa chave separada para nao afetar o ponto flutuante.
+	var tamanho_obj := tamanho_sprite
+	if tamanhos_tipos.has(tipo + "_obj"):
+		tamanho_obj = float(tamanhos_tipos[tipo + "_obj"])
+
 	var no := ObjetivoSprite.new()
 	no.name = "Objetivo_%d_%s" % [indice, tipo]
 	_container.add_child(no)
 	no.global_position = Vector3(float(dados[I_X]), float(dados[I_Y]), float(dados[I_Z]))
-	no.configurar(tipo, textura, frames, tamanho_sprite, altura_sprite, ocultar_ao_completar)
+	no.configurar(tipo, textura, frames, tamanho, tamanho_obj, altura_sprite, ocultar_ao_completar)
 	if dados[I_ESTADO] == COMPLETO:
 		no.marcar_completo()
 	no.tree_exiting.connect(_ao_no_saindo.bind(indice, rodada_atual))

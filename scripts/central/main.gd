@@ -62,8 +62,16 @@ func _ready() -> void:
 		central.dados_sala_atualizados.connect(
 			_ao_dados_sala_atualizados
 		)
+		central.timer_atualizado.connect(
+			_ao_timer_atualizado
+		)
 
 		print("Mapa: conectado ao CentralSync.")
+
+	# Evita mostrar 60s iniciais antes da primeira sincronizacao.
+	var visor_label := get_node_or_null("UI/Visor/Label")
+	if visor_label != null:
+		visor_label.text = "--"
 
 
 func carregar_mapa() -> void:
@@ -210,15 +218,25 @@ func _ao_dados_sala_atualizados(
 	marcador_jogador.visible = true
 
 
+func _ao_timer_atualizado(segundos: int, iniciado: bool) -> void:
+	var visor_label := get_node_or_null("UI/Visor/Label")
+	if visor_label == null:
+		return
+	if not iniciado:
+		visor_label.text = "%ds" % segundos
+	else:
+		visor_label.text = "%02d:%02d" % [segundos / 60, segundos % 60]
+
+
 func _configurar_ui() -> void:
 	# Botao gerador: troca para o sprite "pressionado".
 	var gerador := get_node_or_null("UI/Gerador") as Button
 	if gerador != null:
 		var tex_normal := AtlasTexture.new()
-		tex_normal.atlas = preload("res://assets/botao_gerador.png")
+		tex_normal.atlas = preload("res://assets/central/botao_gerador.png")
 		tex_normal.region = Rect2(0, 0, 103, 34)
 		var tex_pressed := AtlasTexture.new()
-		tex_pressed.atlas = preload("res://assets/botao_gerador.png")
+		tex_pressed.atlas = preload("res://assets/central/botao_gerador.png")
 		tex_pressed.region = Rect2(103, 0, 103, 34)
 		gerador.icon = tex_normal
 		gerador.button_down.connect(func():
@@ -311,7 +329,7 @@ func _abrir_postit(idx: int) -> void:
 	var sprite := no.get_node_or_null("Sprite2D") as Sprite2D
 	if sprite != null:
 		var tex := AtlasTexture.new()
-		tex.atlas = preload("res://assets/postIt_aberto.png")
+		tex.atlas = preload("res://assets/central/postIt_aberto.png")
 		tex.region = Rect2(idx * 52, 0, 52, 33)
 		sprite.texture = tex
 

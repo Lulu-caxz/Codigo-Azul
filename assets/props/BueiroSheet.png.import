@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dlojwutobe2fq"
-path="res://.godot/imported/visor.png-79e868761bf6f912e5769142cc348112.ctex"
+uid="uid://banwajcf1j1x"
+path="res://.godot/imported/BueiroSheet.png-bcc8f33076555d6164d38ed0ad834307.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/visor.png"
-dest_files=["res://.godot/imported/visor.png-79e868761bf6f912e5769142cc348112.ctex"]
+source_file="res://assets/props/BueiroSheet.png"
+dest_files=["res://.godot/imported/BueiroSheet.png-bcc8f33076555d6164d38ed0ad834307.ctex"]
 
 [params]
 

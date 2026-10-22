@@ -298,8 +298,8 @@ func _instanciar_multimesh(parent: Node3D, mesh: Mesh, mat: Material, transforms
 	var mi := MultiMeshInstance3D.new()
 	mi.multimesh = mm
 	mi.material_override = mat
-	# Desligar sombra nas arvores de borda economiza metade dos passes da GPU (ganho massivo de FPS)
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Arvores e nevoa projetam sombra.
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	parent.add_child(mi)
 
 

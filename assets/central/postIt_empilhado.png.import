@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://banwajcf1j1x"
-path="res://.godot/imported/BueiroSheet.png-b8435a3b3fe48f2251493db1f2449bdb.ctex"
+uid="uid://4w6e1lib86rv"
+path="res://.godot/imported/postIt_empilhado.png-1a61ba9a65f4b297d52cb006364c87a0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/BueiroSheet.png"
-dest_files=["res://.godot/imported/BueiroSheet.png-b8435a3b3fe48f2251493db1f2449bdb.ctex"]
+source_file="res://assets/central/postIt_empilhado.png"
+dest_files=["res://.godot/imported/postIt_empilhado.png-1a61ba9a65f4b297d52cb006364c87a0.ctex"]
 
 [params]
 

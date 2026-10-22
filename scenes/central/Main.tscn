@@ -9,10 +9,10 @@
 [ext_resource type="Texture2D" uid="uid://bu5fgalwtu67m" path="res://assets/pin-pluviometro.png" id="5_ncnl4"]
 [ext_resource type="Texture2D" uid="uid://by0uqg5vk30g" path="res://assets/pin-antena.png" id="6_v8mop"]
 [ext_resource type="Texture2D" uid="uid://bc4k8ogg5nb4c" path="res://assets/pin-abrigo.png" id="7_abrigo"]
-[ext_resource type="Texture2D" uid="uid://cmjvr4tw5trtx" path="res://assets/botao_gerador.png" id="10_ncnl4"]
-[ext_resource type="Texture2D" uid="uid://b41w1xrms74si" path="res://assets/barra_vida.png" id="11_q7h55"]
-[ext_resource type="Texture2D" uid="uid://bhjk2ees0vnax" path="res://assets/postIt.png" id="12_hcs50"]
-[ext_resource type="Texture2D" uid="uid://dlojwutobe2fq" path="res://assets/visor.png" id="13_lpy2g"]
+[ext_resource type="Texture2D" uid="uid://cmjvr4tw5trtx" path="res://assets/central/botao_gerador.png" id="10_ncnl4"]
+[ext_resource type="Texture2D" uid="uid://b41w1xrms74si" path="res://assets/central/barra_vida.png" id="11_q7h55"]
+[ext_resource type="Texture2D" uid="uid://bhjk2ees0vnax" path="res://assets/central/postIt.png" id="12_hcs50"]
+[ext_resource type="Texture2D" uid="uid://dlojwutobe2fq" path="res://assets/central/visor.png" id="13_lpy2g"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
 atlas = ExtResource("10_ncnl4")

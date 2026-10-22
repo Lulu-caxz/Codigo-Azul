@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dkmsa8fnwt2at"
-path="res://.godot/imported/ConfirmarBotao.png-f67a3b283f325bee7a132df6d6fbff3c.ctex"
+uid="uid://dlojwutobe2fq"
+path="res://.godot/imported/visor.png-900145717a51a45d8a18cf0644c7b8c0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ConfirmarBotao.png"
-dest_files=["res://.godot/imported/ConfirmarBotao.png-f67a3b283f325bee7a132df6d6fbff3c.ctex"]
+source_file="res://assets/central/visor.png"
+dest_files=["res://.godot/imported/visor.png-900145717a51a45d8a18cf0644c7b8c0.ctex"]
 
 [params]
 
