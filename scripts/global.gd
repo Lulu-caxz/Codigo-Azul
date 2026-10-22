@@ -24,8 +24,10 @@ func tipo_em(x: int, z: int) -> int:
 		return 0
 	return tipos[x * profundidade + z]
 
-var salaID: String = "6e19beaa-f856-4855-9adb-e1df41465c61"
+var salaID: String = "185db604-0b5d-4f7a-a712-c0cab81c2787"
 
 var funcao: String = "C"
 
 var pontos_position: Array = []
+
+var tempo: int = 60

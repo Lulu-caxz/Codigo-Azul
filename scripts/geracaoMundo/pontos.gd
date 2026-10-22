@@ -21,6 +21,7 @@ extends Node3D
 # Para adicionar um tipo novo: coloque-o em pesos_tipos e (opcional) uma cena em cenas_tipos.
 # =============================================================================
 
+signal tempo_de_jogo_iniciado
 signal estado_mudou(novo: int, anterior: int)
 signal rodada_preparada(numero: int, exigidos: int)
 signal progresso_mudou(concluidos: int, exigidos: int)
@@ -391,6 +392,7 @@ func _process(_delta: float) -> void:
 			var falta := inicio_unix - agora
 			if falta <= 0.0:
 				_mudar_estado(Estado.RODADA_ATIVA)
+				tempo_de_jogo_iniciado.emit()
 			else:
 				var seg := ceili(falta)
 				if seg != _ultimo_segundo:
@@ -578,9 +580,9 @@ func _planejar_rodada(numero: int) -> bool:
 # Celula do mapa -> posicao GLOBAL na superficie do bloco (centro do bloco, topo = altura * tamanho).
 @warning_ignore("integer_division")
 func _celula_para_mundo(idx: int) -> Vector3:
-	var x := idx / Global.profundidade
-	var z := idx % Global.profundidade
-	var s := Global.tamanho_cubo
+	var x = idx / Global.profundidade
+	var z = idx % Global.profundidade
+	var s = Global.tamanho_cubo
 	var local := Vector3((x + 0.5) * s, Global.altura_em(x, z) * s, (z + 0.5) * s)
 	return _terreno.to_global(local)
 
@@ -657,7 +659,7 @@ func _dist_min(c: int, escolhidos: Array[int]) -> float:
 #  CANDIDATOS (usa so Global.tipos / Global.mapa: sem fisica, funciona longe da camera)
 # -----------------------------------------------------------------------------
 func _calcular_candidatos() -> bool:
-	var tamanho := Global.largura * Global.profundidade
+	var tamanho = Global.largura * Global.profundidade
 	if Global.tipos.size() != tamanho or Global.mapa.size() != tamanho:
 		push_error("Objetivos: Global.tipos/Global.mapa nao estao prontos.")
 		return false
@@ -683,14 +685,14 @@ func _calcular_candidatos() -> bool:
 func _coletar(alcancaveis: PackedByteArray, raio_quadra: int) -> int:
 	_cand_idx = PackedInt32Array()
 	_cand_xz = PackedVector2Array()
-	var larg := Global.largura
-	var prof := Global.profundidade
-	var s := Global.tamanho_cubo
-	var tipos := Global.tipos
+	var larg = Global.largura
+	var prof = Global.profundidade
+	var s = Global.tamanho_cubo
+	var tipos = Global.tipos
 	var filtrar := not alcancaveis.is_empty()
 	for x in larg:
 		for z in prof:
-			var i := x * prof + z
+			var i = x * prof + z
 			if tipos[i] != T_CALCADA:
 				continue
 			if filtrar and alcancaveis[i] == 0:
@@ -703,8 +705,8 @@ func _coletar(alcancaveis: PackedByteArray, raio_quadra: int) -> int:
 
 
 func _tem_tipo_perto(tipos: PackedByteArray, x: int, z: int, tipo: int, raio: int) -> bool:
-	var larg := Global.largura
-	var prof := Global.profundidade
+	var larg = Global.largura
+	var prof = Global.profundidade
 	for dx in range(-raio, raio + 1):
 		var nx := x + dx
 		if nx < 0 or nx >= larg:
@@ -726,11 +728,11 @@ func _calcular_alcancaveis() -> PackedByteArray:
 		push_warning("Objetivos: o mundo nao tem ponto_de_nascimento(); sem filtro de acessibilidade.")
 		return PackedByteArray()
 
-	var larg := Global.largura
-	var prof := Global.profundidade
-	var s := Global.tamanho_cubo
-	var tipos := Global.tipos
-	var alturas := Global.mapa
+	var larg = Global.largura
+	var prof = Global.profundidade
+	var s = Global.tamanho_cubo
+	var tipos = Global.tipos
+	var alturas = Global.mapa
 
 	var spawn: Vector3 = _mundo.call("ponto_de_nascimento")
 	var local := _terreno.to_local(spawn)
@@ -747,19 +749,19 @@ func _calcular_alcancaveis() -> PackedByteArray:
 	while cabeca < fila.size():
 		var i := fila[cabeca]
 		cabeca += 1
-		var x := i / prof
-		var z := i % prof
-		var h := alturas[i]
+		var x = i / prof
+		var z = i % prof
+		var h = alturas[i]
 		for d in DIRS4:
 			var dv: Vector2i = d
-			var nx := x + dv.x
-			var nz := z + dv.y
+			var nx = x + dv.x
+			var nz = z + dv.y
 			if nx < 0 or nz < 0 or nx >= larg or nz >= prof:
 				continue
-			var j := nx * prof + nz
+			var j = nx * prof + nz
 			if visitado[j] != 0:
 				continue
-			var t := tipos[j]
+			var t = tipos[j]
 			if t != T_RUA and t != T_PONTE and t != T_CALCADA:
 				continue
 			if absi(alturas[j] - h) > degrau_max_acessivel:
@@ -873,7 +875,7 @@ func _processar_envios() -> void:
 		var corpo := extras.duplicate()
 		corpo["pontos_position"] = Global.pontos_position.duplicate(true)
 
-		var url := "https://%s.supabase.co/rest/v1/salas" % _projeto_ref \
+		var url = "https://%s.supabase.co/rest/v1/salas" % _projeto_ref \
 			+ "?id=eq." + Global.salaID.uri_encode() + "&select=id"
 		var headers := PackedStringArray([
 			"Content-Type: application/json",

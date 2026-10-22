@@ -75,7 +75,9 @@ func _ao_contagem(segundos: int) -> void:
 func _ao_tempo(segundos: int) -> void:
 	label_titulo_tempo.text = "TEMPO RESTANTE"
 	label_tempo.text = "%02d:%02d" % [segundos / 60, segundos % 60]
-
+	
+	Global.tempo = segundos
+	
 	if segundos <= 15:
 		# Alerta de tempo acabando: texto avermelhado
 		label_tempo.modulate = Color(1.0, 0.35, 0.35)

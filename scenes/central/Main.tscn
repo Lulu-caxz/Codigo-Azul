@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ck1mxegjn63w3" path="res://scripts/central/main.gd" id="1_dab24"]
 [ext_resource type="Script" uid="uid://6crsf2ayt5rt" path="res://scripts/pontosObjetivos.gd" id="2_cqy30"]
+[ext_resource type="Script" uid="uid://xvqjm8ky3ip2" path="res://scripts/centralSync.gd" id="3_7nbwh"]
 
 [node name="Main2" type="Node2D" unique_id=1576598560]
 script = ExtResource("1_dab24")
@@ -10,3 +11,6 @@ script = ExtResource("1_dab24")
 
 [node name="Node2D" type="Node2D" parent="." unique_id=1283979250]
 script = ExtResource("2_cqy30")
+
+[node name="CentralSync" type="Node2D" parent="." unique_id=711618265]
+script = ExtResource("3_7nbwh")

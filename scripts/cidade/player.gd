@@ -24,6 +24,12 @@ var _ultimo_passo: int = -1
 
 var DISTANCIA_PASSO: float = 2
 
+const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
+const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
+
+var _gerenciador_objetivos: GerenciadorObjetivos
+var _http_posicao: HTTPRequest
+var _atualizando_posicao: bool = false
 
 func _ready() -> void:
 	
@@ -46,6 +52,102 @@ func _ready() -> void:
 	_passo_player.name = "PassoPlayer"
 	_passo_player.volume_db = -5.0
 	add_child(_passo_player)
+	
+	_http_posicao = HTTPRequest.new()
+	_http_posicao.name = "HTTPPosicaoJogador"
+	add_child(_http_posicao)
+
+	var mundo := get_tree().current_scene
+	if mundo != null:
+		_gerenciador_objetivos = mundo.find_child(
+			"Pontos",
+			true,
+			false
+		) as GerenciadorObjetivos
+
+	if _gerenciador_objetivos == null:
+		push_warning("Player: GerenciadorObjetivos não encontrado.")
+		return
+
+	if not _gerenciador_objetivos.tempo_de_jogo_iniciado.is_connected(
+		_ao_tempo_de_jogo_iniciado
+	):
+		_gerenciador_objetivos.tempo_de_jogo_iniciado.connect(
+			_ao_tempo_de_jogo_iniciado
+		)
+
+func _ao_tempo_de_jogo_iniciado() -> void:
+	if _atualizando_posicao:
+		return
+
+	_atualizando_posicao = true
+	_atualizar_posicao_periodicamente()
+
+
+func _atualizar_posicao_periodicamente() -> void:
+	while is_inside_tree() and _gerenciador_objetivos != null:
+		if _gerenciador_objetivos.estado != GerenciadorObjetivos.Estado.RODADA_ATIVA:
+			break
+
+		await _enviar_posicao_backend()
+
+		if not is_inside_tree():
+			break
+
+		if _gerenciador_objetivos.estado != GerenciadorObjetivos.Estado.RODADA_ATIVA:
+			break
+
+		await get_tree().create_timer(1.0).timeout
+
+	_atualizando_posicao = false
+
+
+func _enviar_posicao_backend() -> void:
+	if not is_inside_tree() or Global.salaID.is_empty():
+		return
+
+	var posicao := [
+		global_position.x,
+		global_position.y,
+		global_position.z
+	]
+
+	var url := "https://%s.supabase.co/rest/v1/salas" % PROJECT_REF
+	url += "?id=eq." + Global.salaID.uri_encode() + "&select=id"
+
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"apikey: " + SUPABASE_KEY,
+		"Authorization: Bearer " + SUPABASE_KEY,
+		"Prefer: return=representation"
+	])
+
+	var corpo := {
+		"jogador_f_position": posicao
+	}
+
+	var erro := _http_posicao.request(
+		url,
+		headers,
+		HTTPClient.METHOD_PATCH,
+		JSON.stringify(corpo)
+	)
+
+	if erro != OK:
+		push_error("Player: falha ao iniciar envio da posição: %d" % erro)
+		return
+
+	var resposta = await _http_posicao.request_completed
+	var resultado: int = resposta[0]
+	var codigo: int = resposta[1]
+	var texto: String = resposta[3].get_string_from_utf8()
+
+	if resultado != HTTPRequest.RESULT_SUCCESS:
+		push_error("Player: erro de conexão ao enviar posição.")
+		return
+
+	if codigo < 200 or codigo >= 300:
+		push_error("Player: erro HTTP %d ao atualizar posição: %s" % [codigo, texto])
 
 
 # Coloca o jogador num ponto e leva a camera junto, sem "voar" ate la.

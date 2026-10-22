@@ -71,12 +71,22 @@ func _ready() -> void:
 	use_parent_material = usar_material_do_mapa
 	set_process(pulsar)
 
-	_http = HTTPRequest.new()
-	_http.name = "HTTPPontos"
-	add_child(_http)
+	var central := get_tree().current_scene
 
-	_loop_consulta()
+	if central != null and central.has_signal("dados_sala_atualizados"):
+		central.connect(
+			"dados_sala_atualizados",
+			Callable(self, "_ao_dados_sala_atualizados")
+		)
 
+	if central != null and central.has_method("sincronizar_sala"):
+		await central.sincronizar_sala()
+
+func _ao_dados_sala_atualizados(
+	_posicao: Vector3,
+	pontos: Array
+) -> void:
+	_aplicar(pontos)
 
 # -----------------------------------------------------------------------------
 #  API PUBLICA (para a tela da central)

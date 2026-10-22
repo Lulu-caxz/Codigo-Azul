@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="GameJamIFSP26"
-run/main_scene="uid://o0svjp63lgj5"
+run/main_scene="uid://cry1wmuq4qdhh"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://assets/icon.svg"
 
@@ -22,7 +22,6 @@ Transicao="*uid://c73k01up728pk"
 
 [debug]
 
-settings/stdout/print_fps=true
 GeracaoMapa="*uid://bs6hqrt1jm1y0"
 ConectSupa="*uid://cqfyk0ey8n0f1"
 
