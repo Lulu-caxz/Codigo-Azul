@@ -21,9 +21,10 @@ var _ultimo_estado_iniciado: bool = false
 
 
 func _ready() -> void:
-	http = HTTPRequest.new()
-	http.name = "HTTPSincronizacaoCentral"
-	add_child(http)
+	if http == null:
+		http = HTTPRequest.new()
+		http.name = "HTTPSincronizacaoCentral"
+		add_child(http)
 
 	print("Central: iniciando sincronização com o Supabase.")
 
@@ -41,6 +42,11 @@ func _loop_sincronizacao() -> void:
 
 
 func sincronizar_sala() -> void:
+	if http == null:
+		http = HTTPRequest.new()
+		http.name = "HTTPSincronizacaoCentral"
+		add_child(http)
+
 	if _consultando:
 		return
 

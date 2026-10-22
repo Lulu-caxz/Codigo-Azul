@@ -71,21 +71,31 @@ func _ready() -> void:
 	use_parent_material = usar_material_do_mapa
 	set_process(pulsar)
 
-	var central := get_tree().current_scene
+	var central := get_tree().current_scene.find_child(
+		"CentralSync",
+		true,
+		false
+	)
 
-	if central != null and central.has_signal("dados_sala_atualizados"):
-		central.connect(
-			"dados_sala_atualizados",
-			Callable(self, "_ao_dados_sala_atualizados")
-		)
+	if central == null:
+		push_error("PontosObjetivos: CentralSync não encontrado.")
+		return
 
-	if central != null and central.has_method("sincronizar_sala"):
-		await central.sincronizar_sala()
+	central.dados_sala_atualizados.connect(
+		_ao_dados_sala_atualizados
+	)
+
+	print("PontosObjetivos: conectado ao CentralSync.")
+
+	# Solicita os dados imediatamente, sem depender da próxima consulta.
+	await central.sincronizar_sala()
 
 func _ao_dados_sala_atualizados(
 	_posicao: Vector3,
 	pontos: Array
 ) -> void:
+	print("PontosObjetivos: recebidos ", pontos.size(), " objetivos.")
+
 	_aplicar(pontos)
 
 # -----------------------------------------------------------------------------

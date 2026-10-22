@@ -144,10 +144,12 @@ func atualizar_mapa_backend() -> void:
 
 	# Posição inicial do jogador F.
 	# Troque pelo ponto de nascimento real, se necessário.
-	var jogador_f_position := [
-		0.0,
-		0.0,
-		0.0
+	var nascimento: Vector3 = ponto_de_nascimento()
+
+	var jogador_f_position: Array = [
+		nascimento.x,
+		nascimento.y,
+		nascimento.z
 	]
 	# Pontos do mundo.
 	var pontos_position: Array = Global.pontos_position
