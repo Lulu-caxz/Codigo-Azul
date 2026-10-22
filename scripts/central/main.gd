@@ -6,7 +6,7 @@ const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 
 const MAP_WIDTH: int = 320
 const MAP_HEIGHT: int = 180
-const TILE_SIZE: int = 4
+const TILE_SIZE: int = 3
 
 const SONAR_SHADER = preload("res://shaders/sonar.gdshader")
 
@@ -30,6 +30,7 @@ var cores: Array[Color] = [
 
 
 func _ready() -> void:
+	position = Vector2(764, 215)
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 	var material_sonar := ShaderMaterial.new()

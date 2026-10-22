@@ -37,7 +37,7 @@ const CORES := {
 
 @export_group("Conversao mundo -> mapa 2D")
 ## Pixels de cada bloco no mapa 2D (TILE_SIZE do script do mapa).
-@export var tile_size: float = 4.0
+@export var tile_size: float = 3.0
 ## Tamanho de um bloco no mundo 3D (Global.tamanho_cubo da cidade).
 @export var tamanho_cubo: float = 1.0
 ## Posicao global (x, z) do Terreno no mundo 3D. Zero se ele fica na origem.
