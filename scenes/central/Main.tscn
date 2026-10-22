@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://s2thiaic07yy" path="res://assets/pin-radar.png" id="3_rbgpy"]
 [ext_resource type="Texture2D" uid="uid://tt3nbvl2pr4g" path="res://assets/pin-bueiro.png" id="4_0vyqp"]
 [ext_resource type="Texture2D" uid="uid://bu5fgalwtu67m" path="res://assets/pin-pluviometro.png" id="5_ncnl4"]
-[ext_resource type="Texture2D" uid="uid://by0uqg5vk30g" path="res://assets/pin-scaner.png" id="6_v8mop"]
+[ext_resource type="Texture2D" uid="uid://by0uqg5vk30g" path="res://assets/pin-antena.png" id="6_v8mop"]
 
 [node name="Main2" type="Node2D" unique_id=1576598560]
 script = ExtResource("1_dab24")
@@ -19,10 +19,10 @@ posicao_mapa = Vector2(795, 160)
 script = ExtResource("2_cqy30")
 deslocamento_mapa = Vector2(795, 160)
 texturas_tipos = {
+"antena": ExtResource("6_v8mop"),
 "bueiro": ExtResource("4_0vyqp"),
 "pluviometro": ExtResource("5_ncnl4"),
-"radar": ExtResource("3_rbgpy"),
-"scaner": ExtResource("6_v8mop")
+"radar": ExtResource("3_rbgpy")
 }
 
 [node name="CentralSync" type="Node2D" parent="." unique_id=711618265]
