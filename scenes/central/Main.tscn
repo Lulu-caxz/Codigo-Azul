@@ -9,6 +9,136 @@
 [ext_resource type="Texture2D" uid="uid://bu5fgalwtu67m" path="res://assets/pin-pluviometro.png" id="5_ncnl4"]
 [ext_resource type="Texture2D" uid="uid://by0uqg5vk30g" path="res://assets/pin-antena.png" id="6_v8mop"]
 [ext_resource type="Texture2D" uid="uid://bc4k8ogg5nb4c" path="res://assets/pin-abrigo.png" id="7_abrigo"]
+[ext_resource type="Texture2D" uid="uid://cmjvr4tw5trtx" path="res://assets/botao_gerador.png" id="10_ncnl4"]
+[ext_resource type="Texture2D" uid="uid://b41w1xrms74si" path="res://assets/barra_vida.png" id="11_q7h55"]
+[ext_resource type="Texture2D" uid="uid://bhjk2ees0vnax" path="res://assets/postIt.png" id="12_hcs50"]
+[ext_resource type="Texture2D" uid="uid://dlojwutobe2fq" path="res://assets/visor.png" id="13_lpy2g"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
+atlas = ExtResource("10_ncnl4")
+region = Rect2(0, 0, 103, 34)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8f1ir"]
+atlas = ExtResource("11_q7h55")
+region = Rect2(198, 24, 99, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rnu31"]
+atlas = ExtResource("11_q7h55")
+region = Rect2(99, 24, 99, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_awpjp"]
+atlas = ExtResource("11_q7h55")
+region = Rect2(0, 24, 99, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k63p6"]
+atlas = ExtResource("11_q7h55")
+region = Rect2(198, 0, 99, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yqilc"]
+atlas = ExtResource("11_q7h55")
+region = Rect2(99, 0, 99, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qlkro"]
+atlas = ExtResource("11_q7h55")
+region = Rect2(0, 0, 99, 24)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_26022"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8f1ir")
+}],
+"loop": 1,
+"name": &"0",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rnu31")
+}],
+"loop": 1,
+"name": &"1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_awpjp")
+}],
+"loop": 1,
+"name": &"2",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k63p6")
+}],
+"loop": 1,
+"name": &"3",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yqilc")
+}],
+"loop": 1,
+"name": &"4",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qlkro")
+}],
+"loop": 1,
+"name": &"5",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icdlf"]
+atlas = ExtResource("12_hcs50")
+region = Rect2(54, 0, 54, 34)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c2s85"]
+atlas = ExtResource("12_hcs50")
+region = Rect2(108, 0, 54, 34)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f43j0"]
+atlas = ExtResource("12_hcs50")
+region = Rect2(108, 0, 54, 34)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cqwtx"]
+atlas = ExtResource("12_hcs50")
+region = Rect2(54, 0, 54, 34)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_027ic"]
+atlas = ExtResource("12_hcs50")
+region = Rect2(0, 0, 54, 34)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_452lo"]
+atlas = ExtResource("13_lpy2g")
+region = Rect2(99, 0, 99, 21)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m7okv"]
+atlas = ExtResource("13_lpy2g")
+region = Rect2(0, 0, 99, 21)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_0n522"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_452lo")
+}],
+"loop": 1,
+"name": &"off",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m7okv")
+}],
+"loop": 1,
+"name": &"on",
+"speed": 5.0
+}]
 
 [node name="Main2" type="Node2D" unique_id=1576598560]
 script = ExtResource("1_dab24")
@@ -36,3 +166,122 @@ z_index = -1
 position = Vector2(960, 540)
 scale = Vector2(5, 5)
 texture = ExtResource("2_syw7i")
+
+[node name="UI" type="Control" parent="." unique_id=322707712]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+scale = Vector2(5, 5)
+
+[node name="Gerador" type="Button" parent="UI" unique_id=1371210258]
+layout_mode = 0
+offset_left = 253.0
+offset_top = 146.8
+offset_right = 364.0
+offset_bottom = 188.8
+icon = SubResource("AtlasTexture_26022")
+flat = true
+
+[node name="BarraDeVida" type="AnimatedSprite2D" parent="UI" unique_id=1872763976]
+position = Vector2(200, 185)
+sprite_frames = SubResource("SpriteFrames_26022")
+animation = &"5"
+
+[node name="PostIts" type="Control" parent="UI" unique_id=1532190657]
+anchors_preset = 0
+offset_left = -20.8
+offset_top = -43.6
+offset_right = 101.2
+offset_bottom = 195.4
+
+[node name="PostIt6AMARELO" type="Control" parent="UI/PostIts" unique_id=1336471229]
+anchors_preset = 0
+offset_left = 65.400024
+offset_top = 201.60002
+offset_right = 119.400024
+offset_bottom = 235.6
+
+[node name="Sprite2D" type="Sprite2D" parent="UI/PostIts/PostIt6AMARELO" unique_id=477136047]
+position = Vector2(27, 17)
+texture = SubResource("AtlasTexture_icdlf")
+
+[node name="PostIt5AZUL" type="Control" parent="UI/PostIts" unique_id=1293783193]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 59.400005
+offset_top = 175.40001
+offset_right = 113.4
+offset_bottom = 209.40001
+
+[node name="Sprite2D" type="Sprite2D" parent="UI/PostIts/PostIt5AZUL" unique_id=1941527327]
+position = Vector2(27, 17)
+texture = SubResource("AtlasTexture_c2s85")
+
+[node name="PostIt4AMARELO" type="Control" parent="UI/PostIts" unique_id=1368950966]
+anchors_preset = 0
+offset_left = 65.400024
+offset_top = 148.20001
+offset_right = 119.400024
+offset_bottom = 182.20001
+
+[node name="Sprite2D" type="Sprite2D" parent="UI/PostIts/PostIt4AMARELO" unique_id=1388434083]
+position = Vector2(27, 17)
+texture = SubResource("AtlasTexture_icdlf")
+
+[node name="PostIt3AZUL" type="Control" parent="UI/PostIts" unique_id=1963680909]
+anchors_preset = 0
+offset_left = 59.4
+offset_top = 122.6
+offset_right = 113.4
+offset_bottom = 156.6
+
+[node name="Sprite2D" type="Sprite2D" parent="UI/PostIts/PostIt3AZUL" unique_id=1160616120]
+position = Vector2(27, 17)
+texture = SubResource("AtlasTexture_f43j0")
+
+[node name="PostIt2AMARELO" type="Control" parent="UI/PostIts" unique_id=1232461794]
+anchors_preset = 0
+offset_left = 65.4
+offset_top = 95.8
+offset_right = 119.4
+offset_bottom = 129.8
+
+[node name="Sprite2D" type="Sprite2D" parent="UI/PostIts/PostIt2AMARELO" unique_id=1773339317]
+position = Vector2(27, 17)
+texture = SubResource("AtlasTexture_cqwtx")
+
+[node name="PostIt1TutorialROXO" type="Control" parent="UI/PostIts" unique_id=1243739939]
+anchors_preset = 0
+offset_left = 59.4
+offset_top = 69.8
+offset_right = 113.4
+offset_bottom = 103.8
+
+[node name="Sprite2D" type="Sprite2D" parent="UI/PostIts/PostIt1TutorialROXO" unique_id=2107063226]
+position = Vector2(27, 17)
+texture = SubResource("AtlasTexture_027ic")
+
+[node name="Visor" type="Control" parent="UI" unique_id=362220681]
+anchors_preset = 0
+offset_left = 200.0
+offset_top = 160.0
+offset_right = 240.0
+offset_bottom = 200.0
+scale = Vector2(0.2, 0.2)
+
+[node name="Visor" type="AnimatedSprite2D" parent="UI/Visor" unique_id=1911407535]
+scale = Vector2(5, 5)
+sprite_frames = SubResource("SpriteFrames_0n522")
+animation = &"off"
+
+[node name="Label" type="Label" parent="UI/Visor" unique_id=922909981]
+layout_mode = 0
+offset_left = -65.0
+offset_top = -49.0
+offset_right = 226.0
+offset_bottom = 34.0
+theme_override_font_sizes/font_size = 60
+text = "30s"
+horizontal_alignment = 2
+vertical_alignment = 1

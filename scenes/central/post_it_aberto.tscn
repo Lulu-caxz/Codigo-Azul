@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://clakhaltqi7lf"]
+
+[ext_resource type="Texture2D" uid="uid://eqpld1tejdcq" path="res://assets/postIt_aberto.png" id="1_e8w05"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
+atlas = ExtResource("1_e8w05")
+region = Rect2(0, 0, 52, 33)
+
+[node name="PostItAberto" type="Node2D" unique_id=27933989]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=900434093]
+scale = Vector2(10, 10)
+texture = SubResource("AtlasTexture_26022")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="." unique_id=1544583524]
+offset_left = -195.0
+offset_top = -82.0
+offset_right = 191.0
+offset_bottom = 62.0
+theme_override_colors/default_color = Color(0.096204735, 0.09620475, 0.096204735, 1)
+theme_override_font_sizes/normal_font_size = 28
+text = "Ada Lovelace
+10/12/1815"

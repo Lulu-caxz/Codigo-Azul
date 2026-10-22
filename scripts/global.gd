@@ -32,4 +32,6 @@ var pontos_position: Array = []
 
 var abrigo_position: Vector3 = Vector3.ZERO
 
+var vidas: int = 5
+
 var tempo: int = 60
