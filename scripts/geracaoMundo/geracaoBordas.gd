@@ -12,7 +12,6 @@ extends Node3D
 @export_group("Arvores")
 ## Lista de texturas de arvores (todos os tipos sao sorteados e misturados de forma homogenea).
 @export var texturas_arvores: Array[Texture2D] = [
-	preload("res://assets/arvore.png")
 ]
 ## Faixa interna do mapa onde a floresta comeca (em blocos)
 @export var largura_borda_interna: int = 2
@@ -26,7 +25,7 @@ extends Node3D
 @export var escala_maxima_distante: float = 3.2
 
 @export_group("Nevoa (Agua)")
-@export var textura_nevoa: Texture2D = preload("res://assets/nevoa.png")
+@export var textura_nevoa: Texture2D = preload("res://assets/props/nevoa.png")
 @export var altura_nevoa_base: float = 4.0
 
 @export_group("Otimizacao")

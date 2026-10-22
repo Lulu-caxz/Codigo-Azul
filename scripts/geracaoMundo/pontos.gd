@@ -74,6 +74,8 @@ const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ## Sprite 2D de cada tipo (chave = nome do tipo, valor = Texture2D).
 ## Sem textura, usa um ponto simples colorido gerado por codigo.
 @export var texturas_tipos: Dictionary = {}
+## SpriteFrames (animacao) de cada tipo para o objeto colocado (chave = tipo, valor = SpriteFrames).
+@export var frames_tipos: Dictionary = {}
 
 @export_group("Sprite na cidade")
 ## Largura do sprite no mundo (unidades).
@@ -809,11 +811,16 @@ func _criar_no(indice: int) -> Node3D:
 	else:
 		_avisar_tipo(tipo)
 
+	var frames: SpriteFrames = null
+	var valor_frames: Variant = frames_tipos.get(tipo)
+	if valor_frames is SpriteFrames:
+		frames = valor_frames
+
 	var no := ObjetivoSprite.new()
 	no.name = "Objetivo_%d_%s" % [indice, tipo]
 	_container.add_child(no)
 	no.global_position = Vector3(float(dados[I_X]), float(dados[I_Y]), float(dados[I_Z]))
-	no.configurar(tipo, textura, tamanho_sprite, altura_sprite, ocultar_ao_completar)
+	no.configurar(tipo, textura, frames, tamanho_sprite, altura_sprite, ocultar_ao_completar)
 	if dados[I_ESTADO] == COMPLETO:
 		no.marcar_completo()
 	no.tree_exiting.connect(_ao_no_saindo.bind(indice, rodada_atual))

@@ -28,6 +28,7 @@ const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
 const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 
 var _gerenciador_objetivos: GerenciadorObjetivos
+var _terreno: Node3D
 var _http_posicao: HTTPRequest
 var _atualizando_posicao: bool = false
 var _jogo_iniciado: bool = false
@@ -65,6 +66,11 @@ func _ready() -> void:
 			true,
 			false
 		) as GerenciadorObjetivos
+		_terreno = mundo.find_child(
+			"Terreno",
+			true,
+			false
+		) as Node3D
 
 	if _gerenciador_objetivos == null:
 		push_warning("Player: GerenciadorObjetivos não encontrado.")
@@ -176,8 +182,23 @@ func _physics_process(delta: float) -> void:
 	var entrada := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	var direcao := Vector3(entrada.x, 0.0, entrada.y)
 
-	velocity.x = direcao.x * velocidade
-	velocity.z = direcao.z * velocidade
+	# Ajusta a velocidade conforme o tipo de bloco sob o jogador.
+	var mult_vel := 1.0
+	if _terreno != null:
+		var local := _terreno.to_local(global_position)
+		var s := Global.tamanho_cubo
+		var x := floori(local.x / s)
+		var z := floori(local.z / s)
+		if x >= 0 and z >= 0 and x < Global.largura and z < Global.profundidade:
+			var tipo_bloco := int(Global.tipos[x * Global.profundidade + z])
+			if tipo_bloco == 2 or tipo_bloco == 1:          # grama -> 1/3 da velocidade
+				mult_vel = 1.0 / 3.0
+				sprite.speed_scale = (velocidade/5)/3
+			else: 
+				sprite.speed_scale = (velocidade/5)
+
+	velocity.x = direcao.x * velocidade * mult_vel
+	velocity.z = direcao.z * velocidade * mult_vel
 
 	if is_on_floor():
 		velocity.y = 0.0
@@ -185,8 +206,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity += get_gravity() * delta
 
-	if altura_degrau > 0.0 and is_on_floor() and direcao != Vector3.ZERO:
-		_subir_degrau(direcao * velocidade * delta)
+	if altura_degrau > 0.0 and is_on_floor() and direcao != Vector3.ZERO and mult_vel > 0.0:
+		_subir_degrau(direcao * velocidade * mult_vel * delta)
 
 	move_and_slide()
 	_atualizar_animacao(entrada)

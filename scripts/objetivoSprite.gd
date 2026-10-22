@@ -20,7 +20,8 @@ var tipo: String = ""
 var completo: bool = false
 
 var _sprite_ponto: Sprite3D
-var _sprite_objeto: Sprite3D
+var _sprite_objeto: SpriteBase3D
+var _frames_objeto: SpriteFrames
 
 var _altura_ponto: float = 0.8
 var _tamanho_sprite: float = 0.8
@@ -40,9 +41,10 @@ func _process(_delta: float) -> void:
 
 
 ## Configura o visual e propriedades fisicas/visuais do objetivo.
-func configurar(p_tipo: String, textura: Texture2D, tamanho: float, altura: float, _ocultar: bool = false) -> void:
+func configurar(p_tipo: String, textura: Texture2D, frames: SpriteFrames = null, tamanho: float = 0.8, altura: float = 0.8, _ocultar: bool = false) -> void:
 	tipo = p_tipo
 	_textura_objeto = textura
+	_frames_objeto = frames
 	_tamanho_sprite = tamanho
 	_altura_ponto = altura
 
@@ -69,35 +71,68 @@ func _criar_sprite_ponto() -> void:
 
 
 func _criar_sprite_objeto() -> void:
-	_sprite_objeto = Sprite3D.new()
-	_sprite_objeto.name = "SpriteObjeto"
-	_sprite_objeto.visible = false
-	_sprite_objeto.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-	_sprite_objeto.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	_sprite_objeto.shaded = true
-	_sprite_objeto.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-
-	var tex := _textura_objeto
 	var orientacao_chao := false
-
-	# Se for bueiro ou caso nao haja textura especifica, deitamos rente ao chao
-	if tipo == "bueiro" or tex == null:
+	if tipo == "bueiro" or (_textura_objeto == null and _frames_objeto == null):
 		orientacao_chao = true
 
-	if tex == null:
-		var cor: Color = CORES.get(tipo, COR_PADRAO)
-		tex = _textura_provisoria_chao(tipo, cor)
+	if _frames_objeto != null:
+		var anim := AnimatedSprite3D.new()
+		anim.name = "SpriteObjeto"
+		anim.visible = false
+		anim.sprite_frames = _frames_objeto
+		anim.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		anim.shaded = true
+		anim.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		var anim_nome := &"default"
+		if not _frames_objeto.has_animation("default") and not _frames_objeto.get_animation_names().is_empty():
+			anim_nome = _frames_objeto.get_animation_names()[0]
+		var tex_frame: Texture2D = _frames_objeto.get_frame_texture(anim_nome, 0)
+		var frame_w := float(tex_frame.get_width()) if tex_frame != null else 32.0
+		var frame_h := float(tex_frame.get_height()) if tex_frame != null else 32.0
+		anim.pixel_size = _tamanho_sprite / maxf(frame_w, 1.0)
+		var altura_mundo := anim.pixel_size * frame_h
 
-	_sprite_objeto.texture = tex
-
-	if orientacao_chao:
-		_sprite_objeto.axis = Vector3.AXIS_Y
-		_sprite_objeto.position = Vector3(0.0, 0.03, 0.0) # Levemente acima do piso para nao z-fight
-		_sprite_objeto.pixel_size = (_tamanho_sprite * 1.2) / maxf(float(tex.get_width()), 1.0)
+		anim.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y if not orientacao_chao else BaseMaterial3D.BILLBOARD_DISABLED
+		if orientacao_chao:
+			anim.axis = Vector3.AXIS_Y
+			anim.position = Vector3(0.0, 0.03, 0.0)
+		else:
+			# A base da imagem encosta no chao (pivot no centro -> sobe metade da altura).
+			anim.position = Vector3(0.0, altura_mundo * 0.5, 0.0)
+		if _frames_objeto.has_animation("default"):
+			anim.animation = &"default"
+		elif not _frames_objeto.get_animation_names().is_empty():
+			anim.animation = _frames_objeto.get_animation_names()[0]
+		anim.play()
+		_sprite_objeto = anim
 	else:
-		_sprite_objeto.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-		_sprite_objeto.position = Vector3(0.0, _altura_ponto * 0.7, 0.0)
-		_sprite_objeto.pixel_size = (_tamanho_sprite * 1.1) / maxf(float(tex.get_width()), 1.0)
+		var sprite := Sprite3D.new()
+		sprite.name = "SpriteObjeto"
+		sprite.visible = false
+		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		sprite.shaded = true
+		sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+
+		var tex := _textura_objeto
+		if tex == null:
+			var cor: Color = CORES.get(tipo, COR_PADRAO)
+			tex = _textura_provisoria_chao(tipo, cor)
+
+		sprite.texture = tex
+
+		if orientacao_chao:
+			sprite.axis = Vector3.AXIS_Y
+			sprite.position = Vector3(0.0, 0.03, 0.0)
+			sprite.pixel_size = (_tamanho_sprite * 1.2) / maxf(float(tex.get_width()), 1.0)
+		else:
+			sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+			sprite.pixel_size = (_tamanho_sprite * 1.1) / maxf(float(tex.get_width()), 1.0)
+			var altura_mundo := sprite.pixel_size * float(tex.get_height())
+			# A base da imagem encosta no chao.
+			sprite.position = Vector3(0.0, altura_mundo * 0.5, 0.0)
+
+		_sprite_objeto = sprite
 
 	add_child(_sprite_objeto)
 

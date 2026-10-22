@@ -482,6 +482,27 @@ func _gerar_chunk(indice: int) -> void:
 	_laterais(d, Vector2i(0, -1), x_ini, x_fim, z_ini, z_fim)  # Norte
 	_laterais(d, Vector2i(0, 1), x_ini, x_fim, z_ini, z_fim)   # Sul
 
+	# ---- Barreiras invisiveis entre agua e outros blocos ----
+	var barreiras_pos := PackedVector3Array()
+	var barreiras_tipo := PackedInt32Array()
+	for lx in larg:
+		for lz in prof:
+			var gx := x_ini + lx
+			var gz := z_ini + lz
+			var i := gx * P + gz
+			var t := _tipos[i]
+			var eh_agua := t == 0
+			if gx + 1 < _largura:
+				var t2 := _tipos[(gx + 1) * P + gz]
+				if eh_agua != (t2 == 0):
+					barreiras_pos.append(Vector3((gx + 1) * s, 0.0, (gz + 0.5) * s))
+					barreiras_tipo.append(0)
+			if gz + 1 < _profundidade:
+				var t2 := _tipos[gx * P + (gz + 1)]
+				if eh_agua != (t2 == 0):
+					barreiras_pos.append(Vector3((gx + 0.5) * s, 0.0, (gz + 1) * s))
+					barreiras_tipo.append(1)
+
 	# ---- Triangulos para colisao (lista simples de faces) ----
 	var faces := PackedVector3Array()
 	if gerar_colisao:
@@ -496,6 +517,8 @@ func _gerar_chunk(indice: int) -> void:
 		"camadas": d.camadas,
 		"indices": d.indices,
 		"faces": faces,
+		"barreiras_pos": barreiras_pos,
+		"barreiras_tipo": barreiras_tipo,
 	}
 
 # Altura "efetiva" da superficie: a agua fica rebaixada
@@ -608,3 +631,21 @@ func _montar_chunk(r: Dictionary, indice: int) -> void:
 		var corpo := StaticBody3D.new()
 		corpo.add_child(col)
 		_raiz.add_child(corpo)
+
+		# Barreiras invisiveis entre agua e outros blocos.
+		var barreiras_pos: PackedVector3Array = r.get("barreiras_pos", PackedVector3Array())
+		var barreiras_tipo: PackedInt32Array = r.get("barreiras_tipo", PackedInt32Array())
+		if barreiras_pos.size() > 0:
+			var corpo_bar := StaticBody3D.new()
+			corpo_bar.name = "BarreiraAgua"
+			for k in barreiras_pos.size():
+				var col_bar := CollisionShape3D.new()
+				var box := BoxShape3D.new()
+				if barreiras_tipo[k] == 0:
+					box.size = Vector3(0.2, 1000.0, _tamanho)
+				else:
+					box.size = Vector3(_tamanho, 1000.0, 0.2)
+				col_bar.shape = box
+				col_bar.position = barreiras_pos[k] + Vector3(0.0, 500.0, 0.0)
+				corpo_bar.add_child(col_bar)
+			_raiz.add_child(corpo_bar)

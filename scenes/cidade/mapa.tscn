@@ -11,9 +11,53 @@
 [ext_resource type="Texture2D" uid="uid://c2sxvltrvpfr8" path="res://assets/props/image-removebg-preview (1).png" id="9_qd2dx"]
 [ext_resource type="Texture2D" uid="uid://dr3d06e88f1o5" path="res://assets/props/manhole-cover-isolated-on-transparent-background-png.webp" id="10_ohnse"]
 [ext_resource type="Texture2D" uid="uid://ce8a3opyhiohe" path="res://assets/props/image-removebg-preview.png" id="11_qd2dx"]
+[ext_resource type="Texture2D" uid="uid://belh8t6ugynxw" path="res://assets/props/AntenaSheet.png" id="12_rlxsh"]
 [ext_resource type="Script" uid="uid://c80w7khawgwdd" path="res://scripts/geracaoMundo/geracaoBordas.gd" id="12_tqtl5"]
 [ext_resource type="Texture2D" uid="uid://d0ktwt44yfibp" path="res://assets/props/arvore.png" id="13_gr8it"]
 [ext_resource type="Texture2D" uid="uid://crk1cqgnrj6y" path="res://assets/props/arvore2.png" id="14_rlxsh"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rlxsh"]
+atlas = ExtResource("12_rlxsh")
+region = Rect2(0, 0, 64, 112)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_imfwm"]
+atlas = ExtResource("12_rlxsh")
+region = Rect2(64, 0, 64, 112)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f5i74"]
+atlas = ExtResource("12_rlxsh")
+region = Rect2(128, 0, 64, 112)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cotp6"]
+atlas = ExtResource("12_rlxsh")
+region = Rect2(192, 0, 64, 112)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4a63r"]
+atlas = ExtResource("12_rlxsh")
+region = Rect2(256, 0, 64, 112)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_gr8it"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rlxsh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_imfwm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f5i74")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cotp6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4a63r")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_gr8it"]
 load_path = "res://.godot/imported/nevoa.png-da04151098472b28488166ae8bb9b10b.ctex"
@@ -46,10 +90,19 @@ imprimir_relatorio = false
 
 [node name="Pontos" type="Node3D" parent="." unique_id=1446858883]
 script = ExtResource("8_i0q3m")
+pesos_tipos = {
+"antena": 1.0,
+"bueiro": 1.0,
+"pluviometro": 1.0,
+"radar": 1.0
+}
 texturas_tipos = {
 "bueiro": ExtResource("10_ohnse"),
 "pluviometro": ExtResource("11_qd2dx"),
 "radar": ExtResource("9_qd2dx")
+}
+frames_tipos = {
+"antena": SubResource("SpriteFrames_gr8it")
 }
 raio_interacao = 5.0
 imprimir_relatorio = false
