@@ -70,10 +70,17 @@ const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 @export_group("Tipos de objetivo")
 ## Peso de sorteio de cada tipo. Chave = nome do tipo. Peso 0 desliga o tipo.
 @export var pesos_tipos: Dictionary = {"radar": 1.0, "bueiro": 1.0, "pluviometro": 1.0}
-## Cena de cada tipo (chave = nome do tipo, valor = PackedScene com raiz Node3D).
-## Sem cena, usa o ObjetivoPlaceholder. A origem da cena fica na superficie da calcada.
-## Metodos opcionais na raiz: configurar(tipo: String) e marcar_completo().
-@export var cenas_tipos: Dictionary = {}
+## Sprite 2D de cada tipo (chave = nome do tipo, valor = Texture2D).
+## Sem textura, usa um ponto simples colorido gerado por codigo.
+@export var texturas_tipos: Dictionary = {}
+
+@export_group("Sprite na cidade")
+## Largura do sprite no mundo (unidades).
+@export_range(0.1, 5.0, 0.05) var tamanho_sprite: float = 0.8
+## Altura do centro do sprite acima da calcada.
+@export_range(0.0, 5.0, 0.05) var altura_sprite: float = 0.8
+## Some quando o objetivo e concluido (desligado = fica verde e menor).
+@export var ocultar_ao_completar: bool = true
 
 @export_group("Posicionamento")
 ## Distancia minima desejada entre objetivos (unidades do mundo).
@@ -99,15 +106,19 @@ const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ## Alcance horizontal da interacao (unidades do mundo).
 @export_range(0.5, 20.0, 0.1) var raio_interacao: float = 3.0
 ## Diferenca vertical maxima entre o jogador e o objetivo.
-@export_range(0.5, 20.0, 0.1) var tolerancia_vertical: float = 3.0
+@export_range(0.5, 20.0, 0.1) var tolerancia_vertical: float = 3.5
 ## Nome do no do jogador dentro do MundoManager (main.gd usa "Player").
 @export var nome_no_jogador: String = "Player"
+
+@export_group("Interface (HUD)")
+## Cena com a interface grafica moderna do HUD.
+@export var cena_hud: PackedScene = preload("res://scenes/cidade/hud.tscn")
+## Se falso, nao instancia a interface visual.
+@export var criar_hud: bool = true
 
 @export_group("Ligacao")
 @export var no_mundo: NodePath = ^".."
 @export var no_terreno: NodePath = ^"../Terreno"
-## Cria o HUD simples (rodada, objetivos, tempo, dica de interacao).
-@export var criar_hud: bool = true
 
 @export_group("Backend")
 ## Envia pontos_position (e inicio/duracao do timer nas novas rodadas) ao Supabase a cada mudanca.
@@ -152,14 +163,35 @@ var _projeto_ref := ""
 var _chave := ""
 var _tipos_sem_cena_avisados: Dictionary = {}
 
+func _criar_hud() -> void:
+	if not criar_hud:
+		return
+
+	# Reutiliza HUD ja existente na arvore se houver
+	var hud_existente = get_node_or_null("HudObjetivos")
+	if hud_existente != null:
+		if hud_existente.has_method("conectar"):
+			hud_existente.conectar(self)
+		return
+
+	if cena_hud != null:
+		var hud = cena_hud.instantiate()
+		hud.name = "HudObjetivos"
+		add_child(hud)
+		if hud.has_method("conectar"):
+			hud.conectar(self)
+	else:
+		push_warning("Objetivos: Nenhuma cena de HUD configurada em cena_hud.")
 
 func _ready() -> void:
 	_mundo = get_node_or_null(no_mundo)
 	_terreno = get_node_or_null(no_terreno) as Node3D
+
 	if _mundo == null or _terreno == null:
-		push_error("Objetivos: nao encontrei o mundo ('%s') ou o terreno ('%s')." % [no_mundo, no_terreno])
+		push_error("Objetivos: nao encontrei o mundo ou o terreno.")
 		set_process(false)
 		return
+
 
 	_container = Node3D.new()
 	_container.name = "InstanciasObjetivos"
@@ -171,12 +203,6 @@ func _ready() -> void:
 	_http = HTTPRequest.new()
 	_http.name = "HTTPObjetivos"
 	add_child(_http)
-
-	if criar_hud:
-		var hud := HudObjetivos.new()
-		hud.name = "HudObjetivos"
-		add_child(hud)
-		hud.conectar(self)
 
 	_mundo.dados_prontos.connect(_ao_dados_prontos)
 	_mundo.mundo_pronto.connect(_ao_mundo_pronto)
@@ -316,7 +342,9 @@ func _ao_mundo_pronto() -> void:
 		return
 	_mundo_pronto = true
 	_instanciar_objetivos()
-	_iniciar_contagem(false)   # o PATCH inicial e feito pelo mundo_manager
+	_iniciar_contagem(false)
+	await get_tree().create_timer(1).timeout
+	_criar_hud()
 
 
 func _resetar_estado() -> void:
@@ -369,17 +397,33 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	var tecla := event as InputEventKey
-	if depuracao_atalhos and tecla != null and tecla.pressed and not tecla.echo and tecla.keycode == KEY_F9:
-		for i in Global.pontos_position.size():
-			concluir_objetivo(i)
+	if event is InputEventKey:
+		var tecla := event as InputEventKey
+
+		if depuracao_atalhos and tecla.pressed \
+		and not tecla.echo and tecla.keycode == KEY_F9:
+			for i in Global.pontos_position.size():
+				concluir_objetivo(i)
+			return
+
+	if not event.is_action_pressed(acao_interagir):
 		return
+
 	if estado != Estado.RODADA_ATIVA:
 		return
-	if event.is_action_pressed(acao_interagir):
-		var i := _indice_alvo()
-		if i >= 0 and concluir_objetivo(i):
-			get_viewport().set_input_as_handled()
+
+	var jogador := _obter_jogador()
+	if jogador == null:
+		return
+
+	var indice := _indice_alvo()
+	if indice < 0:
+		return
+
+	if concluir_objetivo(indice):
+		if imprimir_relatorio:
+			print("Objetivos: objetivo %d concluido com sucesso." % indice)
+		get_viewport().set_input_as_handled()
 
 
 func _mudar_estado(novo: Estado) -> void:
@@ -425,6 +469,11 @@ func _perder_rodada() -> void:
 	if imprimir_relatorio:
 		print("Objetivos: rodada %d perdida (faltaram %d)." % [rodada_atual, restantes()])
 
+	# Aguarda a exibição da mensagem de derrota no HUD e retorna para a tela de salas
+	await get_tree().create_timer(3.0).timeout
+	if is_inside_tree() and estado == Estado.RODADA_PERDIDA:
+		Transicao.mudar_cena("res://scenes/TelaInicial.tscn", 0.8)
+
 
 func _atualizar_alvo() -> void:
 	var i := _indice_alvo()
@@ -437,9 +486,29 @@ func _atualizar_alvo() -> void:
 func _obter_jogador() -> Node3D:
 	if is_instance_valid(_jogador) and _jogador.is_inside_tree():
 		return _jogador
-	_jogador = _mundo.get_node_or_null(NodePath(nome_no_jogador)) as Node3D
+
+	# Primeiro, tenta encontrar diretamente no mundo.
+	_jogador = _mundo.get_node_or_null(
+		NodePath(nome_no_jogador)
+	) as Node3D
+
+	# Depois, procura recursivamente na hierarquia do mundo.
 	if _jogador == null:
-		_jogador = get_tree().get_first_node_in_group("player") as Node3D
+		_jogador = _mundo.find_child(
+			nome_no_jogador,
+			true,
+			false
+		) as Node3D
+
+	# Por último, tenta pelo grupo.
+	if _jogador == null:
+		_jogador = get_tree().get_first_node_in_group(
+			"player"
+		) as Node3D
+
+	if _jogador == null:
+		push_warning("Objetivos: jogador nao encontrado!")
+
 	return _jogador
 
 
@@ -697,39 +766,31 @@ func _instanciar_objetivos() -> void:
 func _criar_no(indice: int) -> Node3D:
 	var dados: Array = Global.pontos_position[indice]
 	var tipo := String(dados[I_TIPO])
-	var no := _instanciar_cena(tipo)
+
+	var textura: Texture2D = null
+	var valor: Variant = texturas_tipos.get(tipo)
+	if valor is Texture2D:
+		textura = valor
+	else:
+		_avisar_tipo(tipo)
+
+	var no := ObjetivoSprite.new()
 	no.name = "Objetivo_%d_%s" % [indice, tipo]
 	_container.add_child(no)
 	no.global_position = Vector3(float(dados[I_X]), float(dados[I_Y]), float(dados[I_Z]))
-	if no.has_method("configurar"):
-		no.call("configurar", tipo)
-	if dados[I_ESTADO] == COMPLETO and no.has_method("marcar_completo"):
-		no.call("marcar_completo")
+	no.configurar(tipo, textura, tamanho_sprite, altura_sprite, ocultar_ao_completar)
+	if dados[I_ESTADO] == COMPLETO:
+		no.marcar_completo()
 	no.tree_exiting.connect(_ao_no_saindo.bind(indice, rodada_atual))
 	return no
 
 
-func _instanciar_cena(tipo: String) -> Node3D:
-	var cena: Variant = cenas_tipos.get(tipo)
-	if cena is PackedScene:
-		var inst: Node = (cena as PackedScene).instantiate()
-		if inst is Node3D:
-			return inst as Node3D
-		if inst != null:
-			inst.free()
-		_avisar_tipo(tipo, "a cena nao tem raiz Node3D ou falhou ao instanciar; usando placeholder")
-	elif cena != null:
-		_avisar_tipo(tipo, "o valor em cenas_tipos nao e uma PackedScene; usando placeholder")
-	else:
-		_avisar_tipo(tipo, "sem cena em cenas_tipos; usando placeholder")
-	return ObjetivoPlaceholder.new()
-
-
-func _avisar_tipo(tipo: String, motivo: String) -> void:
-	if _tipos_sem_cena_avisados.has(tipo):
-		return
-	_tipos_sem_cena_avisados[tipo] = true
-	print("Objetivos [%s]: %s." % [tipo, motivo])
+func _avisar_tipo(tipo: String) -> void:
+	pass
+	#if _tipos_sem_textura_avisados.has(tipo):
+	#	return
+	#_tipos_sem_textura_avisados[tipo] = true
+	#print("Objetivos [%s]: sem textura em texturas_tipos; usando ponto simples." % tipo)
 
 
 func _limpar_instancias() -> void:

@@ -104,6 +104,7 @@ func carregar_mapa() -> void:
 			+ ". Esperado: "
 			+ str(MAP_WIDTH * MAP_HEIGHT)
 		)
+		await get_tree().create_timer(1.0).timeout
 		carregar_mapa()
 		return
 

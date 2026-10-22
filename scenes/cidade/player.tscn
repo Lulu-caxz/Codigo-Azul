@@ -103,6 +103,7 @@ size = Vector3(0.15753174, 0.39328003, 0.063964844)
 [node name="Player" type="CharacterBody3D" unique_id=1620207659 node_paths=PackedStringArray("camera")]
 transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0)
 script = ExtResource("1_kab33")
+velocidade = 25.0
 camera = NodePath("Camera3D")
 
 [node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="." unique_id=231087083]

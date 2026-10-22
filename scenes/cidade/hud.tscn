@@ -1,0 +1,251 @@
+[gd_scene format=3 uid="uid://c6q6g5hud0obj"]
+
+[ext_resource type="Script" uid="uid://dhlcpxr5picyx" path="res://scripts/hudObjetivos.gd" id="1_6rnlx"]
+[ext_resource type="Texture2D" uid="uid://b2a7xan02ra4u" path="res://assets/CaixaDialogoSheet.png" id="2_hntmq"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompt"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0.9019608)
+border_color = Color(1, 1, 1, 0.6)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_key"]
+content_margin_left = 10.0
+content_margin_top = 1.0
+content_margin_right = 10.0
+content_margin_bottom = 1.0
+bg_color = Color(0.92, 0.94, 0.98, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+content_margin_left = 32.0
+content_margin_top = 12.0
+content_margin_right = 32.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.92156863)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[node name="HudObjetivos" type="CanvasLayer" unique_id=1107164775]
+layer = 10
+script = ExtResource("1_6rnlx")
+
+[node name="MainControl" type="Control" parent="." unique_id=309533318]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MarginMissao" type="NinePatchRect" parent="MainControl" unique_id=1538861251]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 364.0
+offset_bottom = 161.0
+texture = ExtResource("2_hntmq")
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
+[node name="HeaderBox" type="HBoxContainer" parent="MainControl/MarginMissao" unique_id=1560711707]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 6.0
+offset_right = 328.0
+offset_bottom = 34.0
+mouse_filter = 2
+
+[node name="LabelRodada" type="Label" parent="MainControl/MarginMissao/HeaderBox" unique_id=260374262]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "RODADA 1"
+
+[node name="HSeparator" type="HSeparator" parent="MainControl/MarginMissao" unique_id=237244015]
+modulate = Color(1, 1, 1, 0.25)
+layout_mode = 0
+offset_left = 3.0
+offset_top = 36.0
+offset_right = 337.0
+offset_bottom = 48.0
+mouse_filter = 2
+
+[node name="TempoBox" type="HBoxContainer" parent="MainControl/MarginMissao" unique_id=171457459]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 48.0
+offset_right = 332.0
+offset_bottom = 82.0
+mouse_filter = 2
+
+[node name="LabelTituloTempo" type="Label" parent="MainControl/MarginMissao/TempoBox" unique_id=1195603430]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 13
+text = "TEMPO RESTANTE"
+
+[node name="LabelTempo" type="Label" parent="MainControl/MarginMissao/TempoBox" unique_id=1832945169]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 24
+text = "01:00"
+
+[node name="ProgressoBox" type="VBoxContainer" parent="MainControl/MarginMissao" unique_id=913000707]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 90.0
+offset_right = 333.0
+offset_bottom = 129.0
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="ProgressoHeader" type="HBoxContainer" parent="MainControl/MarginMissao/ProgressoBox" unique_id=369806260]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LabelTituloProgresso" type="Label" parent="MainControl/MarginMissao/ProgressoBox/ProgressoHeader" unique_id=1869725976]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 13
+text = "OBJETIVOS COLETADOS"
+
+[node name="LabelProgresso" type="Label" parent="MainControl/MarginMissao/ProgressoBox/ProgressoHeader" unique_id=291987797]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 15
+text = "0 / 5"
+
+[node name="BarraProgresso" type="ProgressBar" parent="MainControl/MarginMissao/ProgressoBox" unique_id=1396169700]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+max_value = 5.0
+show_percentage = false
+
+[node name="PromptContainer" type="CenterContainer" parent="MainControl" unique_id=1112661003]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -250.0
+offset_top = -100.0
+offset_right = 250.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="CardPrompt" type="PanelContainer" parent="MainControl/PromptContainer" unique_id=662881473]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_prompt")
+
+[node name="HBoxPrompt" type="HBoxContainer" parent="MainControl/PromptContainer/CardPrompt" unique_id=1098693085]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="TeclaBadge" type="PanelContainer" parent="MainControl/PromptContainer/CardPrompt/HBoxPrompt" unique_id=333021018]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_key")
+
+[node name="LabelTecla" type="Label" parent="MainControl/PromptContainer/CardPrompt/HBoxPrompt/TeclaBadge" unique_id=56255576]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.08, 0.1, 0.15, 1)
+theme_override_font_sizes/font_size = 15
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LabelAcao" type="Label" parent="MainControl/PromptContainer/CardPrompt/HBoxPrompt" unique_id=99971662]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 16
+text = "Interagir com Radar"
+vertical_alignment = 1
+
+[node name="BannerContainer" type="CenterContainer" parent="MainControl" unique_id=259058079]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 60.0
+offset_right = 300.0
+offset_bottom = 130.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="CardBanner" type="PanelContainer" parent="MainControl/BannerContainer" unique_id=445911076]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
+
+[node name="LabelAviso" type="Label" parent="MainControl/BannerContainer/CardBanner" unique_id=1464779100]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "Rodada Concluída!"
+horizontal_alignment = 1
+vertical_alignment = 1

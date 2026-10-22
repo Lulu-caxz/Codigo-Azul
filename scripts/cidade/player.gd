@@ -22,7 +22,7 @@ func _ready() -> void:
 	
 	
 	floor_snap_length = 1.1   # cola no chao ao descer degraus
-
+	
 	# A camera usa a posicao que voce deixou no editor como distancia do jogador,
 	# mas passa a seguir suavemente (nao sacode nos degraus).
 	_offset_camera = camera.position + Vector3(0,6,6)

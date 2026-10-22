@@ -11,10 +11,10 @@ const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 @onready var quadras = $Quadras
 @onready var predios = $Predios
 @onready var http_mapa: HTTPRequest = $HTTPRequest
+@onready var objetivos: GerenciadorObjetivos = get_node_or_null("Pontos") as GerenciadorObjetivos
 
 var geracao_iniciada: bool = false
 var atualizando_mapa: bool = false
-var objetivos: GerenciadorObjetivos
 
 
 func _ready() -> void:
@@ -25,9 +25,10 @@ func _ready() -> void:
 		Global.salaID
 	)
 
-	objetivos = GerenciadorObjetivos.new()
-	objetivos.name = "Objetivos"
-	add_child(objetivos)
+	if objetivos == null:
+		objetivos = GerenciadorObjetivos.new()
+		objetivos.name = "Pontos"
+		add_child(objetivos)
 	
 	terreno.terreno_pronto.connect(mundo_pronto_func)
 	gerar_mundo()
@@ -130,11 +131,6 @@ func atualizar_mapa_backend() -> void:
 		0.0,
 		0.0
 	]
-
-	# Horário atual + 10 segundos.
-	var inicio_timer: String = objetivos.inicio_timer_iso()
-	var duracao_timer: int = objetivos.duracao_timer_backend()
-
 	# Pontos do mundo.
 	var pontos_position: Array = Global.pontos_position
 
@@ -142,8 +138,8 @@ func atualizar_mapa_backend() -> void:
 	var corpo: String = JSON.stringify({
 		"mapa": mapa_json,
 		"jogador_f_position": jogador_f_position,
-		"inicio_timer": inicio_timer,
-		"duracao_timer": 60,
+		"inicio_timer": objetivos.inicio_timer_iso(),
+		"duracao_timer": objetivos.duracao_timer_backend(),
 		"pontos_position": pontos_position
 	})
 
@@ -181,7 +177,6 @@ func atualizar_mapa_backend() -> void:
 	if dados is Array and not dados.is_empty():
 		print("Mundo e variáveis atualizados no backend!")
 		print("Quantidade de valores do mapa: ", mapa_json.size())
-		print("Início do timer: ", inicio_timer)
 		print("Duração do timer: 60 segundos")
 	elif dados is Array and dados.is_empty():
 		push_error(

@@ -1,117 +1,169 @@
 class_name HudObjetivos
 extends CanvasLayer
 
-# HUD minimo, criado pelo GerenciadorObjetivos (criar_hud = true).
-# So reage aos sinais do gerenciador; nao guarda estado do jogo.
+## Interface visual (HUD) moderna para o sistema de objetivos e rodadas.
+## Os componentes visuais estao definidos na cena hud_objetivos.tscn.
 
-var _g: GerenciadorObjetivos
-var _rodada: Label
-var _progresso: Label
-var _tempo: Label
-var _dica: Label
-var _aviso: Label
-var _aviso_ate_ms := 0
+@onready var label_rodada: Label = %LabelRodada
+@onready var label_titulo_tempo: Label = %LabelTituloTempo
+@onready var label_tempo: Label = %LabelTempo
+@onready var label_progresso: Label = %LabelProgresso
+@onready var barra_progresso: ProgressBar = %BarraProgresso
+
+@onready var prompt_container: Control = %PromptContainer
+@onready var card_prompt: Control = %CardPrompt
+@onready var label_tecla: Label = %LabelTecla
+@onready var label_acao: Label = %LabelAcao
+
+@onready var banner_container: Control = %BannerContainer
+@onready var card_banner: PanelContainer = %CardBanner
+@onready var label_aviso: Label = %LabelAviso
+
+var _gerenciador: GerenciadorObjetivos
+var _tween_prompt: Tween
+var _tween_banner: Tween
+var _tween_barra: Tween
 
 
 func _ready() -> void:
-	layer = 10
+	prompt_container.visible = false
+	prompt_container.modulate.a = 0.0
 
-	var raiz := Control.new()
-	raiz.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(raiz)
-	raiz.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-
-	var caixa := VBoxContainer.new()
-	caixa.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	caixa.position = Vector2(20, 16)
-	raiz.add_child(caixa)
-	_rodada = _criar_rotulo(caixa, 26)
-	_progresso = _criar_rotulo(caixa, 22)
-	_tempo = _criar_rotulo(caixa, 22)
-
-	_dica = _criar_rotulo(raiz, 24)
-	_dica.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	_dica.offset_top = -110.0
-	_dica.offset_bottom = -70.0
-	_dica.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_dica.visible = false
-
-	_aviso = _criar_rotulo(raiz, 32)
-	_aviso.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	_aviso.offset_top = 90.0
-	_aviso.offset_bottom = 140.0
-	_aviso.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_aviso.visible = false
-
-	_rodada.text = "Preparando..."
+	banner_container.visible = false
+	banner_container.modulate.a = 0.0
 
 
+## Vincula este HUD ao GerenciadorObjetivos e escuta seus sinais.
 func conectar(gerenciador: GerenciadorObjetivos) -> void:
-	_g = gerenciador
-	_g.rodada_preparada.connect(_ao_rodada_preparada)
-	_g.progresso_mudou.connect(_ao_progresso)
-	_g.contagem_inicio_atualizada.connect(_ao_contagem)
-	_g.tempo_atualizado.connect(_ao_tempo)
-	_g.alvo_proximo_mudou.connect(_ao_alvo)
-	_g.rodada_concluida.connect(_ao_rodada_concluida)
-	_g.rodada_perdida.connect(_ao_rodada_perdida)
-	_g.geracao_falhou.connect(_ao_falha)
+	if _gerenciador == gerenciador:
+		return
+
+	_gerenciador = gerenciador
+	_gerenciador.rodada_preparada.connect(_ao_rodada_preparada)
+	_gerenciador.progresso_mudou.connect(_ao_progresso)
+	_gerenciador.contagem_inicio_atualizada.connect(_ao_contagem)
+	_gerenciador.tempo_atualizado.connect(_ao_tempo)
+	_gerenciador.alvo_proximo_mudou.connect(_ao_alvo)
+	_gerenciador.rodada_concluida.connect(_ao_rodada_concluida)
+	_gerenciador.rodada_perdida.connect(_ao_rodada_perdida)
+	_gerenciador.geracao_falhou.connect(_ao_falha)
+
+	if _gerenciador.tecla_interacao():
+		label_tecla.text = _gerenciador.tecla_interacao()
 
 
-func _process(_delta: float) -> void:
-	if _aviso.visible and _aviso_ate_ms > 0 and Time.get_ticks_msec() >= _aviso_ate_ms:
-		_aviso.visible = false
-
-
-func _criar_rotulo(pai: Node, tamanho: int) -> Label:
-	var r := Label.new()
-	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	r.add_theme_font_size_override("font_size", tamanho)
-	r.add_theme_constant_override("outline_size", 6)
-	r.add_theme_color_override("font_outline_color", Color.BLACK)
-	pai.add_child(r)
-	return r
-
-
-func _mostrar_aviso(texto: String, segundos: float) -> void:
-	_aviso.text = texto
-	_aviso.visible = true
-	_aviso_ate_ms = 0 if segundos <= 0.0 else Time.get_ticks_msec() + int(segundos * 1000.0)
-
-
+# -----------------------------------------------------------------------------
+#  REACAO AOS SINAIS DO GERENCIADOR
+# -----------------------------------------------------------------------------
 func _ao_rodada_preparada(numero: int, exigidos: int) -> void:
-	_rodada.text = "Rodada %d" % numero
-	_ao_progresso(0, exigidos)
-	_aviso.visible = false
+	label_rodada.text = "RODADA %d" % numero
 
+	label_titulo_tempo.text = "COMEÇA EM"
+	barra_progresso.max_value = maxf(float(exigidos), 1.0)
+	barra_progresso.value = 0.0
+	label_progresso.text = "0 / %d" % exigidos
 
-func _ao_progresso(concluidos: int, exigidos: int) -> void:
-	_progresso.text = "Objetivos: %d/%d" % [concluidos, exigidos]
+	_esconder_banner()
 
 
 func _ao_contagem(segundos: int) -> void:
-	_tempo.text = "Comeca em %ds" % segundos
+	label_titulo_tempo.text = "COMEÇA EM"
+	label_tempo.text = "%ds" % segundos
 
 
 @warning_ignore("integer_division")
 func _ao_tempo(segundos: int) -> void:
-	_tempo.text = "Tempo: %d:%02d" % [segundos / 60, segundos % 60]
+	label_titulo_tempo.text = "TEMPO RESTANTE"
+	label_tempo.text = "%02d:%02d" % [segundos / 60, segundos % 60]
+
+	if segundos <= 15:
+		# Alerta de tempo acabando: texto avermelhado
+		label_tempo.modulate = Color(1.0, 0.35, 0.35)
+	else:
+		label_tempo.modulate = Color.WHITE
+
+
+func _ao_progresso(concluidos: int, exigidos: int) -> void:
+	label_progresso.text = "%d / %d" % [concluidos, exigidos]
+
+	if _tween_barra and _tween_barra.is_valid():
+		_tween_barra.kill()
+	_tween_barra = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_tween_barra.tween_property(barra_progresso, "value", float(concluidos), 0.3)
 
 
 func _ao_alvo(tipo: String) -> void:
-	_dica.visible = not tipo.is_empty()
-	if not tipo.is_empty():
-		_dica.text = "[%s] Interagir: %s" % [_g.tecla_interacao(), tipo]
+	if tipo.is_empty():
+		_animar_prompt(false)
+		return
+
+	if _gerenciador:
+		label_tecla.text = _gerenciador.tecla_interacao()
+
+	label_acao.text = "Colocar %s" % tipo.capitalize()
+	_animar_prompt(true)
 
 
 func _ao_rodada_concluida(numero: int) -> void:
-	_mostrar_aviso("Rodada %d concluida!" % numero, 3.0)
+	_mostrar_banner("Rodada %d Concluída!" % numero, 3.0, Color(0.3, 0.85, 0.5))
 
 
 func _ao_rodada_perdida(_numero: int, restantes: int) -> void:
-	_tempo.text = "Tempo: 0:00"
-	_mostrar_aviso("Tempo esgotado! Faltaram %d objetivo(s)." % restantes, 0.0)
+	label_tempo.text = "00:00"
+	label_tempo.modulate = Color(1.0, 0.3, 0.3)
+	_mostrar_banner("Tempo esgotado! Faltaram %d objetivo(s)." % restantes, 4.0, Color(0.9, 0.3, 0.3))
 
 
 func _ao_falha(motivo: String) -> void:
-	_mostrar_aviso("Objetivos indisponiveis: " + motivo, 0.0)
+	_mostrar_banner("Objetivos indisponíveis: %s" % motivo, 5.0, Color(0.9, 0.3, 0.3))
+
+
+# -----------------------------------------------------------------------------
+#  ANIMACAO E ESTILO VISUAL
+# -----------------------------------------------------------------------------
+
+func _animar_prompt(mostrar: bool) -> void:
+	if _tween_prompt and _tween_prompt.is_valid():
+		_tween_prompt.kill()
+
+	_tween_prompt = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+	if mostrar:
+		prompt_container.visible = true
+		_tween_prompt.tween_property(prompt_container, "modulate:a", 1.0, 0.2)
+	else:
+		_tween_prompt.tween_property(prompt_container, "modulate:a", 0.0, 0.15)
+		_tween_prompt.tween_callback(func(): prompt_container.visible = false)
+
+
+func _mostrar_banner(texto: String, duracao: float, cor_borda: Color) -> void:
+	if _tween_banner and _tween_banner.is_valid():
+		_tween_banner.kill()
+
+	label_aviso.text = texto
+	banner_container.visible = true
+	banner_container.modulate.a = 0.0
+	banner_container.scale = Vector2(0.95, 0.95)
+
+	# Atualiza a cor de destaque da borda do banner
+	var estilo: StyleBoxFlat = card_banner.get_theme_stylebox("panel") as StyleBoxFlat
+	if estilo:
+		estilo = estilo.duplicate() as StyleBoxFlat
+		estilo.border_color = cor_borda
+		card_banner.add_theme_stylebox_override("panel", estilo)
+
+	_tween_banner = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_tween_banner.parallel().tween_property(banner_container, "modulate:a", 1.0, 0.25)
+	_tween_banner.parallel().tween_property(banner_container, "scale", Vector2.ONE, 0.25)
+
+	if duracao > 0.0:
+		_tween_banner.tween_interval(duracao)
+		_tween_banner.tween_property(banner_container, "modulate:a", 0.0, 0.3)
+		_tween_banner.tween_callback(func(): banner_container.visible = false)
+
+
+func _esconder_banner() -> void:
+	if _tween_banner and _tween_banner.is_valid():
+		_tween_banner.kill()
+	banner_container.visible = false
+	banner_container.modulate.a = 0.0
