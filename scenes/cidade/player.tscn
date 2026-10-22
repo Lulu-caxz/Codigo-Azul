@@ -36,6 +36,22 @@ region = Rect2(96, 96, 48, 48)
 atlas = ExtResource("2_p6pwb")
 region = Rect2(144, 96, 48, 48)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_idlebaixo"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idlecima"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1qjop"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p6pwb"]
+atlas = ExtResource("2_p6pwb")
+region = Rect2(144, 0, 48, 48)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_hlgrv"]
 animations = [{
 "frames": [{
@@ -95,6 +111,38 @@ animations = [{
 "loop": 1,
 "name": &"idle",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_idlebaixo")
+}],
+"loop": 1,
+"name": &"idle_baixo",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_idlecima")
+}],
+"loop": 1,
+"name": &"idle_cima",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1qjop")
+}],
+"loop": 1,
+"name": &"idle_direita",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p6pwb")
+}],
+"loop": 1,
+"name": &"idle_esquerda",
+"speed": 5.0
 }]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_26022"]
@@ -111,7 +159,7 @@ shaded = true
 alpha_cut = 2
 texture_filter = 0
 sprite_frames = SubResource("SpriteFrames_hlgrv")
-animation = &"cima"
+animation = &"idle_esquerda"
 speed_scale = 2.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=654740054]
