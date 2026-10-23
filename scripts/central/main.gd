@@ -284,6 +284,11 @@ func _configurar_ui() -> void:
 
 			_configurar_postit(p, idx, cor)
 
+	# Manual fechado: hover move para a direita; clique abre o manual ampliado.
+	var manual_btn := get_node_or_null("UI/Manual") as TextureButton
+	if manual_btn != null:
+		_configurar_manual(manual_btn)
+
 	# Popup de post-it ampliado.
 	_popup_postit = PanelContainer.new()
 	_popup_postit.visible = false
@@ -330,6 +335,7 @@ func _configurar_postit(p: Node, idx: int = 0, cor: int = 0) -> void:
 
 var _popup_postit: PanelContainer
 var _postit_aberto: Node2D
+var _manual_aberto: Node2D
 var _ignorar_clique_postit: bool = false
 var _som_ui: AudioStreamPlayer
 var _canvas_modulate: CanvasModulate
@@ -350,7 +356,53 @@ func _tocar_som_ui(caminho: String) -> void:
 		_som_ui.play()
 
 
+func _configurar_manual(btn: TextureButton) -> void:
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	var original_pos: Vector2 = btn.position
+	var tween: Tween
+	btn.mouse_entered.connect(func():
+		if tween and tween.is_valid():
+			tween.kill()
+		tween = create_tween()
+		tween.tween_property(btn, "position", original_pos + Vector2(8, 0), 0.05)
+		_tocar_som_ui("res://sounds/hover.mp3")
+	)
+	btn.mouse_exited.connect(func():
+		if tween and tween.is_valid():
+			tween.kill()
+		tween = create_tween()
+		tween.tween_property(btn, "position", original_pos, 0.05)
+	)
+	btn.pressed.connect(func():
+		_abrir_manual()
+	)
+
+
+func _abrir_manual() -> void:
+	if _postit_aberto != null:
+		_postit_aberto.queue_free()
+		_postit_aberto = null
+	if _manual_aberto != null:
+		_manual_aberto.queue_free()
+		_manual_aberto = null
+
+	var cena := preload("res://scenes/central/manual_aberto.tscn")
+	var no := cena.instantiate() as Node2D
+	if no == null:
+		return
+
+	no.position = get_viewport_rect().size * 0.5
+	no.z_index = 100
+	add_child(no)
+	_manual_aberto = no
+	_ignorar_clique_postit = true
+	_tocar_som_ui("res://sounds/abrirPostIt.mp3")
+
+
 func _abrir_postit(idx: int, cor: int = 0) -> void:
+	if _manual_aberto != null:
+		_manual_aberto.queue_free()
+		_manual_aberto = null
 	if _postit_aberto != null:
 		_postit_aberto.queue_free()
 		_postit_aberto = null
@@ -387,14 +439,18 @@ func _abrir_postit(idx: int, cor: int = 0) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if _postit_aberto == null:
+	if _postit_aberto == null and _manual_aberto == null:
 		return
 	if _ignorar_clique_postit:
 		_ignorar_clique_postit = false
 		return
 	if event is InputEventMouseButton and event.pressed:
-		_postit_aberto.queue_free()
-		_postit_aberto = null
+		if _postit_aberto != null:
+			_postit_aberto.queue_free()
+			_postit_aberto = null
+		if _manual_aberto != null:
+			_manual_aberto.queue_free()
+			_manual_aberto = null
 
 
 func _ao_variavel_recebida(valor: Variant) -> void:

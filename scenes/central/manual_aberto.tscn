@@ -1,0 +1,92 @@
+[gd_scene format=3 uid="uid://cqssx0smt12pi"]
+
+[ext_resource type="Texture2D" uid="uid://f1iw84qtt121" path="res://assets/central/ManualAberto.png" id="1_7wgnc"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="2_tb3pd"]
+[ext_resource type="Texture2D" uid="uid://to7mu37eyb37" path="res://assets/central/AdesivosSheet.png" id="3_1cgtr"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
+atlas = ExtResource("3_1cgtr")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ovmgs"]
+atlas = ExtResource("3_1cgtr")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uqgcj"]
+atlas = ExtResource("3_1cgtr")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eft40"]
+atlas = ExtResource("3_1cgtr")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6tw43"]
+atlas = ExtResource("3_1cgtr")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xavvq"]
+atlas = ExtResource("3_1cgtr")
+region = Rect2(240, 0, 48, 48)
+
+[node name="Manual_aberto" type="Node2D" unique_id=1518804352]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1906120372]
+scale = Vector2(4, 4)
+texture = ExtResource("1_7wgnc")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="." unique_id=84367977]
+offset_left = -530.0
+offset_top = -281.0
+offset_right = -51.0
+offset_bottom = 284.0
+theme_override_colors/default_color = Color(0.080783345, 0.080783345, 0.080783345, 1)
+theme_override_fonts/normal_font = ExtResource("2_tb3pd")
+theme_override_fonts/bold_font = ExtResource("2_tb3pd")
+theme_override_font_sizes/normal_font_size = 30
+theme_override_font_sizes/bold_font_size = 30
+text = "
+Cada instalação tem um cientista referencia. Ela é uma dica para finalizar a instalação com a senha sendo a informação que o adesivo representa."
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="." unique_id=288747808]
+offset_left = 46.0
+offset_top = -281.0
+offset_right = 531.0
+offset_bottom = 288.0
+theme_override_colors/default_color = Color(0.080783345, 0.080783345, 0.080783345, 1)
+theme_override_fonts/normal_font = ExtResource("2_tb3pd")
+theme_override_fonts/bold_font = ExtResource("2_tb3pd")
+theme_override_font_sizes/normal_font_size = 30
+theme_override_font_sizes/bold_font_size = 30
+text = "asdasd asdafasdfa sdf"
+
+[node name="Adesivos" type="Node2D" parent="." unique_id=1474546441]
+
+[node name="Sprite2D" type="Sprite2D" parent="Adesivos" unique_id=497150720]
+position = Vector2(-495, -87)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_26022")
+
+[node name="Sprite2D2" type="Sprite2D" parent="Adesivos" unique_id=223582262]
+position = Vector2(-495, 1)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_ovmgs")
+
+[node name="Sprite2D3" type="Sprite2D" parent="Adesivos" unique_id=1560957885]
+position = Vector2(-495, 89)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_uqgcj")
+
+[node name="Sprite2D4" type="Sprite2D" parent="Adesivos" unique_id=579424376]
+position = Vector2(-495, 193)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_eft40")
+
+[node name="Sprite2D5" type="Sprite2D" parent="Adesivos" unique_id=1301498891]
+position = Vector2(-215, -87)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_6tw43")
+
+[node name="Sprite2D6" type="Sprite2D" parent="Adesivos" unique_id=456378471]
+position = Vector2(-215, 41)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_xavvq")
