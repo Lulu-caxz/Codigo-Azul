@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://bhjk2ees0vnax" path="res://assets/central/postIt.png" id="12_hcs50"]
 [ext_resource type="Texture2D" uid="uid://dlojwutobe2fq" path="res://assets/central/visor.png" id="13_lpy2g"]
 [ext_resource type="Texture2D" uid="uid://dcvt0nugvg00v" path="res://assets/central/ManualFechado.png" id="14_hcs50"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="15_8f1ir"]
 [ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="15_lpy2g"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_hcs50"]
@@ -288,18 +289,21 @@ texture_normal = ExtResource("14_hcs50")
 
 [node name="AvisoChuva" type="Node2D" parent="." unique_id=1378856045]
 z_index = 10
+position = Vector2(318, 160)
 
 [node name="Sprite2D" type="Sprite2D" parent="AvisoChuva" unique_id=999640460]
-position = Vector2(962.55554, 278.49997)
-scale = Vector2(2.0601852, 2.060185)
+position = Vector2(956.9999, 270)
+scale = Vector2(2.4999998, 2.5)
 texture = ExtResource("15_lpy2g")
 
 [node name="Label" type="Label" parent="AvisoChuva" unique_id=148500065]
-offset_left = 641.0
-offset_top = 215.0
-offset_right = 1278.0
-offset_bottom = 328.0
-theme_override_font_sizes/font_size = 40
+offset_left = 512.0
+offset_top = 36.0
+offset_right = 1400.0
+offset_bottom = 511.0
+theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_fonts/font = ExtResource("15_8f1ir")
+theme_override_font_sizes/font_size = 60
 text = "Em 30 segundos vai 
 acontecer uma chuva de granizo!"
 horizontal_alignment = 1

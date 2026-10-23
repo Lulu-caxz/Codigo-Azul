@@ -491,6 +491,7 @@ func _abrir_manual() -> void:
 	no.z_index = 100
 	add_child(no)
 	_manual_aberto = no
+	_aplicar_energia_popup(no)
 	_ignorar_clique_postit = true
 	_tocar_som_ui("res://sounds/abrirPostIt.mp3")
 
@@ -530,6 +531,7 @@ func _abrir_postit(idx: int, cor: int = 0) -> void:
 	no.z_index = 100
 	add_child(no)
 	_postit_aberto = no
+	_aplicar_energia_popup(no)
 	_ignorar_clique_postit = true
 	_tocar_som_ui("res://sounds/abrirPostIt.mp3")
 
@@ -608,17 +610,29 @@ func _energia_clique() -> void:
 		print("Energia restaurada apos %d cliques rapidos no gerador." % _cliques_blackout)
 		restaurar_energia()
 
+func _fator_tela_energia() -> float:
+	if _energia_ativa:
+		return 1.0
+	return maxf(0.1, _energia_parcial)
+
+
+func _aplicar_energia_popup(no: Node2D) -> void:
+	if no == null or not is_instance_valid(no):
+		return
+	var fator := _fator_tela_energia()
+	no.modulate = Color(fator, fator, fator, 1.0)
+
+
 func _atualizar_visual_energia() -> void:
 	var fator: float = 1.0 if _energia_ativa else _energia_parcial
+	var fator_tela := _fator_tela_energia()
 	if _canvas_modulate != null:
-		var fator_tela: float = maxf(0.1, fator)
 		_canvas_modulate.color = Color(fator_tela, fator_tela, fator_tela, 1.0)
 		print("Energia:", fator, " CanvasModulate:", _canvas_modulate.color)
 	else:
 		print("CanvasModulate NULO")
 
 	# Garante que os pins (marcadores) tambem escurecam.
-	var fator_tela: float = maxf(0.1, fator)
 	if marcador_jogador != null:
 		marcador_jogador.modulate = Color(fator_tela, fator_tela, fator_tela, 1.0)
 	var pontos := get_node_or_null("Node2D")
@@ -627,6 +641,12 @@ func _atualizar_visual_energia() -> void:
 	var ui := get_node_or_null("UI")
 	if ui != null:
 		ui.modulate = Color(fator_tela, fator_tela, fator_tela, 1.0)
+
+	# Os popups de post-it/manual ficam fora da UI (z_index 100), por isso
+	# precisam do mesmo fator para nao ficarem legiveis no apagao.
+	_aplicar_energia_popup(_postit_aberto)
+	_aplicar_energia_popup(_manual_aberto)
+
 	# O shader do mapa (sonar) fica preto conforme a energia.
 	if material is ShaderMaterial:
 		(material as ShaderMaterial).set_shader_parameter("energia", fator)
