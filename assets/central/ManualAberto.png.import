@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dcvt0nugvg00v"
-path="res://.godot/imported/ManualFechado.png-c8a597c983bacd2789e093e76ea7017a.ctex"
+uid="uid://f1iw84qtt121"
+path="res://.godot/imported/ManualAberto.png-ac0843dfe1a07c5af6124ec370395b3d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ManualFechado.png"
-dest_files=["res://.godot/imported/ManualFechado.png-c8a597c983bacd2789e093e76ea7017a.ctex"]
+source_file="res://assets/central/ManualAberto.png"
+dest_files=["res://.godot/imported/ManualAberto.png-ac0843dfe1a07c5af6124ec370395b3d.ctex"]
 
 [params]
 
