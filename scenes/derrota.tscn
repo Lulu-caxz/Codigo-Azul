@@ -46,25 +46,15 @@ alignment = 1
 
 [node name="Titulo" type="Label" parent="UI/CenterContainer/VBox" unique_id=427891446]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.22, 0.22, 1)
+theme_override_colors/font_color = Color(0.5488259, 0.102311246, 0.109186344, 1)
 theme_override_colors/font_outline_color = Color(0.05, 0.01, 0.01, 1)
-theme_override_constants/outline_size = 12
 theme_override_fonts/font = ExtResource("3_fonte")
 theme_override_font_sizes/font_size = 140
 text = "VOCE PERDEU"
 horizontal_alignment = 1
 
-[node name="Mensagem" type="Label" parent="UI/CenterContainer/VBox" unique_id=973263923]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.92, 0.95, 1)
-theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 1)
-theme_override_constants/outline_size = 7
-theme_override_fonts/font = ExtResource("3_fonte")
-theme_override_font_sizes/font_size = 46
-text = "A CIDADE NAO RESISTIU. A PARTIDA FOI PERDIDA."
-horizontal_alignment = 1
-
 [node name="Placa" type="NinePatchRect" parent="UI/CenterContainer/VBox" unique_id=1944928888]
+modulate = Color(0.75083965, 0.72397375, 0.65164244, 1)
 custom_minimum_size = Vector2(560, 120)
 layout_mode = 2
 size_flags_horizontal = 4

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c2sxvltrvpfr8"
-path="res://.godot/imported/image-removebg-preview (1).png-23baf895204f4539b9c7f24f87083e17.ctex"
+uid="uid://m8ag33nigj8i"
+path="res://.godot/imported/PluviometroMinigame.png-56af2927c1b96196a99e1e4640e33c10.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/image-removebg-preview (1).png"
-dest_files=["res://.godot/imported/image-removebg-preview (1).png-23baf895204f4539b9c7f24f87083e17.ctex"]
+source_file="res://assets/minigames/pluviometro/PluviometroMinigame.png"
+dest_files=["res://.godot/imported/PluviometroMinigame.png-56af2927c1b96196a99e1e4640e33c10.ctex"]
 
 [params]
 

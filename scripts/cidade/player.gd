@@ -186,7 +186,7 @@ func _physics_process(delta: float) -> void:
 	var mult_vel := 1.0
 	if _terreno != null:
 		var local := _terreno.to_local(global_position)
-		var s := Global.tamanho_cubo
+		var s = Global.tamanho_cubo
 		var x := floori(local.x / s)
 		var z := floori(local.z / s)
 		if x >= 0 and z >= 0 and x < Global.largura and z < Global.profundidade:
