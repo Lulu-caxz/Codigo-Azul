@@ -144,7 +144,10 @@ func iniciar_partida() -> void:
 	var resposta := await requisitar(
 		url,
 		HTTPClient.METHOD_PATCH,
-		JSON.stringify({"iniciado": true})
+		JSON.stringify({
+			"iniciado": true,
+			"partida_perdida": false
+		})
 	)
 
 	if resposta.is_empty():
@@ -172,6 +175,9 @@ func iniciar_partida() -> void:
 
 
 func ir_para_jogo() -> void:
+	# Global.vidas vive no autoload e pode ter ficado em 0 na partida anterior
+	# deste mesmo processo. Toda partida nova comeca com a vida cheia.
+	Global.vidas = 5
 	var erro
 	if Global.funcao == "F":
 		erro = get_tree().change_scene_to_file("res://scenes/cidade/main.tscn")

@@ -7,10 +7,11 @@ extends Node
 # A Cidade e a Central rodam em processos diferentes. A unica fonte de verdade
 # compartilhada e a linha da sala na tabela `salas`.
 #
-# A Cidade publica `rodada_atual` junto com estado, timer, pontos, eventos e
-# abrigo em um unico PATCH. A Central consulta a linha periodicamente e troca
-# de rodada quando `rodada_atual` muda. Uma resposta incompleta de rodada nova
-# e descartada para nao misturar dados de rodadas diferentes.
+# A Cidade publica `rodada_atual` junto com estado, timer, pontos, eventos,
+# abrigo e `partida_perdida` em um unico PATCH. A Central consulta a linha
+# periodicamente e troca de rodada quando `rodada_atual` muda. Uma resposta
+# incompleta de rodada nova e descartada para nao misturar dados de rodadas
+# diferentes. Quando `partida_perdida` vira true, a Central abre a derrota.
 # =============================================================================
 
 signal dados_sala_atualizados(posicao: Vector3, pontos: Array)
@@ -42,6 +43,7 @@ var rodada_atual: int = 0
 var estado_rodada: String = ESTADO_AGUARDANDO
 var abrigo_position: Vector3 = Vector3.ZERO
 var eventos: Array = []
+var partida_perdida: bool = false
 
 var _consultando: bool = false
 var _avisou_sala_id := false
@@ -53,6 +55,7 @@ var _tem_posicao: bool = false
 var _tem_abrigo: bool = false
 var _eventos_assinatura: String = ""
 var _temporizadores_eventos: Array[Timer] = []
+var _transicao_derrota_iniciada: bool = false
 
 var tela_contagem: CanvasLayer
 var texto_titulo: Label
@@ -110,6 +113,7 @@ func sincronizar_sala() -> void:
 	url += "?id=eq." + Global.salaID.uri_encode()
 	url += "&select=rodada_atual,estado_rodada,inicio_timer,duracao_timer"
 	url += ",jogador_f_position,pontos_position,abrigo_position,eventos"
+	url += ",partida_perdida"
 
 	var headers := PackedStringArray([
 		"apikey: " + SUPABASE_KEY,
@@ -161,6 +165,13 @@ func sincronizar_sala() -> void:
 
 
 func _aplicar_sala(sala: Dictionary) -> void:
+	# A derrota tem prioridade sobre qualquer outro dado da rodada: nao adianta
+	# aplicar pontos/timer de uma partida que ja terminou.
+	partida_perdida = _partida_marcada_como_perdida(sala)
+	if partida_perdida:
+		_iniciar_derrota()
+		return
+
 	var rodada_recebida := _ler_int(sala.get("rodada_atual", null), -1)
 	if rodada_recebida < 0:
 		push_warning("Central: rodada_atual ausente ou invalida; resposta ignorada.")
@@ -283,6 +294,17 @@ func _aplicar_sala(sala: Dictionary) -> void:
 				rodada_atual, estado_rodada, str(_segundos_restantes())])
 		else:
 			print("Central: sala sincronizada; aguardando a primeira rodada.")
+
+
+func _iniciar_derrota() -> void:
+	if _transicao_derrota_iniciada:
+		return
+
+	_transicao_derrota_iniciada = true
+	_limpar_temporizadores_eventos()
+	estado_rodada = ESTADO_PERDIDA
+	print("Central: partida marcada como perdida no Supabase; abrindo tela de derrota.")
+	await Transicao.mudar_cena("res://scenes/derrota.tscn", 0.8)
 
 
 func _atualizar_timer(forcar: bool) -> void:
@@ -479,6 +501,24 @@ func _ler_int(valor: Variant, padrao: int) -> int:
 		if texto.is_valid_int():
 			return int(texto)
 	return padrao
+
+
+func _ler_bool(valor: Variant, padrao: bool) -> bool:
+	if valor is bool:
+		return valor
+	if valor is int or valor is float:
+		return float(valor) != 0.0
+	if valor is String:
+		var texto := String(valor).strip_edges().to_lower()
+		if texto == "true" or texto == "t" or texto == "1":
+			return true
+		if texto == "false" or texto == "f" or texto == "0":
+			return false
+	return padrao
+
+
+func _partida_marcada_como_perdida(sala: Dictionary) -> bool:
+	return _ler_bool(sala.get("partida_perdida", false), false)
 
 
 func _ler_float(valor: Variant, padrao: float) -> float:

@@ -151,6 +151,8 @@ var rodada_atual: int = 0
 var estado: Estado = Estado.AGUARDANDO_MUNDO
 ## Instante (unix, segundos) em que o cronometro da rodada atual comeca.
 var inicio_unix: float = 0.0
+## Motivo da ultima derrota: "tempo" ou "vidas" (lido pelo HUD).
+var motivo_derrota: String = ""
 
 var _eventos_executados: Array[int] = []
 var _duracao_atual: float = 0.0
@@ -185,6 +187,8 @@ var _retry_agendado := false
 var _ultima_rodada_publicada := -1
 var _projeto_ref := ""
 var _chave := ""
+var _derrota_iniciada := false
+var _perdida_publicada := false
 var _tipos_sem_cena_avisados: Dictionary = {}
 
 # --- Som de objetivo concluido ---
@@ -445,6 +449,13 @@ func _falhar(motivo: String) -> void:
 # -----------------------------------------------------------------------------
 func _process(_delta: float) -> void:
 	var agora := _agora()
+
+	# A vida chega a zero pelos minigames (Global.vidas). A derrota por tempo
+	# continua sendo detectada dentro de RODADA_ATIVA, mais abaixo.
+	if _deve_perder_por_vidas():
+		_perder_rodada("vidas")
+		return
+
 	match estado:
 		Estado.PREPARANDO_RODADA:
 			var falta := inicio_unix - agora
@@ -571,6 +582,7 @@ func _mudar_estado(novo: Estado) -> void:
 
 func _iniciar_contagem(enviar_backend: bool) -> void:
 	_eventos_executados.clear()
+	motivo_derrota = ""
 	_duracao_atual = duracao_da_rodada(rodada_atual)
 	if _mundo != null and _mundo.has_method("gerar_eventos"):
 		_mundo.call("gerar_eventos", rodada_atual)
@@ -599,19 +611,42 @@ func _concluir_rodada() -> void:
 		print("Objetivos: rodada %d concluida e estado publicado." % rodada_atual)
 
 
-func _perder_rodada() -> void:
-	if estado != Estado.RODADA_ATIVA:
+func _deve_perder_por_vidas() -> bool:
+	if _derrota_iniciada or Global.vidas > 0:
+		return false
+	return estado == Estado.PREPARANDO_RODADA or estado == Estado.RODADA_ATIVA
+
+
+func _perder_rodada(motivo: String = "tempo") -> void:
+	if _derrota_iniciada:
 		return
+	if estado != Estado.RODADA_ATIVA and estado != Estado.PREPARANDO_RODADA:
+		return
+
+	_derrota_iniciada = true
+	motivo_derrota = motivo
 	_mudar_estado(Estado.RODADA_PERDIDA)   # nao avanca sozinho
 	rodada_perdida.emit(rodada_atual, restantes())
+
+	var publicando := _pode_publicar_rodada()
 	_enviar_backend()
 	if imprimir_relatorio:
-		print("Objetivos: rodada %d perdida (faltaram %d); estado publicado." % [rodada_atual, restantes()])
+		print("Objetivos: rodada %d perdida (%s, faltaram %d); estado publicado." % [
+			rodada_atual, motivo, restantes()])
 
-	# Aguarda a exibição da mensagem de derrota no HUD e retorna para a tela de salas
+	# Mantem o banner do HUD por alguns segundos antes de abrir a derrota.
 	await get_tree().create_timer(3.0).timeout
-	if is_inside_tree() and estado == Estado.RODADA_PERDIDA:
-		Transicao.mudar_cena("res://scenes/TelaInicial.tscn", 0.8)
+	if not is_inside_tree():
+		return
+
+	# Se o PATCH da derrota ainda nao voltou, espera mais um pouco: a Central
+	# so abre a tela de derrota depois de ler `partida_perdida` no banco.
+	if publicando and not _perdida_publicada:
+		await _aguardar_publicacao_perdida(3.0)
+	if not is_inside_tree():
+		return
+
+	Transicao.mudar_cena("res://scenes/derrota.tscn", 0.8)
 
 
 func _atualizar_alvo() -> void:
@@ -1015,20 +1050,33 @@ func _carregar_credenciais() -> void:
 		push_warning("Objetivos: PROJECT_REF/SUPABASE_KEY nao encontrados no mundo_manager; sem sincronizar.")
 
 
+func _pode_publicar_rodada() -> bool:
+	return sincronizar_backend \
+		and not _projeto_ref.is_empty() \
+		and not Global.salaID.is_empty() \
+		and rodada_atual > 0 \
+		and inicio_unix > 0.0
+
+
 func _enviar_backend() -> void:
-	if not sincronizar_backend or _projeto_ref.is_empty() or Global.salaID.is_empty():
-		return
-	if rodada_atual <= 0 or inicio_unix <= 0.0:
+	if not _pode_publicar_rodada():
 		return
 	_reenviar = true
 	if not _enviando:
 		_processar_envios()
 
 
+func _aguardar_publicacao_perdida(limite: float) -> void:
+	var fim := _agora() + limite
+	while is_inside_tree() and not _perdida_publicada and _agora() < fim:
+		await get_tree().create_timer(0.1).timeout
+
+
 func _montar_corpo_backend() -> Dictionary:
 	var corpo: Dictionary = {
 		"rodada_atual": rodada_atual,
 		"estado_rodada": estado_backend(),
+		"partida_perdida": estado == Estado.RODADA_PERDIDA,
 		"inicio_timer": _unix_para_iso(int(inicio_unix)),
 		"duracao_timer": int(round(_duracao_atual if _duracao_atual > 0.0 else duracao_rodada)),
 		"pontos_position": Global.pontos_position.duplicate(true),
@@ -1102,6 +1150,9 @@ func _processar_envios() -> void:
 			continue
 
 		tentativas = 0
+		if bool(corpo.get("partida_perdida", false)):
+			_perdida_publicada = true
+			print("Objetivos: derrota da rodada %d publicada no backend." % rodada_atual)
 		if _ultima_rodada_publicada != rodada_atual:
 			_ultima_rodada_publicada = rodada_atual
 			print("Objetivos: rodada %d publicada no backend (estado=%s, inicio_timer=%d, duracao=%d)." % [

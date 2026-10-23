@@ -13,7 +13,7 @@ const SONAR_SHADER = preload("res://shaders/sonar.gdshader")
 const TEXTURA_JOGADOR: Texture2D = preload("res://assets/pin-player.png")
 
 const CLIQUES_PARA_RESTAURAR_ENERGIA: int = 10
-const JANELA_CLIQUES_BLACKOUT_MS: int = 2000
+const JANELA_CLIQUES_BLACKOUT_MS: int = 2500
 
 @onready var http: HTTPRequest = $HTTPRequest
 

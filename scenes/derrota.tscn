@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://b4du48q0b1c3a"]
+
+[ext_resource type="Script" uid="uid://bqp5ljcne2v5p" path="res://scripts/derrota.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="2_fundo"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="3_fonte"]
+[ext_resource type="Texture2D" uid="uid://d3d2q6c02ghsn" path="res://assets/minigames/bueiro/PlacaEscoamento.png" id="4_placa"]
+
+[node name="Derrota" type="Node2D" unique_id=260522600]
+script = ExtResource("1_script")
+
+[node name="Fundo" type="Sprite2D" parent="." unique_id=98601901]
+position = Vector2(960, 540)
+scale = Vector2(5, 5)
+texture = ExtResource("2_fundo")
+
+[node name="Escurecer" type="ColorRect" parent="." unique_id=2083009844]
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.02, 0.03, 0.06, 0.72)
+
+[node name="UI" type="Control" parent="." unique_id=668523629]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="UI" unique_id=982954939]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 555.0
+offset_top = 363.0
+offset_right = 1364.0
+offset_bottom = 680.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="UI/CenterContainer" unique_id=2034354078]
+layout_mode = 2
+theme_override_constants/separation = 34
+alignment = 1
+
+[node name="Titulo" type="Label" parent="UI/CenterContainer/VBox" unique_id=427891446]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.22, 0.22, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.01, 0.01, 1)
+theme_override_constants/outline_size = 12
+theme_override_fonts/font = ExtResource("3_fonte")
+theme_override_font_sizes/font_size = 140
+text = "VOCE PERDEU"
+horizontal_alignment = 1
+
+[node name="Mensagem" type="Label" parent="UI/CenterContainer/VBox" unique_id=973263923]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.92, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 1)
+theme_override_constants/outline_size = 7
+theme_override_fonts/font = ExtResource("3_fonte")
+theme_override_font_sizes/font_size = 46
+text = "A CIDADE NAO RESISTIU. A PARTIDA FOI PERDIDA."
+horizontal_alignment = 1
+
+[node name="Placa" type="NinePatchRect" parent="UI/CenterContainer/VBox" unique_id=1944928888]
+custom_minimum_size = Vector2(560, 120)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("4_placa")
+patch_margin_left = 5
+patch_margin_top = 5
+patch_margin_right = 5
+patch_margin_bottom = 5
+
+[node name="BotaoVoltar" type="Button" parent="UI/CenterContainer/VBox/Placa" unique_id=174393730]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_fonts/font = ExtResource("3_fonte")
+theme_override_font_sizes/font_size = 56
+text = "Voltar ao inicio"
+flat = true

@@ -121,6 +121,9 @@ func _ao_rodada_concluida(numero: int) -> void:
 func _ao_rodada_perdida(_numero: int, restantes: int) -> void:
 	label_tempo.text = "00:00"
 	label_tempo.modulate = Color(1.0, 0.3, 0.3)
+	if _gerenciador != null and _gerenciador.motivo_derrota == "vidas":
+		_mostrar_banner("A cidade perdeu todas as vidas!", 4.0, Color(0.9, 0.3, 0.3))
+		return
 	_mostrar_banner("Tempo esgotado! Faltaram %d objetivo(s)." % restantes, 4.0, Color(0.9, 0.3, 0.3))
 
 
