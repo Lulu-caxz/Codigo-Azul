@@ -12,11 +12,11 @@
 [ext_resource type="Texture2D" uid="uid://dakowj42yu61" path="res://assets/textures/concreto_juntas.png" id="7_dcost"]
 [ext_resource type="Texture2D" uid="uid://bx2ifyf2djk8v" path="res://assets/textures/grama_lateral.png" id="8_4oqfm"]
 [ext_resource type="Script" uid="uid://bgd2xc48neldq" path="res://scripts/geracaoMundo/pontos.gd" id="8_i0q3m"]
-[ext_resource type="Texture2D" uid="uid://b2a7xan02ra4u" path="res://assets/ui/CaixaDialogoSheet.png" id="8_imfwm"]
 [ext_resource type="Texture2D" uid="uid://c5axjrv3ywoo3" path="res://assets/textures/concreto.png" id="9_6bldn"]
 [ext_resource type="Texture2D" uid="uid://hk11p3pcklkt" path="res://assets/props/Pluviometro.png" id="11_f5i74"]
 [ext_resource type="Texture2D" uid="uid://belh8t6ugynxw" path="res://assets/props/AntenaSheet.png" id="12_rlxsh"]
 [ext_resource type="Script" uid="uid://c80w7khawgwdd" path="res://scripts/geracaoMundo/geracaoBordas.gd" id="12_tqtl5"]
+[ext_resource type="Texture2D" uid="uid://be46j2a3gnoii" path="res://assets/PlacaAbrigo.png" id="13_6bldn"]
 [ext_resource type="Texture2D" uid="uid://d0ktwt44yfibp" path="res://assets/props/arvore.png" id="13_gr8it"]
 [ext_resource type="Texture2D" uid="uid://banwajcf1j1x" path="res://assets/props/BueiroSheet.png" id="14_f5i74"]
 [ext_resource type="Texture2D" uid="uid://crk1cqgnrj6y" path="res://assets/props/arvore2.png" id="14_rlxsh"]
@@ -96,7 +96,6 @@ animations = [{
 }]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_gr8it"]
-load_path = "res://.godot/imported/nevoa.png-da04151098472b28488166ae8bb9b10b.ctex"
 
 [node name="Mapa" type="Node3D" unique_id=1091553734]
 script = ExtResource("1_orvpg")
@@ -130,7 +129,9 @@ script = ExtResource("5_derue")
 distancia_render = 80.0
 cor_abrigo_parede = Color(0.5091168, 0.7566427, 0.9979959, 1)
 cor_abrigo_telhado = Color(0.2901961, 0.2901961, 0.3137255, 1)
-sprite_abrigo = ExtResource("8_imfwm")
+sprite_abrigo = ExtResource("13_6bldn")
+tamanho_sprite_abrigo = 0.04
+texto_abrigo = ""
 imprimir_relatorio = false
 
 [node name="Pontos" type="Node3D" parent="." unique_id=1446858883]
