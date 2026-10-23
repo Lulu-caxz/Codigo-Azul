@@ -81,14 +81,6 @@ func _ready() -> void:
 	if visor_label != null:
 		visor_label.text = "--"
 		
-	
-	
-	apagar_energia()
-	
-	await get_tree().create_timer(5).timeout
-	
-	restaurar_energia()
-
 
 func carregar_mapa() -> void:
 	if Global.salaID.is_empty():
