@@ -33,7 +33,11 @@ var cores: Array[Color] = [
 
 
 func _ready() -> void:
+	
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+	# Usa o CanvasModulate ja existente na cena.
+	_canvas_modulate = get_node_or_null("CanvasModulate") as CanvasModulate
 
 	var material_sonar := ShaderMaterial.new()
 	material_sonar.shader = SONAR_SHADER
@@ -76,6 +80,14 @@ func _ready() -> void:
 	var visor_label := get_node_or_null("UI/Visor/Label")
 	if visor_label != null:
 		visor_label.text = "--"
+		
+	
+	
+	apagar_energia()
+	
+	await get_tree().create_timer(5).timeout
+	
+	restaurar_energia()
 
 
 func carregar_mapa() -> void:
@@ -246,8 +258,13 @@ func _configurar_ui() -> void:
 		gerador.button_down.connect(func():
 			gerador.icon = tex_pressed
 			_tocar_som_ui("res://sounds/clicar.mp3")
+			_gerador_pressionado = true
+			_energia_clique()
 		)
-		gerador.button_up.connect(func(): gerador.icon = tex_normal)
+		gerador.button_up.connect(func():
+			gerador.icon = tex_normal
+			_gerador_pressionado = false
+		)
 
 	# Post-its: hover move para a direita; clique abre ampliado.
 	var postits := get_node_or_null("UI/PostIts")
@@ -319,6 +336,12 @@ var _popup_postit: PanelContainer
 var _postit_aberto: Node2D
 var _ignorar_clique_postit: bool = false
 var _som_ui: AudioStreamPlayer
+var _canvas_modulate: CanvasModulate
+
+# Estado de energia (apagao).
+var _energia_ativa: bool = true
+var _energia_parcial: float = 1.0
+var _gerador_pressionado: bool = false
 
 
 func _tocar_som_ui(caminho: String) -> void:
@@ -387,7 +410,69 @@ func _ao_variavel_recebida(valor: Variant) -> void:
 		Global.vidas = clampi(int(valor), 0, 5)
 
 
+# ---------------------------------------------------------------------------
+# ENERGIA / APAGAO (funcoes criadas, probabilidade ainda nao implementada)
+# ---------------------------------------------------------------------------
+func apagar_energia() -> void:
+	_energia_ativa = false
+	_energia_parcial = 0.0
+	_atualizar_visual_energia()
+	_tocar_som_energia("res://sounds/shutdown.mp3")
+
+func restaurar_energia() -> void:
+	_energia_ativa = true
+	_energia_parcial = 1.0
+	_atualizar_visual_energia()
+	_tocar_som_energia("res://sounds/start.mp3")
+
+func _tocar_som_energia(caminho: String) -> void:
+	var player := AudioStreamPlayer.new()
+	add_child(player)
+	var s := load(caminho)
+	if s is AudioStream:
+		player.stream = s
+		player.play()
+		player.finished.connect(player.queue_free)
+
+func _energia_clique() -> void:
+	if _energia_ativa:
+		return
+	# Cada clique aumenta um pouco a energia parcial (teto parcial).
+	_energia_parcial = clampf(_energia_parcial + 0.15, 0.0, 0.6)
+	_atualizar_visual_energia()
+
+func _atualizar_visual_energia() -> void:
+	var fator: float = 1.0 if _energia_ativa else _energia_parcial
+	if _canvas_modulate != null:
+		var fator_tela: float = maxf(0.1, fator)
+		_canvas_modulate.color = Color(fator_tela, fator_tela, fator_tela, 1.0)
+		print("Energia:", fator, " CanvasModulate:", _canvas_modulate.color)
+	else:
+		print("CanvasModulate NULO")
+
+	# Garante que os pins (marcadores) tambem escurecam.
+	var fator_tela: float = maxf(0.1, fator)
+	if marcador_jogador != null:
+		marcador_jogador.modulate = Color(fator_tela, fator_tela, fator_tela, 1.0)
+	var pontos := get_node_or_null("Node2D")
+	if pontos != null:
+		pontos.modulate = Color(fator_tela, fator_tela, fator_tela, 1.0)
+	var ui := get_node_or_null("UI")
+	if ui != null:
+		ui.modulate = Color(fator_tela, fator_tela, fator_tela, 1.0)
+	# O shader do mapa (sonar) fica preto conforme a energia.
+	if material is ShaderMaterial:
+		(material as ShaderMaterial).set_shader_parameter("energia", fator)
+
+
 func _process(_delta: float) -> void:
+	# Decaimento da energia parcial quando nao esta clicando.
+	if not _energia_ativa and not _gerador_pressionado:
+		var anterior := _energia_parcial
+		_energia_parcial = maxf(0.0, _energia_parcial - _delta * 0.4)
+		if _energia_parcial != anterior:
+			_atualizar_visual_energia()
+
 	# Atualiza a barra de vida conforme Global.vidas.
 	var barra := get_node_or_null("UI/BarraDeVida") as AnimatedSprite2D
 	if barra != null:

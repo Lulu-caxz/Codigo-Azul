@@ -49,6 +49,9 @@ uniform float vinheta : hint_range(0.0, 1.0) = 0.2;
 uniform float aberracao : hint_range(0.0, 0.01) = 0.0012;
 uniform float ruido : hint_range(0.0, 0.2) = 0.03;
 
+// Energia (1.0 = normal, 0.0 = apagao)
+uniform float energia : hint_range(0.0, 1.0) = 1.0;
+
 
 
 float hash(vec2 p) {
@@ -235,5 +238,5 @@ void fragment() {
     float vig = smoothstep(0.35, 1.05, length((uv - 0.5) * vec2(1.0, 1.0)) * 1.25);
     resultado *= 1.0 - vig * vinheta;
 
-    COLOR = vec4(max(resultado, vec3(0.0)), mapa_c.a);
+    COLOR = vec4(max(resultado, vec3(0.0)) * energia, mapa_c.a);
 }

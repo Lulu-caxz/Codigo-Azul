@@ -285,3 +285,5 @@ theme_override_font_sizes/font_size = 60
 text = "30s"
 horizontal_alignment = 2
 vertical_alignment = 1
+
+[node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=1279357705]
