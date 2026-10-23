@@ -7,13 +7,16 @@
 [ext_resource type="Texture2D" uid="uid://tt3nbvl2pr4g" path="res://assets/pin-bueiro.png" id="4_0vyqp"]
 [ext_resource type="Texture2D" uid="uid://bu5fgalwtu67m" path="res://assets/pin-pluviometro.png" id="5_ncnl4"]
 [ext_resource type="Texture2D" uid="uid://by0uqg5vk30g" path="res://assets/pin-antena.png" id="6_v8mop"]
-[ext_resource type="Texture2D" uid="uid://bc4k8ogg5nb4c" path="res://assets/pin-abrigo.png" id="7_abrigo"]
 [ext_resource type="Texture2D" uid="uid://c12m5oe7lulcq" path="res://assets/central/fundo_painel_com_mapa.png" id="9_q7h55"]
 [ext_resource type="Texture2D" uid="uid://cmjvr4tw5trtx" path="res://assets/central/botao_gerador.png" id="10_ncnl4"]
 [ext_resource type="Texture2D" uid="uid://b41w1xrms74si" path="res://assets/central/barra_vida.png" id="11_q7h55"]
 [ext_resource type="Texture2D" uid="uid://bhjk2ees0vnax" path="res://assets/central/postIt.png" id="12_hcs50"]
 [ext_resource type="Texture2D" uid="uid://dlojwutobe2fq" path="res://assets/central/visor.png" id="13_lpy2g"]
 [ext_resource type="Texture2D" uid="uid://dcvt0nugvg00v" path="res://assets/central/ManualFechado.png" id="14_hcs50"]
+[ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="15_lpy2g"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_hcs50"]
+load_path = "res://.godot/imported/pin-abrigo.png-d72d7fde6567076542ca2ab370a11da1.ctex"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
 atlas = ExtResource("10_ncnl4")
@@ -152,7 +155,8 @@ texturas_tipos = {
 "pluviometro": ExtResource("5_ncnl4"),
 "radar": ExtResource("3_rbgpy")
 }
-textura_abrigo = ExtResource("7_abrigo")
+textura_abrigo = SubResource("CompressedTexture2D_hcs50")
+tamanho_marcador = 16.0
 
 [node name="CentralSync" type="Node2D" parent="." unique_id=711618265]
 position = Vector2(715, 160)
@@ -187,9 +191,9 @@ animation = &"5"
 
 [node name="PostIts" type="Control" parent="UI" unique_id=1532190657]
 anchors_preset = 0
-offset_left = -14.2
+offset_left = 15.400003
 offset_top = -58.0
-offset_right = 107.8
+offset_right = 137.4
 offset_bottom = 181.0
 
 [node name="PostIt6AMARELO" type="Control" parent="UI/PostIts" unique_id=1336471229]
@@ -273,7 +277,30 @@ horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="Manual" type="TextureButton" parent="UI" unique_id=441639120]
-position = Vector2(-47.799995, 181.99998)
+layout_mode = 0
+offset_left = -110.4
+offset_top = 73.2
+offset_right = 65.6
+offset_bottom = 269.2
 texture_normal = ExtResource("14_hcs50")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=1279357705]
+
+[node name="AvisoChuva" type="Node2D" parent="." unique_id=1378856045]
+z_index = 10
+
+[node name="Sprite2D" type="Sprite2D" parent="AvisoChuva" unique_id=999640460]
+position = Vector2(962.55554, 278.49997)
+scale = Vector2(2.0601852, 2.060185)
+texture = ExtResource("15_lpy2g")
+
+[node name="Label" type="Label" parent="AvisoChuva" unique_id=148500065]
+offset_left = 641.0
+offset_top = 215.0
+offset_right = 1278.0
+offset_bottom = 328.0
+theme_override_font_sizes/font_size = 40
+text = "Em 30 segundos vai 
+acontecer uma chuva de granizo!"
+horizontal_alignment = 1
+vertical_alignment = 1

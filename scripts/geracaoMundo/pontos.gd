@@ -572,6 +572,10 @@ func _mudar_estado(novo: Estado) -> void:
 func _iniciar_contagem(enviar_backend: bool) -> void:
 	_eventos_executados.clear()
 	_duracao_atual = duracao_da_rodada(rodada_atual)
+	if _mundo != null and _mundo.has_method("gerar_eventos"):
+		_mundo.call("gerar_eventos", rodada_atual)
+	else:
+		push_error("Objetivos: não foi possível gerar os eventos da rodada %d." % rodada_atual)
 	inicio_unix = float(int(_agora())) + float(atraso_inicio_rodada)
 	_mudar_estado(Estado.PREPARANDO_RODADA)
 	rodada_preparada.emit(rodada_atual, exigidos())

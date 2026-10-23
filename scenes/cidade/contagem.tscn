@@ -1,14 +1,14 @@
 [gd_scene format=3 uid="uid://bnowoy4vqiito"]
 
 [ext_resource type="Script" uid="uid://bti7syg8bogvh" path="res://scripts/cidade/contagem.gd" id="1_contagem"]
-[ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/fundo_painel.png" id="2_loama"]
+[ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="2_loama"]
 
 [node name="Contagem" type="CanvasLayer" unique_id=100000001]
 layer = 20
 script = ExtResource("1_contagem")
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=100000002]
-z_index = 10
+z_index = 700
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -38,7 +38,7 @@ text = "10"
 horizontal_alignment = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1613194579]
-z_index = 9
+z_index = 690
 position = Vector2(960.00006, 540.00006)
 scale = Vector2(5, 5)
 texture = ExtResource("2_loama")

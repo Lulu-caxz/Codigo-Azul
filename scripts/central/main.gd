@@ -12,6 +12,9 @@ const SONAR_SHADER = preload("res://shaders/sonar.gdshader")
 
 const TEXTURA_JOGADOR: Texture2D = preload("res://assets/pin-player.png")
 
+const CLIQUES_PARA_RESTAURAR_ENERGIA: int = 10
+const JANELA_CLIQUES_BLACKOUT_MS: int = 2000
+
 @onready var http: HTTPRequest = $HTTPRequest
 
 var mapa: Array = []
@@ -49,10 +52,7 @@ func _ready() -> void:
 
 	material = material_sonar
 
-	await carregar_mapa()
-	
-	_criar_marcador_jogador()
-	_configurar_ui()
+	_criar_aviso_chuva()
 
 	var central := get_tree().current_scene.find_child(
 		"CentralSync",
@@ -63,6 +63,17 @@ func _ready() -> void:
 	if central == null:
 		push_error("Mapa: nó CentralSync não encontrado.")
 	else:
+		# Conecta antes de carregar o mapa para não perder nenhum aviso.
+		central.evento_ocorreu.connect(
+			_ao_evento_ocorreu
+		)
+
+	await carregar_mapa()
+	
+	_criar_marcador_jogador()
+	_configurar_ui()
+
+	if central != null:
 		central.posicao_jogador_atualizada.connect(
 			_ao_posicao_jogador_atualizada
 		)
@@ -71,9 +82,6 @@ func _ready() -> void:
 		)
 		central.rodada_atualizada.connect(
 			_ao_rodada_atualizada
-		)
-		central.evento_ocorreu.connect(
-			_ao_evento_ocorreu
 		)
 
 		_ultima_rodada_energia = central.rodada_atual
@@ -88,7 +96,7 @@ func _ready() -> void:
 	var visor_label := get_node_or_null("UI/Visor/Label")
 	if visor_label != null:
 		visor_label.text = "--"
-		
+	
 
 func carregar_mapa() -> void:
 	if Global.salaID.is_empty():
@@ -243,8 +251,72 @@ func _ao_rodada_atualizada(numero: int, estado: String) -> void:
 func _ao_evento_ocorreu(tipo: String) -> void:
 	print("Mapa: evento '%s' recebido." % tipo)
 
-	if tipo.to_lower() == "blackout":
-		apagar_energia()
+	match tipo.to_lower():
+		"blackout":
+			apagar_energia()
+		"chuvagranizo":
+			_mostrar_aviso_chuva()
+
+
+func _criar_aviso_chuva() -> void:
+	# Usa o node "AvisoChuva" da cena da Central quando ele existir.
+	_aviso_chuva = get_node_or_null("AvisoChuva") as CanvasItem
+	if _aviso_chuva == null:
+		_aviso_chuva = find_child("AvisoChuva", true, false) as CanvasItem
+
+	if _aviso_chuva != null:
+		# Acima dos pins (10/11) e do marcador do jogador (20), mas abaixo
+		# dos popups de post-it/manual (100).
+		_aviso_chuva.z_index = 500
+		_aviso_chuva.z_as_relative = false
+		_aviso_chuva.visible = false
+		return
+
+	# Fallback: cria um aviso de texto caso a cena ainda nao tenha o node.
+	var camada := CanvasLayer.new()
+	camada.name = "CamadaAvisoChuva"
+	camada.layer = 15
+	add_child(camada)
+
+	_aviso_chuva = Label.new()
+	_aviso_chuva.name = "AvisoChuvaGranizo"
+	_aviso_chuva.text = "Em 30 segundos vai acontecer uma chuva de granizo!"
+	_aviso_chuva.visible = false
+	_aviso_chuva.modulate.a = 0.0
+	_aviso_chuva.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_aviso_chuva.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_aviso_chuva.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_aviso_chuva.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_aviso_chuva.add_theme_font_size_override("font_size", 28)
+	_aviso_chuva.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2))
+	_aviso_chuva.add_theme_color_override("font_outline_color", Color.BLACK)
+	_aviso_chuva.add_theme_constant_override("outline_size", 6)
+
+	camada.add_child(_aviso_chuva)
+	_aviso_chuva.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	_aviso_chuva.offset_left = 32.0
+	_aviso_chuva.offset_right = -32.0
+	_aviso_chuva.offset_top = 36.0
+	_aviso_chuva.offset_bottom = 104.0
+
+
+func _mostrar_aviso_chuva() -> void:
+	if _aviso_chuva == null:
+		return
+
+	if _aviso_chuva_tween != null and _aviso_chuva_tween.is_valid():
+		_aviso_chuva_tween.kill()
+
+	_aviso_chuva.visible = true
+	_aviso_chuva.modulate.a = 0.0
+
+	_aviso_chuva_tween = create_tween()
+	_aviso_chuva_tween.tween_property(_aviso_chuva, "modulate:a", 1.0, 0.3)
+	_aviso_chuva_tween.tween_interval(6.0)
+	_aviso_chuva_tween.tween_property(_aviso_chuva, "modulate:a", 0.0, 0.6)
+	_aviso_chuva_tween.tween_callback(func() -> void:
+		_aviso_chuva.visible = false
+	)
 
 
 func _ao_timer_atualizado(segundos: int, iniciado: bool) -> void:
@@ -362,6 +434,12 @@ var _energia_ativa: bool = true
 var _energia_parcial: float = 1.0
 var _gerador_pressionado: bool = false
 var _ultima_rodada_energia: int = -1
+var _cliques_blackout: int = 0
+var _inicio_cliques_blackout_ms: int = 0
+
+# Aviso de chuva de granizo.
+var _aviso_chuva: CanvasItem
+var _aviso_chuva_tween: Tween
 
 
 func _tocar_som_ui(caminho: String) -> void:
@@ -486,12 +564,16 @@ func _ao_variavel_recebida(valor: Variant) -> void:
 func apagar_energia() -> void:
 	_energia_ativa = false
 	_energia_parcial = 0.0
+	_cliques_blackout = 0
+	_inicio_cliques_blackout_ms = 0
 	_atualizar_visual_energia()
 	_tocar_som_energia("res://sounds/shutdown.mp3")
 
 func restaurar_energia() -> void:
 	_energia_ativa = true
 	_energia_parcial = 1.0
+	_cliques_blackout = 0
+	_inicio_cliques_blackout_ms = 0
 	_atualizar_visual_energia()
 	_tocar_som_energia("res://sounds/start.mp3")
 
@@ -507,9 +589,24 @@ func _tocar_som_energia(caminho: String) -> void:
 func _energia_clique() -> void:
 	if _energia_ativa:
 		return
+
+	var agora := Time.get_ticks_msec()
+
+	# A sequencia vale por 1,5 s: se o quinto clique demorar mais, reinicia.
+	if _cliques_blackout <= 0 or agora - _inicio_cliques_blackout_ms >= JANELA_CLIQUES_BLACKOUT_MS:
+		_cliques_blackout = 1
+		_inicio_cliques_blackout_ms = agora
+	else:
+		_cliques_blackout += 1
+
 	# Cada clique aumenta um pouco a energia parcial (teto parcial).
 	_energia_parcial = clampf(_energia_parcial + 0.15, 0.0, 0.6)
 	_atualizar_visual_energia()
+
+	# Cinco cliques em menos de 1,5 s encerram o blackout.
+	if _cliques_blackout >= CLIQUES_PARA_RESTAURAR_ENERGIA:
+		print("Energia restaurada apos %d cliques rapidos no gerador." % _cliques_blackout)
+		restaurar_energia()
 
 func _atualizar_visual_energia() -> void:
 	var fator: float = 1.0 if _energia_ativa else _energia_parcial

@@ -324,8 +324,8 @@ func _atualizar_timer(forcar: bool) -> void:
 #  EVENTOS DA RODADA
 # -----------------------------------------------------------------------------
 # A Cidade publica `eventos` como [["blackout", 30], ["chuvaGranizo", 60]].
-# O instante de cada evento e inicio_timer + segundo (o granizo soma 30 s,
-# igual ao processamento da Cidade).
+# O instante de cada evento e inicio_timer + segundo. Para `chuvaGranizo`, o
+# segundo salvo e o inicio do aviso; a Cidade executa o granizo 30 s depois.
 func _atualizar_eventos() -> void:
 	var assinatura := "%d|%s|%.3f|%.3f|%s" % [
 		rodada_atual, estado_rodada, inicio_unix, duracao_timer,
@@ -360,10 +360,6 @@ func _atualizar_eventos() -> void:
 		var segundo := _ler_float(dados[1], -1.0)
 		if segundo < 0.0:
 			continue
-
-		# Mesmo deslocamento usado pela Cidade para a chuva de granizo.
-		if tipo.to_lower() == "chuvagranizo":
-			segundo += 30.0
 
 		if segundo >= duracao_timer:
 			continue

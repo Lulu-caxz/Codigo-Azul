@@ -90,8 +90,6 @@ func mundo_pronto_func() -> void:
 		push_error("Não é possível atualizar o mapa sem ID da sala.")
 		return
 	
-	gerar_eventos()
-	
 	atualizando_mapa = true
 
 	print("Mundo pronto. Sala: ", Global.salaID)
@@ -101,7 +99,7 @@ func mundo_pronto_func() -> void:
 
 	atualizando_mapa = false
 
-func gerar_eventos() -> void:
+func gerar_eventos(numero_rodada: int = 1) -> void:
 	Global.eventos.clear()
 	rng_eventos.randomize()
 
@@ -119,38 +117,28 @@ func gerar_eventos() -> void:
 		)
 		return
 
-	var tipos_eventos: Array[String] = [
-		"blackout",
-		"chuvaGranizo"
-	]
+	var rodada: int = maxi(numero_rodada, 1)
 
-	for i in range(3):
-		var tipo: String = tipos_eventos[
-			rng_eventos.randi_range(0, tipos_eventos.size() - 1)
-		]
+	# Rodada 1: 2 blackouts + 1 chuva. A cada rodada seguinte alterna-se
+	# um blackout (rodadas pares) e uma chuva (rodadas ímpares).
+	var total_blackouts: int = 2 + floori(float(rodada) / 2.0)
+	var total_chuvas: int = 1 + floori(float(rodada - 1) / 2.0)
 
-		var segundo_minimo: int = 20
-		var segundo_maximo: int
+	var usados: Dictionary = {}
 
-		match tipo:
-			"blackout":
-				# No máximo 30 segundos antes do fim.
-				segundo_maximo = duracao - 30
+	# A chuva tem a janela menor (o granizo cai 30 s depois do aviso), por isso
+	# ela reserva os segundos primeiro.
+	var segundos_chuvas: Array[int] = _sortear_segundos_unicos(
+		total_chuvas, 20, duracao - 60, usados
+	)
+	var segundos_blackouts: Array[int] = _sortear_segundos_unicos(
+		total_blackouts, 20, duracao - 30, usados
+	)
 
-			"chuvaGranizo":
-				# No máximo 60 segundos antes do fim.
-				segundo_maximo = duracao - 60
-
-			_:
-				continue
-
-		var segundo: int = rng_eventos.randi_range(
-			segundo_minimo,
-			segundo_maximo
-		)
-
-		# Salva o horário normal, sem o atraso de execução.
-		Global.eventos.append([tipo, segundo])
+	for segundo in segundos_blackouts:
+		Global.eventos.append(["blackout", segundo])
+	for segundo in segundos_chuvas:
+		Global.eventos.append(["chuvaGranizo", segundo])
 
 	# Organiza os eventos pelo horário salvo.
 	Global.eventos.sort_custom(
@@ -160,7 +148,45 @@ func gerar_eventos() -> void:
 
 	indice_evento = 0
 
-	print("Eventos programados: ", Global.eventos)
+	print("Eventos da rodada %d: %d blackouts e %d chuvas -> %s" % [
+		rodada, segundos_blackouts.size(), segundos_chuvas.size(), Global.eventos
+	])
+
+	if segundos_blackouts.size() < total_blackouts or segundos_chuvas.size() < total_chuvas:
+		push_warning(
+			"Não há segundos livres suficientes para todos os eventos da rodada %d." % rodada
+		)
+
+
+# Sorteia horários distintos dentro da janela, ignorando os já usados na rodada.
+func _sortear_segundos_unicos(
+	quantidade: int,
+	minimo: int,
+	maximo: int,
+	usados: Dictionary
+) -> Array[int]:
+	var sorteados: Array[int] = []
+	if quantidade <= 0 or maximo < minimo:
+		return sorteados
+
+	var disponiveis: Array[int] = []
+	for segundo in range(minimo, maximo + 1):
+		if not usados.has(segundo):
+			disponiveis.append(segundo)
+
+	for i in range(disponiveis.size() - 1, 0, -1):
+		var j: int = rng_eventos.randi_range(0, i)
+		var troca: int = disponiveis[i]
+		disponiveis[i] = disponiveis[j]
+		disponiveis[j] = troca
+
+	for i in range(mini(quantidade, disponiveis.size())):
+		var segundo: int = disponiveis[i]
+		sorteados.append(segundo)
+		usados[segundo] = true
+
+	sorteados.sort()
+	return sorteados
 
 # Ponto de nascimento (posicao global), apenas apos o mundo estar pronto
 func ponto_de_nascimento() -> Vector3:

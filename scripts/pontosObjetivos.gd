@@ -138,7 +138,7 @@ func _atualizar_marcador_abrigo(mundo: Vector3) -> void:
 		_marcador_abrigo.texture = textura_abrigo
 		_marcador_abrigo.z_index = 11
 		add_child(_marcador_abrigo)
-	var escala := tamanho_marcador / maxf(float(textura_abrigo.get_width()), 1.0)
+	var escala := (tamanho_marcador*2) / maxf(float(textura_abrigo.get_width()), 1.0)
 	_marcador_abrigo.scale = Vector2.ONE * escala
 	_marcador_abrigo.position = mundo_para_mapa(mundo.x, mundo.z)
 
