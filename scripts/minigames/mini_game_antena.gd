@@ -71,8 +71,15 @@ func _verificar() -> void:
 		# Errou: perde uma vida.
 		Global.vidas = maxi(Global.vidas - 1, 0)
 		_tocar_som("res://sounds/erro.mp3")
-		# Avisa a central (via broadcast) para atualizar a barra de vida.
-		_enviar_vida_backend()
+		# Atualiza o backend via script externo de banco.
+		if Banco != null and Banco.has_method("atualizar_vida"):
+			await Banco.atualizar_vida(Global.vidas)
+		# Aviso em tempo real (complementar).
+		if ConectSupa != null and ConectSupa.has_method("enviar_variavel"):
+			ConectSupa.enviar_variavel({
+				"tipo": "vida",
+				"vidas": Global.vidas
+			})
 		_sorteiar()
 
 
@@ -89,50 +96,4 @@ func _normalizar(texto: String) -> String:
 	return t
 
 
-func _enviar_vida_backend() -> void:
-	# Persiste a vida no 4º elemento de jogador_f_position (campo ja existente),
-	# para que a central (que sincroniza a cada 1s) atualize a barra de vida.
-	var http := HTTPRequest.new()
-	add_child(http)
-
-	# 1. Lê a posição atual para não perder o marcador do jogador.
-	var url_get := "https://%s.supabase.co/rest/v1/salas" % "ovkvgnnsxmpymcjclnzo"
-	url_get += "?id=eq." + Global.salaID.uri_encode()
-	url_get += "&select=jogador_f_position"
-	var headers_get := PackedStringArray([
-		"apikey: " + "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5",
-		"Authorization: Bearer " + "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5",
-		"Accept: application/json"
-	])
-	http.request(url_get, headers_get, HTTPClient.METHOD_GET)
-	var resp = await http.request_completed
-	var posicao_atual: Array = [0.0, 0.0, 0.0]
-	var texto: String = resp[3].get_string_from_utf8()
-	var dados = JSON.parse_string(texto)
-	if dados is Array and not dados.is_empty():
-		var sala: Dictionary = dados[0]
-		var pos = sala.get("jogador_f_position", null)
-		if pos is String:
-			pos = JSON.parse_string(pos)
-		if pos is Array and pos.size() >= 3:
-			posicao_atual = [float(pos[0]), float(pos[1]), float(pos[2])]
-
-	# 2. Grava a posição preservando o marcador e anexa a vida no 4º elemento.
-	posicao_atual.append(Global.vidas)
-	var url_patch := "https://%s.supabase.co/rest/v1/salas" % "ovkvgnnsxmpymcjclnzo"
-	url_patch += "?id=eq." + Global.salaID.uri_encode()
-	var headers_patch := PackedStringArray([
-		"Content-Type: application/json",
-		"apikey: " + "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5",
-		"Authorization: Bearer " + "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5",
-		"Prefer: return=representation"
-	])
-	http.request(url_patch, headers_patch, HTTPClient.METHOD_PATCH, JSON.stringify({"jogador_f_position": posicao_atual}))
-	await http.request_completed
-
-	# Aviso em tempo real (complementar).
-	if ConectSupa != null and ConectSupa.has_method("enviar_variavel"):
-		ConectSupa.enviar_variavel({
-			"tipo": "vida",
-			"vidas": Global.vidas
-		})
+# A sincronização com o banco é feita pelo script do jogador (player.gd).

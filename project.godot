@@ -20,6 +20,7 @@ config/icon="res://assets/icon.svg"
 Global="*uid://m1ki4gf2nkht"
 Transicao="*uid://c73k01up728pk"
 ConectSupa="*uid://cqfyk0ey8n0f1"
+Banco="*res://scripts/banco.gd"
 
 [debug]
 

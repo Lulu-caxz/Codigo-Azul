@@ -97,7 +97,7 @@ func _atualizar_posicao_periodicamente() -> void:
 		if _gerenciador_objetivos.estado != GerenciadorObjetivos.Estado.RODADA_ATIVA:
 			break
 
-		await _enviar_posicao_backend()
+		await enviar_posicao_backend()
 
 		if not is_inside_tree():
 			break
@@ -110,7 +110,7 @@ func _atualizar_posicao_periodicamente() -> void:
 	_atualizando_posicao = false
 
 
-func _enviar_posicao_backend() -> void:
+func enviar_posicao_backend() -> void:
 	if not is_inside_tree() or Global.salaID.is_empty():
 		return
 
