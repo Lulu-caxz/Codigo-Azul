@@ -1,9 +1,17 @@
 [gd_scene format=3 uid="uid://cry1wmuq4qdhh"]
 
+[ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="1_1exgo"]
 [ext_resource type="Script" uid="uid://7ndc56tu4gqe" path="res://scripts/telaInicial.gd" id="1_17ume"]
 [ext_resource type="Script" uid="uid://bgbeo4fxkp0gg" path="res://scripts/criarSala.gd" id="2_0b72l"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="3_hgyjh"]
+[ext_resource type="Texture2D" uid="uid://d3d2q6c02ghsn" path="res://assets/minigames/bueiro/PlacaEscoamento.png" id="5_fkycc"]
 
 [node name="TelaInicial" type="Node2D" unique_id=1883393008]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1826062528]
+position = Vector2(959.9999, 539.99994)
+scale = Vector2(5, 5)
+texture = ExtResource("1_1exgo")
 
 [node name="Control" type="Control" parent="." unique_id=2040790764]
 layout_mode = 3
@@ -19,13 +27,15 @@ script = ExtResource("1_17ume")
 [node name="VBoxContainer" type="VBoxContainer" parent="Control" unique_id=1850774465]
 layout_mode = 1
 offset_left = -242.0
-offset_top = -102.0
+offset_top = -66.0
 offset_right = 737.0
-offset_bottom = 828.0
+offset_bottom = 799.0
 
 [node name="SalasDisponiveis" type="Label" parent="Control/VBoxContainer" unique_id=1663992242]
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
+theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_fonts/font = ExtResource("3_hgyjh")
+theme_override_font_sizes/font_size = 55
 text = "Salas Disponiveis"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Control/VBoxContainer" unique_id=120545632]
@@ -55,25 +65,54 @@ script = ExtResource("2_0b72l")
 
 [node name="HTTPRequest" type="HTTPRequest" parent="Control/Control/CriarSala" unique_id=780301939]
 
-[node name="BotaoCriarSala" type="Button" parent="Control/Control" unique_id=274821921]
+[node name="NinePatchRect2" type="NinePatchRect" parent="Control/Control" unique_id=1657513127]
 layout_mode = 0
 offset_left = 53.0
 offset_top = 254.0
 offset_right = 582.0
 offset_bottom = 514.0
-theme_override_font_sizes/font_size = 34
-text = "Criar Sala"
+texture = ExtResource("5_fkycc")
+patch_margin_left = 5
+patch_margin_top = 5
+patch_margin_right = 5
+patch_margin_bottom = 5
 
-[node name="LineEdit" type="LineEdit" parent="Control/Control" unique_id=692002674]
+[node name="BotaoCriarSala" type="Button" parent="Control/Control/NinePatchRect2" unique_id=274821921]
+layout_mode = 0
+offset_right = 529.0
+offset_bottom = 260.0
+theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_fonts/font = ExtResource("3_hgyjh")
+theme_override_font_sizes/font_size = 80
+text = "Criar Sala"
+flat = true
+
+[node name="NinePatchRect" type="NinePatchRect" parent="Control/Control" unique_id=871073206]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 114.0
+offset_right = 590.0
+offset_bottom = 215.0
+texture = ExtResource("5_fkycc")
+patch_margin_left = 5
+patch_margin_top = 5
+patch_margin_right = 5
+patch_margin_bottom = 5
+
+[node name="LineEdit" type="LineEdit" parent="Control/Control/NinePatchRect" unique_id=692002674]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.22000001
 anchor_top = 0.18200001
 anchor_right = 0.22000001
 anchor_bottom = 0.18200001
-offset_left = -88.18001
-offset_top = 16.265991
-offset_right = 453.82
-offset_bottom = 117.26599
-theme_override_font_sizes/font_size = 34
+offset_left = -108.240005
+offset_top = -18.382002
+offset_right = 408.76
+offset_bottom = 82.618
+theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_colors/font_placeholder_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_fonts/font = ExtResource("3_hgyjh")
+theme_override_font_sizes/font_size = 55
 placeholder_text = "Nome da sala"
+flat = true
