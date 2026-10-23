@@ -63,11 +63,14 @@ func _ready() -> void:
 	if central == null:
 		push_error("Mapa: nó CentralSync não encontrado.")
 	else:
-		central.dados_sala_atualizados.connect(
-			_ao_dados_sala_atualizados
+		central.posicao_jogador_atualizada.connect(
+			_ao_posicao_jogador_atualizada
 		)
 		central.timer_atualizado.connect(
 			_ao_timer_atualizado
+		)
+		central.rodada_atualizada.connect(
+			_ao_rodada_atualizada
 		)
 
 		print("Mapa: conectado ao CentralSync.")
@@ -213,17 +216,18 @@ func _criar_marcador_jogador() -> void:
 	add_child(marcador_jogador)
 
 
-func _ao_dados_sala_atualizados(
-	posicao: Vector3,
-	_pontos: Array
-) -> void:
-	var posicao_mapaa := Vector2(
+func _ao_posicao_jogador_atualizada(posicao: Vector3) -> void:
+	var posicao_mapa_2d := Vector2(
 		posicao.x,
 		posicao.z
 	) / 1.0 * TILE_SIZE
 
-	marcador_jogador.position = posicao_mapaa + posicao_mapa
+	marcador_jogador.position = posicao_mapa_2d + posicao_mapa
 	marcador_jogador.visible = true
+
+
+func _ao_rodada_atualizada(numero: int, estado: String) -> void:
+	print("Mapa: rodada %d (%s)." % [numero, estado])
 
 
 func _ao_timer_atualizado(segundos: int, iniciado: bool) -> void:

@@ -208,7 +208,6 @@ func atualizar_mapa_backend() -> void:
 	var mapa_json: Array = Array(Global.tipos)
 
 	# Posição inicial do jogador F.
-	# Troque pelo ponto de nascimento real, se necessário.
 	var nascimento: Vector3 = ponto_de_nascimento()
 
 	var jogador_f_position: Array = [
@@ -217,17 +216,13 @@ func atualizar_mapa_backend() -> void:
 		nascimento.z,
 		Global.vidas
 	]
-	# Pontos do mundo.
-	var pontos_position: Array = Global.pontos_position
 
-	# Todas as informações são salvas juntas.
+	# Este PATCH escreve apenas campos que o gerenciador de objetivos NAO
+	# escreve. Rodada, timer, pontos, eventos e abrigo saem juntos pelo
+	# GerenciadorObjetivos, em um unico PATCH atomico.
 	var corpo: String = JSON.stringify({
 		"mapa": mapa_json,
-		"jogador_f_position": jogador_f_position,
-		"inicio_timer": objetivos.inicio_timer_iso(),
-		"duracao_timer": objetivos.duracao_timer_backend(),
-		"pontos_position": pontos_position,
-		"eventos": Global.eventos
+		"jogador_f_position": jogador_f_position
 	})
 
 	var erro := http_mapa.request(
@@ -262,9 +257,9 @@ func atualizar_mapa_backend() -> void:
 	print("ID usado na atualização: ", Global.salaID)
 
 	if dados is Array and not dados.is_empty():
-		print("Mundo e variáveis atualizados no backend!")
+		print("Mapa e posição inicial publicados no backend.")
 		print("Quantidade de valores do mapa: ", mapa_json.size())
-		print("Duração do timer: 60 segundos")
+		print("Rodada, timer, objetivos e abrigo são publicados pelo GerenciadorObjetivos.")
 	elif dados is Array and dados.is_empty():
 		push_error(
 			"Nenhuma sala foi atualizada. "

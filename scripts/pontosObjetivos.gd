@@ -17,9 +17,6 @@ extends Node2D
 
 signal pontos_atualizados(pontos: Array)
 
-const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
-const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
-
 # Posicoes dentro de cada entrada de pontos_position
 const I_X := 0
 const I_Y := 1
@@ -45,10 +42,6 @@ const CORES := {
 ## Posicao global (x, z) do Terreno no mundo 3D. Zero se ele fica na origem.
 @export var origem_mundo: Vector2 = Vector2.ZERO
 
-@export_group("Atualizacao")
-## Segundos entre consultas ao Supabase.
-@export_range(0.25, 10.0, 0.25) var intervalo_consulta: float = 1.0
-
 @export_group("Aparencia")
 ## Sprite 2D de cada tipo (chave = nome do tipo, valor = Texture2D). Vazio = ponto simples.
 @export var texturas_tipos: Dictionary = {}
@@ -62,11 +55,9 @@ const CORES := {
 ## Os marcadores usam o material (shader de sonar) do mapa. Desligado = sempre visiveis.
 @export var usar_material_do_mapa: bool = false
 
-var _http: HTTPRequest
 var _pontos: Array[Dictionary] = []
 var _marcadores: Array[Dictionary] = []
 var _assinatura: String = ""
-var _consultando: bool = false
 var _pontos_simples: Dictionary = {}
 var _marcador_abrigo: Sprite2D
 
@@ -88,11 +79,20 @@ func _ready() -> void:
 	central.dados_sala_atualizados.connect(
 		_ao_dados_sala_atualizados
 	)
+	central.abrigo_atualizado.connect(
+		_ao_abrigo_atualizado
+	)
 
 	print("PontosObjetivos: conectado ao CentralSync.")
 
 	# Solicita os dados imediatamente, sem depender da próxima consulta.
 	await central.sincronizar_sala()
+
+	# Cobre o caso de a primeira resposta ter chegado antes desta conexão.
+	if not Global.pontos_position.is_empty():
+		_aplicar(Global.pontos_position)
+	if central.abrigo_position != Vector3.ZERO:
+		_atualizar_marcador_abrigo(central.abrigo_position)
 
 func _ao_dados_sala_atualizados(
 	_posicao: Vector3,
@@ -101,6 +101,10 @@ func _ao_dados_sala_atualizados(
 	print("PontosObjetivos: recebidos ", pontos.size(), " objetivos.")
 
 	_aplicar(pontos)
+
+
+func _ao_abrigo_atualizado(posicao: Vector3) -> void:
+	_atualizar_marcador_abrigo(posicao)
 
 # -----------------------------------------------------------------------------
 #  API PUBLICA (para a tela da central)
@@ -144,70 +148,9 @@ func mapa_para_mundo(p: Vector2) -> Vector2:
 	return p / tile_size * tamanho_cubo + origem_mundo
 
 
-## Forca uma consulta agora (alem das periodicas).
-func atualizar_agora() -> void:
-	if _consultando or Global.salaID.is_empty():
-		return
-	_consultando = true
-
-	var url: String = "https://%s.supabase.co/rest/v1/salas" % PROJECT_REF \
-		+ "?id=eq." + Global.salaID.uri_encode() \
-		+ "&select=pontos_position,abrigo_position"
-	var headers := PackedStringArray([
-		"apikey: " + SUPABASE_KEY,
-		"Authorization: Bearer " + SUPABASE_KEY,
-		"Accept: application/json",
-	])
-
-	var erro := _http.request(url, headers, HTTPClient.METHOD_GET)
-	if erro != OK:
-		push_warning("Pontos: nao foi possivel consultar o Supabase (erro %d)." % erro)
-		_consultando = false
-		return
-
-	var resposta = await _http.request_completed
-	_consultando = false
-
-	var resultado: int = resposta[0]
-	var codigo: int = resposta[1]
-	var texto: String = resposta[3].get_string_from_utf8()
-	if resultado != HTTPRequest.RESULT_SUCCESS or codigo < 200 or codigo >= 300:
-		push_warning("Pontos: consulta falhou (resultado %d, HTTP %d)." % [resultado, codigo])
-		return
-
-	var linhas = JSON.parse_string(texto)
-	if not linhas is Array or linhas.is_empty():
-		return
-
-	var bruto = linhas[0].get("pontos_position")
-	if bruto is String:          # caso a coluna seja texto
-		bruto = JSON.parse_string(bruto)
-	if bruto == null:
-		bruto = []
-	if not bruto is Array:
-		push_warning("Pontos: pontos_position nao e uma lista.")
-		return
-
-	_aplicar(bruto)
-
-	# Abrigo
-	var abrigo_raw = linhas[0].get("abrigo_position")
-	if abrigo_raw is String:
-		abrigo_raw = JSON.parse_string(abrigo_raw)
-	if abrigo_raw is Array and abrigo_raw.size() >= 3:
-		var mundo := Vector3(float(abrigo_raw[0]), float(abrigo_raw[1]), float(abrigo_raw[2]))
-		_atualizar_marcador_abrigo(mundo)
-
-
 # -----------------------------------------------------------------------------
 #  INTERNO
 # -----------------------------------------------------------------------------
-func _loop_consulta() -> void:
-	while is_inside_tree():
-		await atualizar_agora()
-		await get_tree().create_timer(intervalo_consulta).timeout
-
-
 func _process(_delta: float) -> void:
 	var k := 1.0 + 0.18 * sin(Time.get_ticks_msec() / 1000.0 * 4.0)
 	for m in _marcadores:

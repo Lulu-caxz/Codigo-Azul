@@ -53,6 +53,9 @@ const T_QUADRA := 7
 
 const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 
+const MAX_TENTATIVAS_ENVIO := 3
+const INTERVALO_RETENTATIVA := 5.0
+
 # -----------------------------------------------------------------------------
 #  CONFIGURACOES
 # -----------------------------------------------------------------------------
@@ -126,7 +129,8 @@ var atraso_inicio_rodada: int = 5
 @export var no_terreno: NodePath = ^"../Terreno"
 
 @export_group("Backend")
-## Envia pontos_position (e inicio/duracao do timer nas novas rodadas) ao Supabase a cada mudanca.
+## Publica no Supabase a fotografia completa da rodada (identificador, estado,
+## timer, objetivos, eventos e abrigo) a cada mudanca.
 @export var sincronizar_backend: bool = true
 
 @export_group("Minigame")
@@ -174,8 +178,9 @@ var _cand_xz := PackedVector2Array()   # centro do candidato (unidades locais do
 var _http: HTTPRequest
 var _contagem: CanvasLayer
 var _enviando := false
-var _tem_pendente := false
-var _pendente: Dictionary = {}
+var _reenviar := false
+var _retry_agendado := false
+var _ultima_rodada_publicada := -1
 var _projeto_ref := ""
 var _chave := ""
 var _tipos_sem_cena_avisados: Dictionary = {}
@@ -233,6 +238,7 @@ func _ready() -> void:
 
 	_http = HTTPRequest.new()
 	_http.name = "HTTPObjetivos"
+	_http.timeout = 10.0
 	add_child(_http)
 
 	_som_concluido = load("res://sounds/objetivoConcluido.mp3")
@@ -288,6 +294,20 @@ func tempo_restante() -> float:
 
 func nome_estado(valor: int) -> String:
 	return String(Estado.keys()[valor])
+
+
+## Estado publicado em `salas.estado_rodada`. PREPARANDO_RODADA conta como
+## "ativa": a Central usa inicio_timer para saber se ainda e contagem regressiva.
+func estado_backend() -> String:
+	match estado:
+		Estado.RODADA_CONCLUIDA:
+			return "concluida"
+		Estado.RODADA_PERDIDA:
+			return "perdida"
+		Estado.AGUARDANDO_MUNDO:
+			return "aguardando"
+		_:
+			return "ativa"
 
 
 func tecla_interacao() -> String:
@@ -395,7 +415,8 @@ func _ao_mundo_pronto() -> void:
 	# Cria a tela de contagem antes de iniciar (para cobrir a transicao).
 	_criar_contagem()
 
-	_iniciar_contagem(false)
+	# A partir daqui a Cidade e a unica responsavel por publicar a rodada.
+	_iniciar_contagem(true)
 	await get_tree().create_timer(1).timeout
 	_criar_hud()
 
@@ -409,8 +430,6 @@ func _resetar_estado() -> void:
 	_dados_prontos = false
 	_mundo_pronto = false
 	_alvo_atual = -1
-	_pendente.clear()
-	_tem_pendente = false
 	_mudar_estado(Estado.AGUARDANDO_MUNDO)
 
 
@@ -543,18 +562,19 @@ func _iniciar_contagem(enviar_backend: bool) -> void:
 		print("Objetivos: rodada %d preparada com %d objetivos (candidatos: %d). Cronometro comeca em %d s." % [
 			rodada_atual, exigidos(), _cand_idx.size(), atraso_inicio_rodada])
 	if enviar_backend:
-		_enviar_backend({
-			"inicio_timer": _unix_para_iso(int(inicio_unix)),
-			"duracao_timer": int(round(_duracao_atual)),
-		})
+		if imprimir_relatorio:
+			print("Objetivos: publicando rodada %d no backend (estado=%s)." % [
+				rodada_atual, estado_backend()])
+		_enviar_backend()
 
 
 func _concluir_rodada() -> void:
 	_fim_pausa_unix = _agora() + pausa_apos_conclusao
 	_mudar_estado(Estado.RODADA_CONCLUIDA)
 	rodada_concluida.emit(rodada_atual)
+	_enviar_backend()
 	if imprimir_relatorio:
-		print("Objetivos: rodada %d concluida." % rodada_atual)
+		print("Objetivos: rodada %d concluida e estado publicado." % rodada_atual)
 
 
 func _perder_rodada() -> void:
@@ -562,8 +582,9 @@ func _perder_rodada() -> void:
 		return
 	_mudar_estado(Estado.RODADA_PERDIDA)   # nao avanca sozinho
 	rodada_perdida.emit(rodada_atual, restantes())
+	_enviar_backend()
 	if imprimir_relatorio:
-		print("Objetivos: rodada %d perdida (faltaram %d)." % [rodada_atual, restantes()])
+		print("Objetivos: rodada %d perdida (faltaram %d); estado publicado." % [rodada_atual, restantes()])
 
 	# Aguarda a exibição da mensagem de derrota no HUD e retorna para a tela de salas
 	await get_tree().create_timer(3.0).timeout
@@ -959,8 +980,11 @@ func _verificar_no_removido(indice: int, numero_rodada: int) -> void:
 
 
 # -----------------------------------------------------------------------------
-#  BACKEND (Supabase): envios em fila, sempre com o estado mais recente
+#  BACKEND (Supabase)
 # -----------------------------------------------------------------------------
+# Todas as alteracoes da rodada saem por este unico HTTPRequest, em um unico
+# PATCH da mesma linha. Assim a Central nunca recebe objetivos de uma rodada
+# junto com o identificador/timer de outra.
 func _carregar_credenciais() -> void:
 	var consts: Dictionary = _mundo.get_script().get_script_constant_map()
 	_projeto_ref = String(consts.get("PROJECT_REF", ""))
@@ -969,32 +993,42 @@ func _carregar_credenciais() -> void:
 		push_warning("Objetivos: PROJECT_REF/SUPABASE_KEY nao encontrados no mundo_manager; sem sincronizar.")
 
 
-func _enviar_backend(extras: Dictionary = {}) -> void:
+func _enviar_backend() -> void:
 	if not sincronizar_backend or _projeto_ref.is_empty() or Global.salaID.is_empty():
 		return
-	_pendente.merge(extras, true)
-	_tem_pendente = true
+	if rodada_atual <= 0 or inicio_unix <= 0.0:
+		return
+	_reenviar = true
 	if not _enviando:
 		_processar_envios()
 
 
+func _montar_corpo_backend() -> Dictionary:
+	var corpo: Dictionary = {
+		"rodada_atual": rodada_atual,
+		"estado_rodada": estado_backend(),
+		"inicio_timer": _unix_para_iso(int(inicio_unix)),
+		"duracao_timer": int(round(_duracao_atual if _duracao_atual > 0.0 else duracao_rodada)),
+		"pontos_position": Global.pontos_position.duplicate(true),
+		"eventos": Global.eventos.duplicate(true),
+	}
+	# Posicao do abrigo gerado (se houver).
+	var predios_node = _mundo.find_child("Predios", true, false)
+	if predios_node != null and predios_node.abrigo_posicao != Vector3.ZERO:
+		var ap: Vector3 = predios_node.abrigo_posicao
+		corpo["abrigo_position"] = [ap.x, ap.y, ap.z]
+	return corpo
+
+
 func _processar_envios() -> void:
+	if _enviando:
+		return
 	_enviando = true
-	while _tem_pendente and is_inside_tree():
-		_tem_pendente = false
-		var extras := _pendente.duplicate()
-		_pendente.clear()
+	var tentativas := 0
 
-		var corpo := extras.duplicate()
-		corpo["pontos_position"] = Global.pontos_position.duplicate(true)
-		corpo["eventos"] = Global.eventos.duplicate(true)
-
-		# Posicao do abrigo gerado (se houver).
-		var predios_node = _mundo.find_child("Predios", true, false)
-		if predios_node != null and predios_node.abrigo_posicao != Vector3.ZERO:
-			var ap: Vector3 = predios_node.abrigo_posicao
-			corpo["abrigo_position"] = [ap.x, ap.y, ap.z]
-
+	while _reenviar and is_inside_tree():
+		_reenviar = false
+		var corpo := _montar_corpo_backend()
 		var url = "https://%s.supabase.co/rest/v1/salas" % _projeto_ref \
 			+ "?id=eq." + Global.salaID.uri_encode() + "&select=id"
 		var headers := PackedStringArray([
@@ -1006,9 +1040,12 @@ func _processar_envios() -> void:
 
 		var erro := _http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(corpo))
 		if erro != OK:
-			push_error("Objetivos: nao foi possivel enviar ao backend (erro %d)." % erro)
-			_devolver_extras(extras)
-			break
+			push_error("Objetivos: nao foi possivel enviar a rodada %d (erro %d)." % [rodada_atual, erro])
+			tentativas = _falha_envio(tentativas)
+			if tentativas < 0:
+				break
+			await get_tree().create_timer(INTERVALO_RETENTATIVA).timeout
+			continue
 
 		var resposta = await _http.request_completed
 		var resultado: int = resposta[0]
@@ -1016,24 +1053,63 @@ func _processar_envios() -> void:
 		var texto: String = resposta[3].get_string_from_utf8()
 
 		if resultado != HTTPRequest.RESULT_SUCCESS:
-			push_error("Objetivos: falha de conexao ao atualizar pontos_position.")
-			_devolver_extras(extras)
-			break
+			push_error("Objetivos: falha de conexao ao publicar a rodada %d (resultado %d)." % [
+				rodada_atual, resultado])
+			tentativas = _falha_envio(tentativas)
+			if tentativas < 0:
+				break
+			await get_tree().create_timer(INTERVALO_RETENTATIVA).timeout
+			continue
+
 		if codigo < 200 or codigo >= 300:
-			push_error("Objetivos: erro HTTP %d ao atualizar pontos_position: %s" % [codigo, texto])
-			_devolver_extras(extras)
-			break
+			push_error("Objetivos: erro HTTP %d ao publicar a rodada %d: %s" % [
+				codigo, rodada_atual, texto])
+			tentativas = _falha_envio(tentativas)
+			if tentativas < 0:
+				break
+			await get_tree().create_timer(INTERVALO_RETENTATIVA).timeout
+			continue
+
 		var dados = JSON.parse_string(texto)
 		if dados is Array and dados.is_empty():
 			push_error("Objetivos: nenhuma sala atualizada (ID da sala ou RLS?).")
+			tentativas = _falha_envio(tentativas)
+			if tentativas < 0:
+				break
+			await get_tree().create_timer(INTERVALO_RETENTATIVA).timeout
+			continue
+
+		tentativas = 0
+		if _ultima_rodada_publicada != rodada_atual:
+			_ultima_rodada_publicada = rodada_atual
+			print("Objetivos: rodada %d publicada no backend (estado=%s, inicio_timer=%d, duracao=%d)." % [
+				rodada_atual, estado_backend(), int(inicio_unix),
+				int(round(_duracao_atual))])
+
 	_enviando = false
 
 
-# Em caso de falha, os extras (ex.: inicio_timer de uma rodada nova) vao junto no proximo envio.
-func _devolver_extras(extras: Dictionary) -> void:
-	for k in extras:
-		if not _pendente.has(k):
-			_pendente[k] = extras[k]
+## Incrementa a tentativa e devolve -1 quando o limite foi atingido
+## (nesse caso agenda uma nova tentativa mais tarde).
+func _falha_envio(tentativas: int) -> int:
+	var total := tentativas + 1
+	_reenviar = true
+	if total < MAX_TENTATIVAS_ENVIO:
+		return total
+	push_warning("Objetivos: envio falhou %d vezes; nova tentativa em %d s." % [
+		total, int(INTERVALO_RETENTATIVA)])
+	_agendar_reenvio()
+	return -1
+
+
+func _agendar_reenvio() -> void:
+	if _retry_agendado or not is_inside_tree():
+		return
+	_retry_agendado = true
+	await get_tree().create_timer(INTERVALO_RETENTATIVA).timeout
+	_retry_agendado = false
+	if is_inside_tree() and _reenviar and not _enviando:
+		_processar_envios()
 
 
 # -----------------------------------------------------------------------------
