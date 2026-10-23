@@ -109,10 +109,6 @@ region = Rect2(108, 0, 54, 34)
 atlas = ExtResource("12_hcs50")
 region = Rect2(54, 0, 54, 34)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_027ic"]
-atlas = ExtResource("12_hcs50")
-region = Rect2(0, 0, 54, 34)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_452lo"]
 atlas = ExtResource("13_lpy2g")
 region = Rect2(99, 0, 99, 21)
@@ -190,10 +186,10 @@ animation = &"5"
 
 [node name="PostIts" type="Control" parent="UI" unique_id=1532190657]
 anchors_preset = 0
-offset_left = -20.8
-offset_top = -43.6
-offset_right = 101.2
-offset_bottom = 195.4
+offset_left = -14.2
+offset_top = -58.0
+offset_right = 107.8
+offset_bottom = 181.0
 
 [node name="PostIt6AMARELO" type="Control" parent="UI/PostIts" unique_id=1336471229]
 anchors_preset = 0
@@ -250,17 +246,6 @@ offset_bottom = 129.8
 [node name="Sprite2D" type="Sprite2D" parent="UI/PostIts/PostIt2AMARELO" unique_id=1773339317]
 position = Vector2(27, 17)
 texture = SubResource("AtlasTexture_cqwtx")
-
-[node name="PostIt1TutorialROXO" type="Control" parent="UI/PostIts" unique_id=1243739939]
-anchors_preset = 0
-offset_left = 59.4
-offset_top = 69.8
-offset_right = 113.4
-offset_bottom = 103.8
-
-[node name="Sprite2D" type="Sprite2D" parent="UI/PostIts/PostIt1TutorialROXO" unique_id=2107063226]
-position = Vector2(27, 17)
-texture = SubResource("AtlasTexture_027ic")
 
 [node name="Visor" type="Control" parent="UI" unique_id=362220681]
 anchors_preset = 0

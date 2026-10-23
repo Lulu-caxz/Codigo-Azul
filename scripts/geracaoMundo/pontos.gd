@@ -73,7 +73,7 @@ var atraso_inicio_rodada: int = 5
 
 @export_group("Tipos de objetivo")
 ## Peso de sorteio de cada tipo. Chave = nome do tipo. Peso 0 desliga o tipo.
-@export var pesos_tipos: Dictionary = {"radar": 1.0, "bueiro": 1.0, "pluviometro": 1.0, "antena": 1.0}
+@export var pesos_tipos: Dictionary = {"bueiro": 1.0, "pluviometro": 1.0, "antena": 1.0}
 ## Sprite 2D de cada tipo (chave = nome do tipo, valor = Texture2D).
 ## Sem textura, usa um ponto simples colorido gerado por codigo.
 @export var texturas_tipos: Dictionary = {}
@@ -136,6 +136,8 @@ var atraso_inicio_rodada: int = 5
 @export_group("Minigame")
 ## Caminho da cena do minigame da antena.
 @export var caminho_minigame_antena: String = "res://scenes/minigames/mini_game_antena.tscn"
+## Caminho da cena do minigame do bueiro.
+@export var caminho_minigame_bueiro: String = "res://scenes/minigames/mini_game_bueiro.tscn"
 
 @export_group("Depuracao")
 @export var imprimir_relatorio: bool = true
@@ -531,6 +533,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		if cena is PackedScene:
 			var instancia = cena.instantiate()
 			add_child(instancia)
+		get_viewport().set_input_as_handled()
+		return
+
+	# Minigame do bueiro: ao interagir, abre a cena do minigame (objetivo so conclui ao acertar).
+	if tipo == "bueiro" and not caminho_minigame_bueiro.is_empty():
+		_indice_minigame_atual = indice
+		var jogador_node = _obter_jogador()
+		if jogador_node != null and jogador_node.has_method("set_physics_process"):
+			jogador_node.set_physics_process(false)
+		var hud = get_node_or_null("HudObjetivos")
+		if hud != null:
+			hud.visible = false
+		var cena_b := load(caminho_minigame_bueiro)
+		if cena_b is PackedScene:
+			var instancia_b = cena_b.instantiate()
+			add_child(instancia_b)
 		get_viewport().set_input_as_handled()
 		return
 
