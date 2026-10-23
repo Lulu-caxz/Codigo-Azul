@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://b41w1xrms74si" path="res://assets/central/barra_vida.png" id="11_q7h55"]
 [ext_resource type="Texture2D" uid="uid://bhjk2ees0vnax" path="res://assets/central/postIt.png" id="12_hcs50"]
 [ext_resource type="Texture2D" uid="uid://dlojwutobe2fq" path="res://assets/central/visor.png" id="13_lpy2g"]
+[ext_resource type="Texture2D" uid="uid://dcvt0nugvg00v" path="res://assets/central/ManualFechado.png" id="14_hcs50"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
 atlas = ExtResource("10_ncnl4")
@@ -270,5 +271,9 @@ theme_override_font_sizes/font_size = 60
 text = "30s"
 horizontal_alignment = 2
 vertical_alignment = 1
+
+[node name="Manual" type="TextureButton" parent="UI" unique_id=441639120]
+position = Vector2(-47.799995, 181.99998)
+texture_normal = ExtResource("14_hcs50")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=1279357705]
