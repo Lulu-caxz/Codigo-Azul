@@ -2,14 +2,19 @@
 
 [ext_resource type="Script" uid="uid://cygfkk2doc04y" path="res://scripts/geracaoMundo/mundoManager.gd" id="1_orvpg"]
 [ext_resource type="Script" uid="uid://bnlfwnww1u73g" path="res://scripts/geracaoMundo/geracaoTerreno.gd" id="2_u4a18"]
+[ext_resource type="Texture2D" uid="uid://dvjipstn2ibvm" path="res://assets/textures/grama1_topo.png" id="3_4a63r"]
 [ext_resource type="Script" uid="uid://cnv0437t6ortb" path="res://scripts/geracaoMundo/geracaoRua.gd" id="3_b2qpp"]
-[ext_resource type="Texture2D" uid="uid://yun5o35277uq" path="res://assets/textures/textura_grama.png" id="3_f5i74"]
-[ext_resource type="Texture2D" uid="uid://cb77w4uqmna7t" path="res://assets/textures/grass.png" id="4_derue"]
+[ext_resource type="Texture2D" uid="uid://k56sk22nsvld" path="res://assets/textures/grama2_topo.png" id="4_6bldn"]
 [ext_resource type="Script" uid="uid://bjh12mpg1yqjk" path="res://scripts/geracaoMundo/geracaoQuadras.gd" id="4_i0q3m"]
 [ext_resource type="Script" uid="uid://ca0jadlijewox" path="res://scripts/geracaoMundo/geracaoPredios.gd" id="5_derue"]
+[ext_resource type="Texture2D" uid="uid://citnkyd8yvg6g" path="res://assets/textures/asfalto.png" id="5_trwb7"]
+[ext_resource type="Texture2D" uid="uid://bnpm2ira8u1k2" path="res://assets/textures/asfalto_variacao.png" id="6_m4c84"]
+[ext_resource type="Texture2D" uid="uid://dakowj42yu61" path="res://assets/textures/concreto_juntas.png" id="7_dcost"]
+[ext_resource type="Texture2D" uid="uid://bx2ifyf2djk8v" path="res://assets/textures/grama_lateral.png" id="8_4oqfm"]
 [ext_resource type="Script" uid="uid://bgd2xc48neldq" path="res://scripts/geracaoMundo/pontos.gd" id="8_i0q3m"]
 [ext_resource type="Texture2D" uid="uid://b2a7xan02ra4u" path="res://assets/ui/CaixaDialogoSheet.png" id="8_imfwm"]
-[ext_resource type="Texture2D" uid="uid://hk11p3pcklkt" path="res://assets/Pluviometro.png" id="11_f5i74"]
+[ext_resource type="Texture2D" uid="uid://c5axjrv3ywoo3" path="res://assets/textures/concreto.png" id="9_6bldn"]
+[ext_resource type="Texture2D" uid="uid://hk11p3pcklkt" path="res://assets/props/Pluviometro.png" id="11_f5i74"]
 [ext_resource type="Texture2D" uid="uid://belh8t6ugynxw" path="res://assets/props/AntenaSheet.png" id="12_rlxsh"]
 [ext_resource type="Script" uid="uid://c80w7khawgwdd" path="res://scripts/geracaoMundo/geracaoBordas.gd" id="12_tqtl5"]
 [ext_resource type="Texture2D" uid="uid://d0ktwt44yfibp" path="res://assets/props/arvore.png" id="13_gr8it"]
@@ -98,8 +103,14 @@ script = ExtResource("1_orvpg")
 
 [node name="Terreno" type="Node3D" parent="." unique_id=1862711609]
 script = ExtResource("2_u4a18")
-texturas_topo = Array[Texture2D]([null, ExtResource("3_f5i74"), ExtResource("3_f5i74")])
-texturas_lateral = Array[Texture2D]([null, ExtResource("4_derue"), ExtResource("4_derue")])
+texturas_topo_areia = Array[Texture2D]([ExtResource("3_4a63r"), ExtResource("4_6bldn")])
+texturas_topo_grama = Array[Texture2D]([ExtResource("3_4a63r"), ExtResource("4_6bldn")])
+texturas_topo_rua = Array[Texture2D]([ExtResource("5_trwb7"), ExtResource("6_m4c84")])
+texturas_topo_calcada = Array[Texture2D]([ExtResource("7_dcost")])
+texturas_lateral_areia = Array[Texture2D]([ExtResource("8_4oqfm")])
+texturas_lateral_grama = Array[Texture2D]([ExtResource("8_4oqfm")])
+texturas_lateral_rua = Array[Texture2D]([ExtResource("5_trwb7"), ExtResource("6_m4c84")])
+texturas_lateral_calcada = Array[Texture2D]([ExtResource("9_6bldn")])
 pixels_por_bloco = 16.0
 fps_agua = 30.0
 rebaixo_agua = 0.4

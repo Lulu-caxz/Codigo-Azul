@@ -8,9 +8,26 @@ signal terreno_pronto
 # Podem ter qualquer tamanho (ex: 16x16 pixel art); sao ajustadas
 # automaticamente para o tamanho da primeira textura atribuida.
 # ---------------------------------------------------------------------------
-@export_group("Texturas (indice = tipo: 0 agua, 1 areia, 2 grama, 3 pedra)")
-@export var texturas_topo: Array[Texture2D] = []
-@export var texturas_lateral: Array[Texture2D] = []
+@export_group("Texturas Topo (variacoes por tipo: 0 agua, 1 areia, 2 grama, 3 pedra, 4 rua, 5 ponte, 6 calcada, 7 quadra)")
+@export_group("Texturas Topo (variacoes por tipo)")
+@export var texturas_topo_agua: Array[Texture2D] = []
+@export var texturas_topo_areia: Array[Texture2D] = []
+@export var texturas_topo_grama: Array[Texture2D] = []
+@export var texturas_topo_pedra: Array[Texture2D] = []
+@export var texturas_topo_rua: Array[Texture2D] = []
+@export var texturas_topo_ponte: Array[Texture2D] = []
+@export var texturas_topo_calcada: Array[Texture2D] = []
+@export var texturas_topo_quadra: Array[Texture2D] = []
+
+@export_group("Texturas Lateral (variacoes por tipo)")
+@export var texturas_lateral_agua: Array[Texture2D] = []
+@export var texturas_lateral_areia: Array[Texture2D] = []
+@export var texturas_lateral_grama: Array[Texture2D] = []
+@export var texturas_lateral_pedra: Array[Texture2D] = []
+@export var texturas_lateral_rua: Array[Texture2D] = []
+@export var texturas_lateral_ponte: Array[Texture2D] = []
+@export var texturas_lateral_calcada: Array[Texture2D] = []
+@export var texturas_lateral_quadra: Array[Texture2D] = []
 
 # Cor usada quando a textura nao foi atribuida (um item por tipo)
 var _cores_topo: Array[Color] = [
@@ -130,6 +147,11 @@ var _resultados: Array = []
 
 var _raiz: Node3D
 var _material: ShaderMaterial
+
+# Indices base na Texture2DArray para cada tipo (topo e lateral) e quantidade de variacoes.
+var _base_topo: Array[int] = []
+var _base_lateral: Array[int] = []
+var _num_variacoes: Array[int] = []
 
 # Chunks montados: [{"mi": MeshInstance3D, "rect": Rect2}] (rect em x,z do mundo)
 var _chunks_vis: Array = []
@@ -374,27 +396,76 @@ func _criar_textura_ruido() -> ImageTexture:
 
 
 func _criar_array_texturas() -> Texture2DArray:
+	var grupos_topo := [
+		texturas_topo_agua, texturas_topo_areia, texturas_topo_grama, texturas_topo_pedra,
+		texturas_topo_rua, texturas_topo_ponte, texturas_topo_calcada, texturas_topo_quadra
+	]
+	var grupos_lateral := [
+		texturas_lateral_agua, texturas_lateral_areia, texturas_lateral_grama, texturas_lateral_pedra,
+		texturas_lateral_rua, texturas_lateral_ponte, texturas_lateral_calcada, texturas_lateral_quadra
+	]
+
 	var tam := 16
 	var todas: Array[Texture2D] = []
-	todas.append_array(texturas_topo)
-	todas.append_array(texturas_lateral)
+	for grupo in grupos_topo:
+		for t in grupo:
+			if t is Texture2D:
+				todas.append(t)
+	for grupo in grupos_lateral:
+		for t in grupo:
+			if t is Texture2D:
+				todas.append(t)
 	for t in todas:
 		if t:
 			tam = t.get_width()
 			break
 
+	_base_topo.clear()
+	_base_lateral.clear()
+	_num_variacoes.clear()
+
 	var imagens: Array[Image] = []
-	for i in _cores_topo.size():
-		imagens.append(_imagem(_pegar(texturas_topo, i), tam, _cores_topo[i]))
-		imagens.append(_imagem(_pegar(texturas_lateral, i), tam, _cores_topo[i].darkened(0.35)))
+	var num_tipos := _cores_topo.size()
+	for i in num_tipos:
+		var topo_vars: Array = grupos_topo[i] if i < grupos_topo.size() else []
+		var lat_vars: Array = grupos_lateral[i] if i < grupos_lateral.size() else []
+
+		var v := maxi(1, maxi(topo_vars.size(), lat_vars.size()))
+		_num_variacoes.append(v)
+
+		var start_topo := imagens.size()
+		for j in v:
+			var tex: Texture2D = null
+			if not topo_vars.is_empty():
+				var candidato = topo_vars[j % topo_vars.size()]
+				if candidato is Texture2D:
+					tex = candidato
+			imagens.append(_imagem(tex, tam, _cores_topo[i]))
+		_base_topo.append(start_topo)
+
+		var start_lat := imagens.size()
+		for j in v:
+			var tex: Texture2D = null
+			if not lat_vars.is_empty():
+				var candidato = lat_vars[j % lat_vars.size()]
+				if candidato is Texture2D:
+					tex = candidato
+			imagens.append(_imagem(tex, tam, _cores_topo[i].darkened(0.35)))
+		_base_lateral.append(start_lat)
 
 	var arr := Texture2DArray.new()
 	arr.create_from_images(imagens)
 	return arr
 
 
-func _pegar(lista: Array[Texture2D], i: int) -> Texture2D:
-	return lista[i] if i < lista.size() else null
+func _variacao_tipo(tipo: int, x: int, z: int) -> int:
+	if tipo < 0 or tipo >= _num_variacoes.size():
+		return 0
+	var v := _num_variacoes[tipo]
+	if v <= 1:
+		return 0
+	var h := (x * 73856093) ^ (z * 19349663)
+	return absi(h) % v
 
 
 func _imagem(tex: Texture2D, tam: int, cor_padrao: Color) -> Image:
@@ -444,12 +515,14 @@ func _gerar_chunk(indice: int) -> void:
 			var i := gx * P + gz
 			var h := _alturas[i]
 			var t := _tipos[i]
+			var variacao_base := _variacao_tipo(t, gx, gz)
 
 			# expande em Z
 			var dz := 1
 			while lz + dz < prof \
 					and visitado[lx * CHUNK + lz + dz] == 0 \
-					and _alturas[i + dz] == h and _tipos[i + dz] == t:
+					and _alturas[i + dz] == h and _tipos[i + dz] == t \
+					and _variacao_tipo(t, gx, gz + dz) == variacao_base:
 				dz += 1
 
 			# expande em X (linhas inteiras de largura dz)
@@ -459,7 +532,8 @@ func _gerar_chunk(indice: int) -> void:
 				var j := (gx + dx) * P + gz
 				for k in dz:
 					if visitado[(lx + dx) * CHUNK + lz + k] != 0 \
-							or _alturas[j + k] != h or _tipos[j + k] != t:
+							or _alturas[j + k] != h or _tipos[j + k] != t \
+							or _variacao_tipo(t, gx + dx, gz + k) != variacao_base:
 						ok = false
 						break
 				if ok:
@@ -474,7 +548,7 @@ func _gerar_chunk(indice: int) -> void:
 				Vector3(gx * s, y_topo, gz * s),
 				Vector3(dx * s, 0.0, 0.0),
 				Vector3(0.0, 0.0, dz * s),
-				Vector3.UP, dx, dz, t * 2)
+				Vector3.UP, dx, dz, _base_topo[t] + variacao_base)
 
 	# ---- LATERAIS: so onde o vizinho e mais baixo ----
 	_laterais(d, Vector2i(-1, 0), x_ini, x_fim, z_ini, z_fim)  # Oeste
@@ -553,6 +627,7 @@ func _laterais(d: DadosMalha, dir: Vector2i, x_ini: int, x_fim: int, z_ini: int,
 			var h := _hef(gx, gz)
 			var viz := _hef(gx + dir.x, gz + dir.y)
 			var t := _tipos[gx * _profundidade + gz]
+			var variacao_base := _variacao_tipo(t, gx, gz)
 			if viz >= h:
 				b += 1
 				continue
@@ -563,7 +638,8 @@ func _laterais(d: DadosMalha, dir: Vector2i, x_ini: int, x_fim: int, z_ini: int,
 				var fx := a if corre_em_z else fim
 				var fz := fim if corre_em_z else a
 				if _hef(fx, fz) != h or _hef(fx + dir.x, fz + dir.y) != viz \
-						or _tipos[fx * _profundidade + fz] != t:
+						or _tipos[fx * _profundidade + fz] != t \
+						or _variacao_tipo(t, fx, fz) != variacao_base:
 					break
 				fim += 1
 
@@ -585,7 +661,7 @@ func _laterais(d: DadosMalha, dir: Vector2i, x_ini: int, x_fim: int, z_ini: int,
 				origem = Vector3(b * s, topo, (gz + 1) * s)
 				du = Vector3(comp * s, 0.0, 0.0)
 
-			d.quad(origem, du, Vector3(0.0, -alt * s, 0.0), normal, comp, alt, t * 2 + 1)
+			d.quad(origem, du, Vector3(0.0, -alt * s, 0.0), normal, comp, alt, _base_lateral[t] + variacao_base)
 			b = fim
 
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://yun5o35277uq"
-path="res://.godot/imported/textura_grama.png-658b9dd3735ab18f037aa6b23307124f.ctex"
+uid="uid://citnkyd8yvg6g"
+path="res://.godot/imported/asfalto.png-c8fa39f3033cd5c1eef8248295a5d036.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/textura_grama.png"
-dest_files=["res://.godot/imported/textura_grama.png-658b9dd3735ab18f037aa6b23307124f.ctex"]
+source_file="res://assets/textures/asfalto.png"
+dest_files=["res://.godot/imported/asfalto.png-c8fa39f3033cd5c1eef8248295a5d036.ctex"]
 
 [params]
 

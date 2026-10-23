@@ -23,3 +23,12 @@ const TextoPostIts = {
 
 	"5": "[center][b]Chien-Shiung Wu[/b][/center]\nNascimento: 31/05/1912\nFalecimento: 1997\nRealizou um experimento que demonstrou a violação da [color=#8B008B][b]paridade[/b][/color] na física nuclear.\nÁrea: Física"
 }
+
+const adesivos = {
+	"Ano" : "",
+	"Mes" : "",
+	"Dia" : "",
+	"Feito" : "",
+	"Morte" : "",
+	"Area" : "",
+}

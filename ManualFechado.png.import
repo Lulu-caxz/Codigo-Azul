@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://hk11p3pcklkt"
-path="res://.godot/imported/Pluviometro.png-4a3fe44f55979a55e407d05f0437573b.ctex"
+uid="uid://dcvt0nugvg00v"
+path="res://.godot/imported/ManualFechado.png-c8a597c983bacd2789e093e76ea7017a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Pluviometro.png"
-dest_files=["res://.godot/imported/Pluviometro.png-4a3fe44f55979a55e407d05f0437573b.ctex"]
+source_file="res://ManualFechado.png"
+dest_files=["res://.godot/imported/ManualFechado.png-c8a597c983bacd2789e093e76ea7017a.ctex"]
 
 [params]
 

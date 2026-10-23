@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cvxix0ossjskv"
-path="res://.godot/imported/AdesivosSheet.png-eed1cf51e5b80f7b33bc69115658c37f.ctex"
+uid="uid://bnpm2ira8u1k2"
+path="res://.godot/imported/asfalto_variacao.png-e1aec6fbb0b261c5a5b6023c24f892f6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/AdesivosSheet.png"
-dest_files=["res://.godot/imported/AdesivosSheet.png-eed1cf51e5b80f7b33bc69115658c37f.ctex"]
+source_file="res://assets/textures/asfalto_variacao.png"
+dest_files=["res://.godot/imported/asfalto_variacao.png-e1aec6fbb0b261c5a5b6023c24f892f6.ctex"]
 
 [params]
 
