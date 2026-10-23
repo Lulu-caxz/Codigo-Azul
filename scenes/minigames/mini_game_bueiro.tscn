@@ -1,3 +1,220 @@
 [gd_scene format=3 uid="uid://dt2eprxxhv6is"]
 
+[ext_resource type="Texture2D" uid="uid://dwirqy1rxbayj" path="res://assets/minigames/bueiro/ParedeEscoamento.png" id="1_ywe8g"]
+[ext_resource type="Texture2D" uid="uid://bx76q13jbjltj" path="res://assets/minigames/bueiro/Canos.png" id="2_73ib0"]
+[ext_resource type="Texture2D" uid="uid://dw5t6hd5qyio1" path="res://assets/minigames/bueiro/MuralMadeira.png" id="3_83upa"]
+[ext_resource type="Texture2D" uid="uid://ds2sdn1qtul5y" path="res://assets/minigames/bueiro/RodaCano.png" id="4_akjfc"]
+[ext_resource type="Texture2D" uid="uid://to7mu37eyb37" path="res://assets/central/AdesivosSheet.png" id="5_r4klx"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="6_0enot"]
+[ext_resource type="Script" path="res://scripts/minigames/mini_game_bueiro.gd" id="7_bueiro"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
+atlas = ExtResource("4_akjfc")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kfo36"]
+atlas = ExtResource("4_akjfc")
+region = Rect2(0, 48, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pg175"]
+atlas = ExtResource("4_akjfc")
+region = Rect2(0, 96, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dtsxt"]
+atlas = ExtResource("4_akjfc")
+region = Rect2(0, 144, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shdkb"]
+atlas = ExtResource("5_r4klx")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w1jfm"]
+atlas = ExtResource("5_r4klx")
+region = Rect2(0, 0, 48, 48)
+
 [node name="MiniGame-BUEIRO" type="Node2D" unique_id=2076584192]
+script = ExtResource("7_bueiro")
+
+[node name="Fundo" type="Sprite2D" parent="." unique_id=1531518382]
+position = Vector2(959.9999, 539.99994)
+scale = Vector2(5, 5)
+texture = ExtResource("1_ywe8g")
+
+[node name="Canos" type="Sprite2D" parent="." unique_id=1141595754]
+position = Vector2(959.9999, 289.99994)
+scale = Vector2(5, 5)
+texture = ExtResource("2_73ib0")
+
+[node name="Madeira" type="Sprite2D" parent="." unique_id=9621859]
+position = Vector2(959.9999, 872.9999)
+scale = Vector2(5, 5)
+texture = ExtResource("3_83upa")
+
+[node name="Valvulas" type="Node2D" parent="." unique_id=123675565]
+
+[node name="Valvula1" type="Node2D" parent="Valvulas" unique_id=1540056124]
+position = Vector2(359.99997, 539.9999)
+scale = Vector2(5, 5)
+
+[node name="Sprite2D" type="Sprite2D" parent="Valvulas/Valvula1" unique_id=1625507086]
+texture = SubResource("AtlasTexture_26022")
+
+[node name="Valvula2" type="Node2D" parent="Valvulas" unique_id=1113460348]
+position = Vector2(760.00006, 539.9999)
+scale = Vector2(5, 5)
+
+[node name="Sprite2D" type="Sprite2D" parent="Valvulas/Valvula2" unique_id=768709676]
+texture = SubResource("AtlasTexture_kfo36")
+
+[node name="Valvula3" type="Node2D" parent="Valvulas" unique_id=1283431210]
+position = Vector2(1160, 539.9999)
+scale = Vector2(5, 5)
+
+[node name="Sprite2D" type="Sprite2D" parent="Valvulas/Valvula3" unique_id=1438240166]
+texture = SubResource("AtlasTexture_pg175")
+
+[node name="Valvula4" type="Node2D" parent="Valvulas" unique_id=1806199281]
+position = Vector2(1560, 539.9999)
+scale = Vector2(5, 5)
+
+[node name="Sprite2D" type="Sprite2D" parent="Valvulas/Valvula4" unique_id=1838461381]
+texture = SubResource("AtlasTexture_dtsxt")
+
+[node name="Adesivos" type="Node2D" parent="." unique_id=2080923389]
+
+[node name="1" type="Sprite2D" parent="Adesivos" unique_id=1345387612]
+position = Vector2(1448, 871.99994)
+scale = Vector2(5, 5)
+texture = SubResource("AtlasTexture_shdkb")
+
+[node name="2" type="Sprite2D" parent="Adesivos" unique_id=550606064]
+position = Vector2(1735.9999, 871.99994)
+scale = Vector2(5, 5)
+texture = SubResource("AtlasTexture_w1jfm")
+
+[node name="Textos" type="Node2D" parent="." unique_id=557416424]
+
+[node name="Placas" type="Node2D" parent="Textos" unique_id=38516905]
+
+[node name="Placa1" type="Node2D" parent="Textos/Placas" unique_id=2080981766]
+position = Vector2(360, 296)
+
+[node name="Info1" type="Label" parent="Textos/Placas/Placa1" unique_id=1587085705]
+offset_left = -135.0
+offset_top = -47.0
+offset_right = 135.0
+offset_bottom = -6.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 35
+text = "Info 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Info2" type="Label" parent="Textos/Placas/Placa1" unique_id=2122922834]
+offset_left = -135.0
+offset_top = 13.0
+offset_right = 135.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 35
+text = "Info 2
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Placa2" type="Node2D" parent="Textos/Placas" unique_id=1899539583]
+position = Vector2(760, 296)
+
+[node name="Info1" type="Label" parent="Textos/Placas/Placa2" unique_id=768123650]
+offset_left = -135.0
+offset_top = -47.0
+offset_right = 135.0
+offset_bottom = -6.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 35
+text = "Info 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Info2" type="Label" parent="Textos/Placas/Placa2" unique_id=1027103810]
+offset_left = -135.0
+offset_top = 13.0
+offset_right = 135.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 35
+text = "Info 2
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Placa3" type="Node2D" parent="Textos/Placas" unique_id=1997648156]
+position = Vector2(1160, 296)
+
+[node name="Info1" type="Label" parent="Textos/Placas/Placa3" unique_id=1261045257]
+offset_left = -135.0
+offset_top = -47.0
+offset_right = 135.0
+offset_bottom = -6.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 35
+text = "Info 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Info2" type="Label" parent="Textos/Placas/Placa3" unique_id=971577601]
+offset_left = -135.0
+offset_top = 13.0
+offset_right = 135.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 35
+text = "Info 2
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Placa4" type="Node2D" parent="Textos/Placas" unique_id=890003131]
+position = Vector2(1557, 296)
+
+[node name="Info1" type="Label" parent="Textos/Placas/Placa4" unique_id=1041861715]
+offset_left = -135.0
+offset_top = -47.0
+offset_right = 135.0
+offset_bottom = -6.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 35
+text = "Info 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Info2" type="Label" parent="Textos/Placas/Placa4" unique_id=2064854502]
+offset_left = -135.0
+offset_top = 13.0
+offset_right = 135.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 35
+text = "Info 2
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Referencia" type="Label" parent="Textos" unique_id=1811610521]
+offset_left = 132.0
+offset_top = 774.0
+offset_right = 956.0
+offset_bottom = 954.0
+theme_override_colors/font_color = Color(0.35200378, 0.22394797, 0.1650522, 1)
+theme_override_fonts/font = ExtResource("6_0enot")
+theme_override_font_sizes/font_size = 70
+text = "Ref.: Ada Lovelace"
+vertical_alignment = 1
