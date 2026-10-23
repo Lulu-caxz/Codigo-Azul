@@ -32,6 +32,12 @@ var pontos_position: Array = []
 
 var abrigo_position: Vector3 = Vector3.ZERO
 
-var vidas: int = 5
+# Eventos que acontecerão durante a partida.
+# Cada evento contém: [tipo, segundo]
+var eventos: Array = []
 
-var tempo: int = 60
+# Duração total da partida, em segundos.
+var duracao_partida: int = 180
+var tempo: int = 0
+
+var vidas: int = 5

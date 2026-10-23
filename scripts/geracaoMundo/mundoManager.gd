@@ -27,6 +27,8 @@ func _obter_no_bordas() -> GeracaoBordas:
 var geracao_iniciada: bool = false
 var atualizando_mapa: bool = false
 
+var rng_eventos := RandomNumberGenerator.new()
+var indice_evento: int = 0
 
 func _ready() -> void:
 	print(
@@ -87,7 +89,9 @@ func mundo_pronto_func() -> void:
 	if Global.salaID.is_empty():
 		push_error("Não é possível atualizar o mapa sem ID da sala.")
 		return
-
+	
+	gerar_eventos()
+	
 	atualizando_mapa = true
 
 	print("Mundo pronto. Sala: ", Global.salaID)
@@ -96,6 +100,67 @@ func mundo_pronto_func() -> void:
 	await atualizar_mapa_backend()
 
 	atualizando_mapa = false
+
+func gerar_eventos() -> void:
+	Global.eventos.clear()
+	rng_eventos.randomize()
+
+	if objetivos == null:
+		push_error("Não foi possível gerar eventos: objetivos não encontrados.")
+		return
+
+	var duracao: int = objetivos.duracao_timer_backend()
+	Global.duracao_partida = duracao
+
+	if duracao < 80:
+		push_error(
+			"A duração da partida precisa ser de pelo menos 80 segundos " +
+			"para respeitar os limites dos eventos."
+		)
+		return
+
+	var tipos_eventos: Array[String] = [
+		"blackout",
+		"chuvaGranizo"
+	]
+
+	for i in range(3):
+		var tipo: String = tipos_eventos[
+			rng_eventos.randi_range(0, tipos_eventos.size() - 1)
+		]
+
+		var segundo_minimo: int = 20
+		var segundo_maximo: int
+
+		match tipo:
+			"blackout":
+				# No máximo 30 segundos antes do fim.
+				segundo_maximo = duracao - 30
+
+			"chuvaGranizo":
+				# No máximo 60 segundos antes do fim.
+				segundo_maximo = duracao - 60
+
+			_:
+				continue
+
+		var segundo: int = rng_eventos.randi_range(
+			segundo_minimo,
+			segundo_maximo
+		)
+
+		# Salva o horário normal, sem o atraso de execução.
+		Global.eventos.append([tipo, segundo])
+
+	# Organiza os eventos pelo horário salvo.
+	Global.eventos.sort_custom(
+		func(a: Array, b: Array) -> bool:
+			return int(a[1]) < int(b[1])
+	)
+
+	indice_evento = 0
+
+	print("Eventos programados: ", Global.eventos)
 
 # Ponto de nascimento (posicao global), apenas apos o mundo estar pronto
 func ponto_de_nascimento() -> Vector3:
@@ -161,7 +226,8 @@ func atualizar_mapa_backend() -> void:
 		"jogador_f_position": jogador_f_position,
 		"inicio_timer": objetivos.inicio_timer_iso(),
 		"duracao_timer": objetivos.duracao_timer_backend(),
-		"pontos_position": pontos_position
+		"pontos_position": pontos_position,
+		"eventos": Global.eventos
 	})
 
 	var erro := http_mapa.request(

@@ -33,7 +33,9 @@ func criar_sala(nome: String = "Nova sala") -> void:
 		"mapa": [],
 		"jogador_f_id": null,
 		"jogador_c_id": null,
-		"iniciado": false
+		"iniciado": false,
+		"eventos": Global.eventos,
+		"duracao_timer": Global.tempo,
 	}
 
 	var headers := PackedStringArray([

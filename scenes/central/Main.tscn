@@ -2,13 +2,13 @@
 
 [ext_resource type="Script" uid="uid://ck1mxegjn63w3" path="res://scripts/central/main.gd" id="1_dab24"]
 [ext_resource type="Script" uid="uid://6crsf2ayt5rt" path="res://scripts/pontosObjetivos.gd" id="2_cqy30"]
-[ext_resource type="Texture2D" uid="uid://cxahkjtiaa00t" path="res://assets/fundo_painel_com_mapa.png" id="2_syw7i"]
 [ext_resource type="Script" uid="uid://xvqjm8ky3ip2" path="res://scripts/centralSync.gd" id="3_7nbwh"]
 [ext_resource type="Texture2D" uid="uid://s2thiaic07yy" path="res://assets/pin-radar.png" id="3_rbgpy"]
 [ext_resource type="Texture2D" uid="uid://tt3nbvl2pr4g" path="res://assets/pin-bueiro.png" id="4_0vyqp"]
 [ext_resource type="Texture2D" uid="uid://bu5fgalwtu67m" path="res://assets/pin-pluviometro.png" id="5_ncnl4"]
 [ext_resource type="Texture2D" uid="uid://by0uqg5vk30g" path="res://assets/pin-antena.png" id="6_v8mop"]
 [ext_resource type="Texture2D" uid="uid://bc4k8ogg5nb4c" path="res://assets/pin-abrigo.png" id="7_abrigo"]
+[ext_resource type="Texture2D" uid="uid://c12m5oe7lulcq" path="res://assets/central/fundo_painel_com_mapa.png" id="9_q7h55"]
 [ext_resource type="Texture2D" uid="uid://cmjvr4tw5trtx" path="res://assets/central/botao_gerador.png" id="10_ncnl4"]
 [ext_resource type="Texture2D" uid="uid://b41w1xrms74si" path="res://assets/central/barra_vida.png" id="11_q7h55"]
 [ext_resource type="Texture2D" uid="uid://bhjk2ees0vnax" path="res://assets/central/postIt.png" id="12_hcs50"]
@@ -165,7 +165,7 @@ script = ExtResource("3_7nbwh")
 z_index = -1
 position = Vector2(960, 540)
 scale = Vector2(5, 5)
-texture = ExtResource("2_syw7i")
+texture = ExtResource("9_q7h55")
 
 [node name="UI" type="Control" parent="." unique_id=322707712]
 layout_mode = 3

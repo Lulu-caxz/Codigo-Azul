@@ -36,7 +36,7 @@ func _process(_delta: float) -> void:
 		_ultimo_numero = -1
 		return
 
-	var numero := Global.tempo
+	var numero = Global.tempo
 	if numero != _ultimo_numero:
 		# Toca o som de countdown toda vez que o numero desce.
 		if _ultimo_numero != -1 and numero < _ultimo_numero:

@@ -62,7 +62,7 @@ const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ## Objetivos somados a cada rodada seguinte (5, 8, 11, 14, 17...).
 @export_range(0, 50) var objetivos_adicionais_por_rodada: int = 3
 ## Duracao de cada rodada, em segundos (o mesmo valor vai para duracao_timer no backend).
-@export_range(5.0, 3600.0, 1.0) var duracao_rodada: float = 60.0
+@export_range(5.0, 3600.0, 1.0) var duracao_rodada: float = Global.duracao_partida
 ## Segundos entre preparar uma rodada e o cronometro comecar (igual ao +10 s do backend).
 var atraso_inicio_rodada: int = 5
 ## Pausa depois de concluir uma rodada, antes de preparar a proxima.
@@ -146,6 +146,7 @@ var estado: Estado = Estado.AGUARDANDO_MUNDO
 ## Instante (unix, segundos) em que o cronometro da rodada atual comeca.
 var inicio_unix: float = 0.0
 
+var _eventos_executados: Array[int] = []
 var _duracao_atual: float = 0.0
 var _fim_pausa_unix: float = 0.0
 var _dados_prontos := false
@@ -446,6 +447,9 @@ func _process(_delta: float) -> void:
 			if restante <= 0.0:
 				_perder_rodada()
 				return
+			
+			_processar_eventos(agora)
+			
 			var seg := ceili(restante)
 			if seg != _ultimo_segundo:
 				_ultimo_segundo = seg
@@ -528,8 +532,8 @@ func _mudar_estado(novo: Estado) -> void:
 	if novo != anterior:
 		estado_mudou.emit(novo, anterior)
 
-
 func _iniciar_contagem(enviar_backend: bool) -> void:
+	_eventos_executados.clear()
 	_duracao_atual = duracao_da_rodada(rodada_atual)
 	inicio_unix = float(int(_agora())) + float(atraso_inicio_rodada)
 	_mudar_estado(Estado.PREPARANDO_RODADA)
@@ -983,6 +987,7 @@ func _processar_envios() -> void:
 
 		var corpo := extras.duplicate()
 		corpo["pontos_position"] = Global.pontos_position.duplicate(true)
+		corpo["eventos"] = Global.eventos.duplicate(true)
 
 		# Posicao do abrigo gerado (se houver).
 		var predios_node = _mundo.find_child("Predios", true, false)
@@ -1049,3 +1054,51 @@ func _garantir_acao_interagir() -> void:
 	var ev := InputEventKey.new()
 	ev.physical_keycode = KEY_E
 	InputMap.action_add_event(acao_interagir, ev)
+
+func _processar_eventos(agora: float) -> void:
+	for i in range(Global.eventos.size()):
+		if _eventos_executados.has(i):
+			continue
+
+		var evento: Array = Global.eventos[i]
+
+		if evento.size() < 2:
+			continue
+
+		var tipo: String = str(evento[0])
+		var segundo_evento: float = float(evento[1])
+
+		# Somente a chuva de granizo recebe 30 segundos extras.
+		if tipo == "chuvaGranizo":
+			segundo_evento += 30.0
+
+		# Calcula o instante de execução a partir do início real da rodada.
+		var instante_evento: float = inicio_unix + segundo_evento
+
+		if agora < instante_evento:
+			continue
+
+		# Marca para impedir execução repetida.
+		_eventos_executados.append(i)
+
+		# Não executa eventos que ultrapassem o fim da rodada.
+		if segundo_evento >= _duracao_atual:
+			continue
+
+		match tipo:
+			"blackout":
+				blackout()
+
+			"chuvaGranizo":
+				chuva_granizo()
+
+			_:
+				print("Tipo de evento desconhecido: ", tipo)
+
+
+func blackout() -> void:
+	print("BLACKOUT INICIADO!")
+
+
+func chuva_granizo() -> void:
+	print("CHUVA DE GRANIZO INICIADA!")
