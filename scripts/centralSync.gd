@@ -18,6 +18,7 @@ signal timer_atualizado(segundos: int, iniciado: bool)
 signal rodada_atualizada(numero: int, estado: String)
 signal posicao_jogador_atualizada(posicao: Vector3)
 signal abrigo_atualizado(posicao: Vector3)
+signal evento_ocorreu(tipo: String)
 
 const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
 const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
@@ -40,6 +41,7 @@ var duracao_timer: float = 0.0
 var rodada_atual: int = 0
 var estado_rodada: String = ESTADO_AGUARDANDO
 var abrigo_position: Vector3 = Vector3.ZERO
+var eventos: Array = []
 
 var _consultando: bool = false
 var _avisou_sala_id := false
@@ -49,6 +51,8 @@ var _ultimo_estado_iniciado: bool = false
 var _assinatura_pontos: String = ""
 var _tem_posicao: bool = false
 var _tem_abrigo: bool = false
+var _eventos_assinatura: String = ""
+var _temporizadores_eventos: Array[Timer] = []
 
 var tela_contagem: CanvasLayer
 var texto_titulo: Label
@@ -105,7 +109,7 @@ func sincronizar_sala() -> void:
 	var url: String = "https://%s.supabase.co/rest/v1/salas" % PROJECT_REF
 	url += "?id=eq." + Global.salaID.uri_encode()
 	url += "&select=rodada_atual,estado_rodada,inicio_timer,duracao_timer"
-	url += ",jogador_f_position,pontos_position,abrigo_position"
+	url += ",jogador_f_position,pontos_position,abrigo_position,eventos"
 
 	var headers := PackedStringArray([
 		"apikey: " + SUPABASE_KEY,
@@ -174,6 +178,7 @@ func _aplicar_sala(sala: Dictionary) -> void:
 		estado_recebido = ESTADO_ATIVA
 
 	var pontos_recebidos = _ler_array_json(sala.get("pontos_position", null))
+	var eventos_recebidos = _ler_array_json(sala.get("eventos", null))
 	var inicio_recebido := _converter_timestamp(sala.get("inicio_timer", null))
 	var duracao_recebida := _ler_float(sala.get("duracao_timer", null), 0.0)
 	var posicao_recebida = _ler_vetor3(sala.get("jogador_f_position", null))
@@ -202,6 +207,9 @@ func _aplicar_sala(sala: Dictionary) -> void:
 		inicio_unix = inicio_recebido
 		duracao_timer = duracao_recebida
 		estado_rodada = estado_recebido
+		eventos = eventos_recebidos if eventos_recebidos != null else []
+		if eventos_recebidos == null:
+			push_warning("Central: rodada %d sem eventos; seguindo sem eventos." % rodada_recebida)
 		_ultimo_segundo = -1
 		_ultimo_estado_iniciado = false
 		mudou_timer = true
@@ -227,6 +235,9 @@ func _aplicar_sala(sala: Dictionary) -> void:
 				mudou_timer = true
 				print("Central: timer da rodada %d atualizado (inicio_unix=%d, duracao=%.0f)." % [
 					rodada_atual, int(inicio_unix), duracao_timer])
+
+		if eventos_recebidos != null:
+			eventos = eventos_recebidos
 
 	var pontos_atuais: Array = Global.pontos_position
 	if pontos_recebidos != null:
@@ -262,6 +273,8 @@ func _aplicar_sala(sala: Dictionary) -> void:
 
 	if mudou_rodada or mudou_estado or mudou_timer:
 		_atualizar_timer(true)
+
+	_atualizar_eventos()
 
 	if _primeira_sincronizacao:
 		_primeira_sincronizacao = false
@@ -305,6 +318,90 @@ func _atualizar_timer(forcar: bool) -> void:
 				rodada_atual, segundos])
 		else:
 			print("Central: rodada %d comeca em %d s." % [rodada_atual, segundos])
+
+
+# -----------------------------------------------------------------------------
+#  EVENTOS DA RODADA
+# -----------------------------------------------------------------------------
+# A Cidade publica `eventos` como [["blackout", 30], ["chuvaGranizo", 60]].
+# O instante de cada evento e inicio_timer + segundo (o granizo soma 30 s,
+# igual ao processamento da Cidade).
+func _atualizar_eventos() -> void:
+	var assinatura := "%d|%s|%.3f|%.3f|%s" % [
+		rodada_atual, estado_rodada, inicio_unix, duracao_timer,
+		JSON.stringify(eventos)
+	]
+	if assinatura == _eventos_assinatura:
+		return
+
+	_eventos_assinatura = assinatura
+	_limpar_temporizadores_eventos()
+
+	if estado_rodada != ESTADO_ATIVA or inicio_unix <= 0.0 or duracao_timer <= 0.0:
+		return
+	if eventos.is_empty():
+		return
+
+	var agora := Time.get_unix_time_from_system()
+	if agora >= inicio_unix + duracao_timer:
+		return
+
+	for evento in eventos:
+		if not evento is Array:
+			continue
+		var dados: Array = evento
+		if dados.size() < 2:
+			continue
+
+		var tipo := str(dados[0]).strip_edges()
+		if tipo.is_empty():
+			continue
+
+		var segundo := _ler_float(dados[1], -1.0)
+		if segundo < 0.0:
+			continue
+
+		# Mesmo deslocamento usado pela Cidade para a chuva de granizo.
+		if tipo.to_lower() == "chuvagranizo":
+			segundo += 30.0
+
+		if segundo >= duracao_timer:
+			continue
+
+		var espera := maxf(inicio_unix + segundo - agora, 0.01)
+		var timer := Timer.new()
+		timer.one_shot = true
+		timer.ignore_time_scale = true
+		timer.wait_time = espera
+		timer.timeout.connect(_ao_temporizador_evento.bind(tipo, timer))
+		add_child(timer)
+		timer.start()
+		_temporizadores_eventos.append(timer)
+
+		print("Central: evento '%s' agendado para a rodada %d (em %.1f s)." % [
+			tipo, rodada_atual, espera])
+
+
+func _ao_temporizador_evento(tipo: String, timer: Timer) -> void:
+	_temporizadores_eventos.erase(timer)
+	if is_instance_valid(timer):
+		timer.queue_free()
+
+	if estado_rodada != ESTADO_ATIVA:
+		return
+	if Time.get_unix_time_from_system() >= inicio_unix + duracao_timer:
+		return
+
+	print("Central: evento '%s' iniciado na rodada %d." % [tipo, rodada_atual])
+	evento_ocorreu.emit(tipo)
+
+
+func _limpar_temporizadores_eventos() -> void:
+	for timer in _temporizadores_eventos:
+		if is_instance_valid(timer):
+			timer.stop()
+			timer.queue_free()
+	_temporizadores_eventos.clear()
 
 
 func _segundos_restantes() -> int:

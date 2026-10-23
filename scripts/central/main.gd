@@ -72,6 +72,11 @@ func _ready() -> void:
 		central.rodada_atualizada.connect(
 			_ao_rodada_atualizada
 		)
+		central.evento_ocorreu.connect(
+			_ao_evento_ocorreu
+		)
+
+		_ultima_rodada_energia = central.rodada_atual
 
 		print("Mapa: conectado ao CentralSync.")
 
@@ -229,6 +234,18 @@ func _ao_posicao_jogador_atualizada(posicao: Vector3) -> void:
 func _ao_rodada_atualizada(numero: int, estado: String) -> void:
 	print("Mapa: rodada %d (%s)." % [numero, estado])
 
+	if numero != _ultima_rodada_energia:
+		_ultima_rodada_energia = numero
+		if not _energia_ativa and estado != "concluida" and estado != "perdida":
+			restaurar_energia()
+
+
+func _ao_evento_ocorreu(tipo: String) -> void:
+	print("Mapa: evento '%s' recebido." % tipo)
+
+	if tipo.to_lower() == "blackout":
+		apagar_energia()
+
 
 func _ao_timer_atualizado(segundos: int, iniciado: bool) -> void:
 	var visor_label := get_node_or_null("UI/Visor/Label")
@@ -338,6 +355,7 @@ var _canvas_modulate: CanvasModulate
 var _energia_ativa: bool = true
 var _energia_parcial: float = 1.0
 var _gerador_pressionado: bool = false
+var _ultima_rodada_energia: int = -1
 
 
 func _tocar_som_ui(caminho: String) -> void:
