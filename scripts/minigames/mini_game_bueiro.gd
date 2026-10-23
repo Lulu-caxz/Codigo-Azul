@@ -19,13 +19,14 @@ var _bloqueado: bool = false
 var _som_ui: AudioStreamPlayer
 
 
-func _tocar_som(caminho: String) -> void:
+func _tocar_som(caminho: String, volume_db: float = 0.0) -> void:
 	if _som_ui == null:
 		_som_ui = AudioStreamPlayer.new()
 		add_child(_som_ui)
 	var s := load(caminho)
 	if s is AudioStream:
 		_som_ui.stream = s
+		_som_ui.volume_db = volume_db
 		_som_ui.play()
 
 
@@ -57,6 +58,8 @@ func _girar_valvula(i: int) -> void:
 		return
 	if _giradas[i]:
 		return
+
+	_tocar_som("res://sounds/valvula.mp3", -12.0)
 
 	_giradas[i] = true
 	var sp: Sprite2D = _valvula_sprites[i]

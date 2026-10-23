@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://ds2sdn1qtul5y" path="res://assets/minigames/bueiro/RodaCano.png" id="4_akjfc"]
 [ext_resource type="Texture2D" uid="uid://to7mu37eyb37" path="res://assets/central/AdesivosSheet.png" id="5_r4klx"]
 [ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="6_0enot"]
-[ext_resource type="Script" path="res://scripts/minigames/mini_game_bueiro.gd" id="7_bueiro"]
+[ext_resource type="Script" uid="uid://g3cpi4covnn8" path="res://scripts/minigames/mini_game_bueiro.gd" id="7_bueiro"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
 atlas = ExtResource("4_akjfc")

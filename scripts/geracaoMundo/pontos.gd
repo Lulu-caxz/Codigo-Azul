@@ -70,7 +70,7 @@ var atraso_inicio_rodada: int = 5
 
 @export_group("Tipos de objetivo")
 ## Peso de sorteio de cada tipo. Chave = nome do tipo. Peso 0 desliga o tipo.
-@export var pesos_tipos: Dictionary = {"radar": 1.0, "bueiro": 1.0, "pluviometro": 1.0, "antena": 1.0}
+@export var pesos_tipos: Dictionary = {"bueiro": 1.0, "pluviometro": 1.0, "antena": 1.0}
 ## Sprite 2D de cada tipo (chave = nome do tipo, valor = Texture2D).
 ## Sem textura, usa um ponto simples colorido gerado por codigo.
 @export var texturas_tipos: Dictionary = {}
