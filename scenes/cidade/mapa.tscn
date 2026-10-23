@@ -137,8 +137,8 @@ imprimir_relatorio = false
 script = ExtResource("8_i0q3m")
 pesos_tipos = {
 "antena": 1.0,
-"bueiro": 1.0,
-"pluviometro": 1.0
+"bueiro": 0.0,
+"pluviometro": 0.0
 }
 texturas_tipos = {
 "pluviometro": SubResource("AtlasTexture_f5i74")

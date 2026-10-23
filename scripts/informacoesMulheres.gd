@@ -25,10 +25,10 @@ const TextoPostIts = {
 }
 
 const adesivos = {
-	"Ano" : "",
-	"Mes" : "",
-	"Dia" : "",
-	"Feito" : "",
-	"Morte" : "",
-	"Area" : "",
+	"Ano": Rect2(0, 0, 48, 48), #bolinha
+	"Mes": Rect2(48, 0, 48, 48), #triangulo
+	"Dia": Rect2(96, 0, 48, 48), #quadrado
+	"Feito": Rect2(144, 0, 48, 48), #losango
+	"Morte": Rect2(192, 0, 48, 48), #estrela
+	"Area": Rect2(240, 0, 48, 48), #X
 }

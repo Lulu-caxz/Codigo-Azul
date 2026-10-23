@@ -5,6 +5,7 @@ const INFO = preload("res://scripts/informacoesMulheres.gd")
 @onready var label_ref: Label = $Referencia
 @onready var input: LineEdit = $Input
 @onready var botao_confirmar: Button = $Confirmar
+@onready var adesivo_sprite: Sprite2D = $Sprite2D
 
 var _mulher: String
 var _info_key: String
@@ -46,7 +47,15 @@ func _sorteiar() -> void:
 	_info_key = keys[randi() % keys.size()]
 	_valor_correto = str(infos[_info_key])
 
-	label_ref.text = "Ref.: %s - %s" % [_mulher, _info_key]
+	# Mostra apenas o nome da mulher; a categoria e indicada pelo adesivo.
+	label_ref.text = "Ref.: %s" % _mulher
+
+	# Atualiza o atlas texture do sprite adesivo conforme a chave sorteada.
+	if adesivo_sprite != null and adesivo_sprite.texture is AtlasTexture:
+		var at := adesivo_sprite.texture as AtlasTexture
+		var chave_adesivo := _info_key.capitalize()
+		if INFO.adesivos.has(chave_adesivo):
+			at.region = INFO.adesivos[chave_adesivo]
 
 
 func _verificar() -> void:
@@ -93,6 +102,9 @@ func _normalizar(texto: String) -> String:
 	t = t.replace("ú", "u")
 	t = t.replace("ç", "c")
 	t = t.replace(" ", "")
+	# Aceita "6" quando o valor correto for "06" (mes/dia).
+	if t.is_valid_int():
+		t = str(int(t))
 	return t
 
 
