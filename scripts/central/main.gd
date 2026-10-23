@@ -253,7 +253,23 @@ func _configurar_ui() -> void:
 	var postits := get_node_or_null("UI/PostIts")
 	if postits != null:
 		for p in postits.get_children():
-			_configurar_postit(p)
+			var idx := 0
+			var nome := p.name
+			var num_str := ""
+			var i := 6  # len("PostIt")
+			while i < nome.length() and nome.substr(i, 1).is_valid_int():
+				num_str += nome.substr(i, 1)
+				i += 1
+			if num_str != "":
+				idx = int(num_str) - 1
+
+			var cor := 0
+			var sprite0 := p.get_node_or_null("Sprite2D") as Sprite2D
+			if sprite0 != null and sprite0.texture is AtlasTexture:
+				var at0 := sprite0.texture as AtlasTexture
+				cor = int(at0.region.position.x / 54.0)
+
+			_configurar_postit(p, idx, cor)
 
 	# Popup de post-it ampliado.
 	_popup_postit = PanelContainer.new()
@@ -268,7 +284,7 @@ func _configurar_ui() -> void:
 	add_child(_popup_postit)
 
 
-func _configurar_postit(p: Node) -> void:
+func _configurar_postit(p: Node, idx: int = 0, cor: int = 0) -> void:
 	var ctrl := p as Control
 	if ctrl == null:
 		return
@@ -295,12 +311,7 @@ func _configurar_postit(p: Node) -> void:
 	)
 	ctrl.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			var idx := 0
-			var sprite := ctrl.get_node_or_null("Sprite2D") as Sprite2D
-			if sprite != null and sprite.texture is AtlasTexture:
-				var at := sprite.texture as AtlasTexture
-				idx = int(at.region.position.x / 54.0)
-			_abrir_postit(idx)
+			_abrir_postit(idx, cor)
 	)
 
 
@@ -320,7 +331,7 @@ func _tocar_som_ui(caminho: String) -> void:
 		_som_ui.play()
 
 
-func _abrir_postit(idx: int) -> void:
+func _abrir_postit(idx: int, cor: int = 0) -> void:
 	if _postit_aberto != null:
 		_postit_aberto.queue_free()
 		_postit_aberto = null
@@ -334,8 +345,18 @@ func _abrir_postit(idx: int) -> void:
 	if sprite != null:
 		var tex := AtlasTexture.new()
 		tex.atlas = preload("res://assets/central/postIt_aberto.png")
-		tex.region = Rect2(idx * 52, 0, 52, 33)
+		tex.region = Rect2(cor * 52, 0, 52, 33)
 		sprite.texture = tex
+
+	var rtl := no.get_node_or_null("RichTextLabel") as RichTextLabel
+	if rtl != null:
+		rtl.bbcode_enabled = true
+		var chave := "manual" if idx <= 0 else str(idx)
+		var info = load("res://scripts/informacoesMulheres.gd")
+		if info != null and info.TextoPostIts.has(chave):
+			rtl.text = str(info.TextoPostIts[chave])
+		else:
+			rtl.text = ""
 
 
 	no.position = get_viewport_rect().size * 0.5

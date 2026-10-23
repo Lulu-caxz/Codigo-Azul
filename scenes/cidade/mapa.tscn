@@ -9,14 +9,16 @@
 [ext_resource type="Script" uid="uid://ca0jadlijewox" path="res://scripts/geracaoMundo/geracaoPredios.gd" id="5_derue"]
 [ext_resource type="Script" uid="uid://bgd2xc48neldq" path="res://scripts/geracaoMundo/pontos.gd" id="8_i0q3m"]
 [ext_resource type="Texture2D" uid="uid://b2a7xan02ra4u" path="res://assets/ui/CaixaDialogoSheet.png" id="8_imfwm"]
-[ext_resource type="Texture2D" uid="uid://c2sxvltrvpfr8" path="res://assets/props/image-removebg-preview (1).png" id="9_qd2dx"]
-[ext_resource type="Texture2D" uid="uid://dr3d06e88f1o5" path="res://assets/props/manhole-cover-isolated-on-transparent-background-png.webp" id="10_ohnse"]
-[ext_resource type="Texture2D" uid="uid://ce8a3opyhiohe" path="res://assets/props/image-removebg-preview.png" id="11_qd2dx"]
+[ext_resource type="Texture2D" uid="uid://hk11p3pcklkt" path="res://assets/Pluviometro.png" id="11_f5i74"]
 [ext_resource type="Texture2D" uid="uid://belh8t6ugynxw" path="res://assets/props/AntenaSheet.png" id="12_rlxsh"]
 [ext_resource type="Script" uid="uid://c80w7khawgwdd" path="res://scripts/geracaoMundo/geracaoBordas.gd" id="12_tqtl5"]
 [ext_resource type="Texture2D" uid="uid://d0ktwt44yfibp" path="res://assets/props/arvore.png" id="13_gr8it"]
 [ext_resource type="Texture2D" uid="uid://banwajcf1j1x" path="res://assets/props/BueiroSheet.png" id="14_f5i74"]
 [ext_resource type="Texture2D" uid="uid://crk1cqgnrj6y" path="res://assets/props/arvore2.png" id="14_rlxsh"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f5i74"]
+atlas = ExtResource("11_f5i74")
+region = Rect2(48, 16, 16, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rlxsh"]
 atlas = ExtResource("12_rlxsh")
@@ -26,7 +28,7 @@ region = Rect2(0, 0, 64, 112)
 atlas = ExtResource("12_rlxsh")
 region = Rect2(64, 0, 64, 112)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_f5i74"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_m4c84"]
 atlas = ExtResource("12_rlxsh")
 region = Rect2(128, 0, 64, 112)
 
@@ -48,7 +50,7 @@ animations = [{
 "texture": SubResource("AtlasTexture_imfwm")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_f5i74")
+"texture": SubResource("AtlasTexture_m4c84")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_cotp6")
@@ -125,13 +127,10 @@ script = ExtResource("8_i0q3m")
 pesos_tipos = {
 "antena": 1.0,
 "bueiro": 0.0,
-"pluviometro": 0.0,
-"radar": 0.0
+"pluviometro": 0.0
 }
 texturas_tipos = {
-"bueiro": ExtResource("10_ohnse"),
-"pluviometro": ExtResource("11_qd2dx"),
-"radar": ExtResource("9_qd2dx")
+"pluviometro": SubResource("AtlasTexture_f5i74")
 }
 frames_tipos = {
 "antena": SubResource("SpriteFrames_gr8it"),

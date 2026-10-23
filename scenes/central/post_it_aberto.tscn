@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://clakhaltqi7lf"]
 
 [ext_resource type="Texture2D" uid="uid://eqpld1tejdcq" path="res://assets/central/postIt_aberto.png" id="1_e8w05"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="2_624hi"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
 atlas = ExtResource("1_e8w05")
@@ -18,6 +19,9 @@ offset_top = -259.0
 offset_right = 428.0
 offset_bottom = 130.0
 theme_override_colors/default_color = Color(0.096204735, 0.09620475, 0.096204735, 1)
-theme_override_font_sizes/normal_font_size = 36
+theme_override_fonts/normal_font = ExtResource("2_624hi")
+theme_override_fonts/bold_font = ExtResource("2_624hi")
+theme_override_font_sizes/normal_font_size = 60
+theme_override_font_sizes/bold_font_size = 60
 text = "Ada Lovelace
 10/12/1815"

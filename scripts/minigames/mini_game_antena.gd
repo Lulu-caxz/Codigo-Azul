@@ -26,10 +26,10 @@ func _ready() -> void:
 	# Botao confirmar: troca sprite para pressionado.
 	var tex_normal := AtlasTexture.new()
 	tex_normal.atlas = preload("res://assets/minigames/ConfirmarBotao.png")
-	tex_normal.region = Rect2(0, 0, 112, 34)
+	tex_normal.region = Rect2(0, 0, 112, 32)
 	var tex_pressed := AtlasTexture.new()
 	tex_pressed.atlas = preload("res://assets/minigames/ConfirmarBotao.png")
-	tex_pressed.region = Rect2(112, 0, 112, 34)
+	tex_pressed.region = Rect2(0, 32, 112, 32)
 	botao_confirmar.icon = tex_normal
 	botao_confirmar.button_down.connect(func(): botao_confirmar.icon = tex_pressed)
 	botao_confirmar.button_up.connect(func(): botao_confirmar.icon = tex_normal)

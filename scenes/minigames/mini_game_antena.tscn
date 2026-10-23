@@ -2,7 +2,8 @@
 
 [ext_resource type="Texture2D" uid="uid://clokeb6bnkhy8" path="res://assets/minigames/antena/AntenaMiniGame.png" id="1_l0fpf"]
 [ext_resource type="Texture2D" uid="uid://dkmsa8fnwt2at" path="res://assets/minigames/ConfirmarBotao.png" id="2_24kd0"]
-[ext_resource type="Script" path="res://scripts/minigames/mini_game_antena.gd" id="script_antena"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="3_1c0bb"]
+[ext_resource type="Script" uid="uid://bcsglf4y2b21p" path="res://scripts/minigames/mini_game_antena.gd" id="script_antena"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
 atlas = ExtResource("2_24kd0")
@@ -21,7 +22,10 @@ offset_left = 485.0
 offset_top = 445.0
 offset_right = 1265.0
 offset_bottom = 545.0
-theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_colors/font_placeholder_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_fonts/font = ExtResource("3_1c0bb")
+theme_override_font_sizes/font_size = 80
 placeholder_text = "Digite..."
 emoji_menu_enabled = false
 flat = true
@@ -32,15 +36,16 @@ offset_top = 690.0
 offset_right = 1029.0
 offset_bottom = 886.0
 theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
-theme_override_font_sizes/font_size = 70
+theme_override_fonts/font = ExtResource("3_1c0bb")
+theme_override_font_sizes/font_size = 90
 text = "Ref.: Ada Lovelace - Ano"
 vertical_alignment = 1
 
 [node name="Confirmar" type="Button" parent="." unique_id=444433936]
-offset_left = 1146.0
-offset_top = 665.99994
-offset_right = 1266.0
-offset_bottom = 707.99994
+offset_left = 1217.0
+offset_top = 679.0
+offset_right = 1337.0
+offset_bottom = 721.0
 scale = Vector2(5, 5)
 icon = SubResource("AtlasTexture_26022")
 flat = true
