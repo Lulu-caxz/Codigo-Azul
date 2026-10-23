@@ -136,9 +136,9 @@ imprimir_relatorio = false
 [node name="Pontos" type="Node3D" parent="." unique_id=1446858883]
 script = ExtResource("8_i0q3m")
 pesos_tipos = {
-"antena": 0.0,
+"antena": 1.0,
 "bueiro": 1.0,
-"pluviometro": 0.0
+"pluviometro": 1.0
 }
 texturas_tipos = {
 "pluviometro": SubResource("AtlasTexture_f5i74")
