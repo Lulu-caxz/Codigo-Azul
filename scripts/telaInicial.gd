@@ -89,7 +89,24 @@ func mostrar_salas() -> void:
 		filho.queue_free()
 
 	for sala in salas_carregadas:
+		# Sala com os dois jogadores nao deve mais aparecer na lista.
+		if _sala_cheia(sala):
+			continue
 		criar_card_sala(sala)
+
+
+func _sala_cheia(sala: Dictionary) -> bool:
+	var jogador_f_ocupado: bool = (
+		sala.get("jogador_f_id") != null
+		and not str(sala.get("jogador_f_id", "")).is_empty()
+	)
+
+	var jogador_c_ocupado: bool = (
+		sala.get("jogador_c_id") != null
+		and not str(sala.get("jogador_c_id", "")).is_empty()
+	)
+
+	return jogador_f_ocupado and jogador_c_ocupado
 
 
 
