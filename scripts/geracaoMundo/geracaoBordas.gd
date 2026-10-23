@@ -173,7 +173,7 @@ func gerar_bordas() -> void:
 				# Amostra celula mais proxima para piso e altura
 				var cx := clampi(int(jx / s), 0, larg - 1)
 				var cz := clampi(int(jz / s), 0, prof - 1)
-				var tipo_piso := Global.tipo_em(cx, cz)
+				var tipo_piso = Global.tipo_em(cx, cz)
 				var alt := float(Global.altura_em(cx, cz)) * s
 
 				# Fator de crescimento com a distancia: vai de 1.0 ate escala_maxima_distante (ex: 3.2x)

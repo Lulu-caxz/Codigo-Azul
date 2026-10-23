@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bti7syg8bogvh" path="res://scripts/cidade/contagem.gd" id="1_contagem"]
 [ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="2_loama"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="2_v3lm5"]
 
 [node name="Contagem" type="CanvasLayer" unique_id=100000001]
 layer = 20
@@ -25,17 +26,21 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_fonts/font = ExtResource("2_v3lm5")
+theme_override_font_sizes/font_size = 60
 text = "COMEÇA EM"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="LabelNumero" type="Label" parent="CenterContainer/VBox" unique_id=100000005]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 160
+theme_override_fonts/font = ExtResource("2_v3lm5")
+theme_override_font_sizes/font_size = 300
 text = "10"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1613194579]
 z_index = 690

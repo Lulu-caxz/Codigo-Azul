@@ -408,10 +408,10 @@ func gerar_predios() -> void:
 		abrigo_construcao.idx_textura_parede = -1
 		abrigo_construcao.idx_textura_telhado = -1
 
-		var s := Global.tamanho_cubo
+		var s = Global.tamanho_cubo
 		var bb := abrigo_construcao.bbox
 		var dv := abrigo_construcao.frente
-		var base_y := abrigo_construcao.altura_base * s
+		var base_y = abrigo_construcao.altura_base * s
 		var door_x: float
 		var door_z: float
 		if dv.x > 0:
@@ -925,7 +925,7 @@ func _porta_voltada_para_via(c: Construcao) -> bool:
 
 
 func _criar_sinal_abrigo(pos: Vector3, normal: Vector3) -> void:
-	var s := Global.tamanho_cubo
+	var s = Global.tamanho_cubo
 	var no := Node3D.new()
 	no.name = "AbrigoSign"
 	# No plano da parede, acima da porta, levemente afastado para evitar z-fighting.

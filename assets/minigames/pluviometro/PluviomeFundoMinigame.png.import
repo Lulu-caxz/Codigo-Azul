@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dr3d06e88f1o5"
-path="res://.godot/imported/manhole-cover-isolated-on-transparent-background-png.webp-ac28bb1661e16fd2d370009b4f52c643.ctex"
+uid="uid://dm6mfff5pcpr8"
+path="res://.godot/imported/PluviomeFundoMinigame.png-badf286c8a54575b5319dad59e43f18a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/props/manhole-cover-isolated-on-transparent-background-png.webp"
-dest_files=["res://.godot/imported/manhole-cover-isolated-on-transparent-background-png.webp-ac28bb1661e16fd2d370009b4f52c643.ctex"]
+source_file="res://assets/minigames/pluviometro/PluviomeFundoMinigame.png"
+dest_files=["res://.godot/imported/PluviomeFundoMinigame.png-badf286c8a54575b5319dad59e43f18a.ctex"]
 
 [params]
 
