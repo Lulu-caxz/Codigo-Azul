@@ -142,6 +142,9 @@ func sincronizar_sala() -> void:
 			float(posicao[1]),
 			float(posicao[2])
 		)
+		# Vidas podem ser transportadas no 4º elemento (sem coluna extra no banco).
+		if posicao.size() >= 4:
+			Global.vidas = clampi(int(posicao[3]), 0, 5)
 
 	# A Central e seus marcadores recebem os dados sincronizados.
 	dados_sala_atualizados.emit(

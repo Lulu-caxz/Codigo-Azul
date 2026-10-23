@@ -12,7 +12,7 @@ const SUPABASE_KEY: String = "sb_publishable_3FDWeQxz2a8wEO-se44m-w_guLkTpR5"
 @onready var predios = $Predios
 @onready var bordas: GeracaoBordas = _obter_no_bordas()
 @onready var http_mapa: HTTPRequest = $HTTPRequest
-@onready var objetivos: GerenciadorObjetivos = get_node_or_null("Pontos") as GerenciadorObjetivos
+@onready var objetivos = get_node_or_null("Pontos")
 
 func _obter_no_bordas() -> GeracaoBordas:
 	var b = get_node_or_null("Bordas")
@@ -37,7 +37,7 @@ func _ready() -> void:
 	)
 
 	if objetivos == null:
-		objetivos = GerenciadorObjetivos.new()
+		objetivos = load("res://scripts/geracaoMundo/pontos.gd").new()
 		objetivos.name = "Pontos"
 		add_child(objetivos)
 	
@@ -149,7 +149,8 @@ func atualizar_mapa_backend() -> void:
 	var jogador_f_position: Array = [
 		nascimento.x,
 		nascimento.y,
-		nascimento.z
+		nascimento.z,
+		Global.vidas
 	]
 	# Pontos do mundo.
 	var pontos_position: Array = Global.pontos_position

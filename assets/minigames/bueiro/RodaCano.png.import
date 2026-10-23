@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c8jgjag87udb5"
-path="res://.godot/imported/Canos.png-f375fa52c0700d870edf72f184c9b510.ctex"
+uid="uid://ds2sdn1qtul5y"
+path="res://.godot/imported/RodaCano.png-74bbd0e7aa44fdda2222aa86301f964d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/minigames/Canos.png"
-dest_files=["res://.godot/imported/Canos.png-f375fa52c0700d870edf72f184c9b510.ctex"]
+source_file="res://assets/minigames/bueiro/RodaCano.png"
+dest_files=["res://.godot/imported/RodaCano.png-74bbd0e7aa44fdda2222aa86301f964d.ctex"]
 
 [params]
 

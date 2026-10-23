@@ -68,6 +68,10 @@ func _ready() -> void:
 
 		print("Mapa: conectado ao CentralSync.")
 
+	# Recebe avisos em tempo real (ex.: perda de vida em minigames).
+	if ConectSupa != null and ConectSupa.has_signal("variavel_recebida"):
+		ConectSupa.variavel_recebida.connect(_ao_variavel_recebida)
+
 	# Evita mostrar 60s iniciais antes da primeira sincronizacao.
 	var visor_label := get_node_or_null("UI/Visor/Label")
 	if visor_label != null:
@@ -353,9 +357,22 @@ func _input(event: InputEvent) -> void:
 		_postit_aberto = null
 
 
+func _ao_variavel_recebida(valor: Variant) -> void:
+	if valor is Dictionary:
+		var d: Dictionary = valor
+		if str(d.get("tipo", "")) == "vida":
+			Global.vidas = clampi(int(d.get("vidas", Global.vidas)), 0, 5)
+	elif valor is int or valor is float:
+		Global.vidas = clampi(int(valor), 0, 5)
+
+
 func _process(_delta: float) -> void:
 	# Atualiza a barra de vida conforme Global.vidas.
 	var barra := get_node_or_null("UI/BarraDeVida") as AnimatedSprite2D
 	if barra != null:
 		var v := clampi(Global.vidas, 0, 5)
-		barra.animation = str(v)
+		var anim := str(v)
+		if barra.animation != anim:
+			barra.animation = anim
+		if not barra.is_playing():
+			barra.play()

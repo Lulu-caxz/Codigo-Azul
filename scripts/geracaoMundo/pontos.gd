@@ -64,7 +64,7 @@ const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ## Duracao de cada rodada, em segundos (o mesmo valor vai para duracao_timer no backend).
 @export_range(5.0, 3600.0, 1.0) var duracao_rodada: float = 60.0
 ## Segundos entre preparar uma rodada e o cronometro comecar (igual ao +10 s do backend).
-@export_range(0, 120) var atraso_inicio_rodada: int = 10
+var atraso_inicio_rodada: int = 5
 ## Pausa depois de concluir uma rodada, antes de preparar a proxima.
 @export_range(0.0, 30.0, 0.5) var pausa_apos_conclusao: float = 3.0
 
@@ -129,6 +129,10 @@ const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ## Envia pontos_position (e inicio/duracao do timer nas novas rodadas) ao Supabase a cada mudanca.
 @export var sincronizar_backend: bool = true
 
+@export_group("Minigame")
+## Caminho da cena do minigame da antena.
+@export var caminho_minigame_antena: String = "res://scenes/minigames/mini_game_antena.tscn"
+
 @export_group("Depuracao")
 @export var imprimir_relatorio: bool = true
 ## F9 conclui todos os objetivos da rodada (para testar a progressao).
@@ -149,6 +153,7 @@ var _mundo_pronto := false
 var _limpando := false
 var _ultimo_segundo := -1
 var _alvo_atual := -1
+var _alvo_tipo_atual := ""
 
 var _mundo: Node
 var _terreno: Node3D
@@ -159,7 +164,7 @@ var _nos: Array[Node3D] = []
 var _abrigo_porta: Vector3 = Vector3.ZERO
 var _abrigo_centro: Vector3 = Vector3.ZERO
 var _abrigo_carregado: bool = false
-var _alvo_tipo_atual: String = ""
+var _indice_minigame_atual: int = -1
 
 var _rng := RandomNumberGenerator.new()
 var _cand_idx := PackedInt32Array()    # indice x * profundidade + z de cada candidato
@@ -484,6 +489,26 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	var indice := _indice_alvo()
 	if indice < 0:
+		return
+
+	# Minigame da antena: ao interagir, abre a cena do minigame (objetivo so conclui ao acertar).
+	var tipo := String(Global.pontos_position[indice][I_TIPO])
+	if tipo == "antena" and not caminho_minigame_antena.is_empty():
+		# Guarda o indice do objetivo para concluir depois.
+		_indice_minigame_atual = indice
+		# Desabilita movimento do jogador.
+		var jogador_node = _obter_jogador()
+		if jogador_node != null and jogador_node.has_method("set_physics_process"):
+			jogador_node.set_physics_process(false)
+		# Esconde o HUD.
+		var hud = get_node_or_null("HudObjetivos")
+		if hud != null:
+			hud.visible = false
+		var cena := load(caminho_minigame_antena)
+		if cena is PackedScene:
+			var instancia = cena.instantiate()
+			add_child(instancia)
+		get_viewport().set_input_as_handled()
 		return
 
 	if concluir_objetivo(indice):

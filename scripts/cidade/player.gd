@@ -131,7 +131,7 @@ func _enviar_posicao_backend() -> void:
 	])
 
 	var corpo := {
-		"jogador_f_position": posicao
+		"jogador_f_position": posicao + [Global.vidas]
 	}
 
 	var erro := _http_posicao.request(
