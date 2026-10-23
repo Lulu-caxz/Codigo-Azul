@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bu2gqcbrotrmq" path="res://scripts/transicao.gd" id="1_m4h6s"]
 
 [node name="Transicao" type="CanvasLayer" unique_id=1544268757]
+layer = 100
 script = ExtResource("1_m4h6s")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1148380674]

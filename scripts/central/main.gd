@@ -36,7 +36,13 @@ var cores: Array[Color] = [
 
 
 func _ready() -> void:
-	
+
+	# Mesmo padrao da Cidade: segura a tela preta ate o mapa e a primeira
+	# sincronizacao estarem prontos, para clarear ja com a contagem na tela.
+	await Transicao.iniciar_carregamento(0.0)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 	# Usa o CanvasModulate ja existente na cena.
@@ -96,6 +102,21 @@ func _ready() -> void:
 	var visor_label := get_node_or_null("UI/Visor/Label")
 	if visor_label != null:
 		visor_label.text = "--"
+
+	# A contagem da partida chega pela sincronizacao; espera a primeira
+	# resposta (com limite de tempo) para clarear a tela ja com ela pronta.
+	if central != null:
+		await _aguardar_primeira_sincronizacao(central, 6.0)
+
+	await Transicao.finalizar_carregamento(1.0)
+
+
+func _aguardar_primeira_sincronizacao(central: Node, limite_segundos: float) -> void:
+	var inicio := Time.get_ticks_msec()
+	while is_instance_valid(central) and bool(central.get("_primeira_sincronizacao")):
+		if Time.get_ticks_msec() - inicio >= int(limite_segundos * 1000.0):
+			return
+		await get_tree().process_frame
 	
 
 func carregar_mapa() -> void:
