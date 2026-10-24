@@ -235,7 +235,8 @@ Codigo-Azul/
 ## Créditos
 
 - **Projeto:** Código Azul — trabalho escolar.
-- **Equipe:** [preencher com os nomes dos integrantes]
+- **Equipe:** THN
+- **Integrantes:** Marcos Taylor da Silva Rocha, Lucas Leite de Souza Nunes, João Marcelo Alves Moura e Lavinia Antunes Silva
 - **Engine:** Godot Engine 4.7.2.
 - **Fonte:** ByteBounce.
 - **Tema:** mulheres pioneiras da ciência e prevenção de desastres naturais.
