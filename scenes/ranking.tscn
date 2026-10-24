@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://b2t7i36qfi26l"]
+[gd_scene format=3 uid="uid://cts4lxrw8ty4v"]
 
 [ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="1_fundo"]
 [ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="2_fonte"]

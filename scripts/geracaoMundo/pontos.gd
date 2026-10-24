@@ -57,7 +57,7 @@ const MAX_TENTATIVAS_ENVIO := 3
 const INTERVALO_RETENTATIVA := 5.0
 
 # Segundos somados a duracao da rodada a cada rodada seguinte.
-const INCREMENTO_DURACAO_RODADA := 60.0
+var INCREMENTO_DURACAO_RODADA = Global.incremento_duracao_rodada
 
 # -----------------------------------------------------------------------------
 #  CONFIGURACOES

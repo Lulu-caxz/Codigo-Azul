@@ -37,7 +37,8 @@ var abrigo_position: Vector3 = Vector3.ZERO
 var eventos: Array = []
 
 # Duração total da partida, em segundos.
-var duracao_partida: int = 210
+var incremento_duracao_rodada: int = 30
+var duracao_partida: int = 240
 var tempo: int = 0
 
 var vidas: int = 5
