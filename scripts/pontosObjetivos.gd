@@ -59,7 +59,7 @@ var _pontos: Array[Dictionary] = []
 var _marcadores: Array[Dictionary] = []
 var _assinatura: String = ""
 var _pontos_simples: Dictionary = {}
-var _marcador_abrigo: Sprite2D
+var _marcadores_abrigo: Array[Sprite2D] = []
 
 
 func _ready() -> void:
@@ -79,8 +79,8 @@ func _ready() -> void:
 	central.dados_sala_atualizados.connect(
 		_ao_dados_sala_atualizados
 	)
-	central.abrigo_atualizado.connect(
-		_ao_abrigo_atualizado
+	central.abrigos_atualizados.connect(
+		_ao_abrigos_atualizados
 	)
 
 	print("PontosObjetivos: conectado ao CentralSync.")
@@ -91,8 +91,8 @@ func _ready() -> void:
 	# Cobre o caso de a primeira resposta ter chegado antes desta conexão.
 	if not Global.pontos_position.is_empty():
 		_aplicar(Global.pontos_position)
-	if central.abrigo_position != Vector3.ZERO:
-		_atualizar_marcador_abrigo(central.abrigo_position)
+	if not central.abrigos_position.is_empty():
+		_atualizar_marcadores_abrigo(central.abrigos_position)
 
 func _ao_dados_sala_atualizados(
 	_posicao: Vector3,
@@ -103,8 +103,8 @@ func _ao_dados_sala_atualizados(
 	_aplicar(pontos)
 
 
-func _ao_abrigo_atualizado(posicao: Vector3) -> void:
-	_atualizar_marcador_abrigo(posicao)
+func _ao_abrigos_atualizados(posicoes: Array) -> void:
+	_atualizar_marcadores_abrigo(posicoes)
 
 # -----------------------------------------------------------------------------
 #  API PUBLICA (para a tela da central)
@@ -130,17 +130,29 @@ func mundo_para_mapa(x: float, z: float) -> Vector2:
 	return posicao + deslocamento_mapa
 
 
-func _atualizar_marcador_abrigo(mundo: Vector3) -> void:
+func _atualizar_marcadores_abrigo(posicoes: Array) -> void:
 	if textura_abrigo == null:
 		return
-	if _marcador_abrigo == null:
-		_marcador_abrigo = Sprite2D.new()
-		_marcador_abrigo.texture = textura_abrigo
-		_marcador_abrigo.z_index = 11
-		add_child(_marcador_abrigo)
-	var escala := (tamanho_marcador*2) / maxf(float(textura_abrigo.get_width()), 1.0)
-	_marcador_abrigo.scale = Vector2.ONE * escala
-	_marcador_abrigo.position = mundo_para_mapa(mundo.x, mundo.z)
+
+	while _marcadores_abrigo.size() < posicoes.size():
+		var novo := Sprite2D.new()
+		novo.texture = textura_abrigo
+		novo.z_index = 11
+		add_child(novo)
+		_marcadores_abrigo.append(novo)
+
+	while _marcadores_abrigo.size() > posicoes.size():
+		var ultimo := _marcadores_abrigo.size() - 1
+		var removido := _marcadores_abrigo[ultimo]
+		_marcadores_abrigo.remove_at(ultimo)
+		removido.queue_free()
+
+	var escala := (tamanho_marcador * 2.0) / maxf(float(textura_abrigo.get_width()), 1.0)
+	for i in posicoes.size():
+		var mundo: Vector3 = posicoes[i]
+		var marcador := _marcadores_abrigo[i]
+		marcador.scale = Vector2.ONE * escala
+		marcador.position = mundo_para_mapa(mundo.x, mundo.z)
 
 
 ## Inverso: posicao no mapa 2D -> (x, z) do mundo 3D.

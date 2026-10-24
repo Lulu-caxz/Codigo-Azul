@@ -30,8 +30,6 @@ var funcao: String = "C"
 
 var pontos_position: Array = []
 
-var abrigo_position: Vector3 = Vector3.ZERO
-
 # Eventos que acontecerão durante a partida.
 # Cada evento contém: [tipo, segundo]
 var eventos: Array = []

@@ -259,10 +259,10 @@ var _construcoes: Array[Construcao] = []
 var _grade_coer: Dictionary = {}                  # Vector2i -> Array[Construcao]
 var _raiz: Node3D
 
-# Abrigo escolhido na geracao
-var abrigo_construcao: Construcao = null
-var abrigo_posicao: Vector3 = Vector3.ZERO      # centro da construcao (para o mapa)
-var abrigo_porta_pos: Vector3 = Vector3.ZERO    # porta (interacao)
+# Abrigos escolhidos na geracao (dois, o mais longe possivel um do outro)
+var abrigos_construcoes: Array[Construcao] = []
+var abrigos_posicoes: Array[Vector3] = []       # centro da construcao (para o mapa)
+var abrigos_portas: Array[Vector3] = []         # porta (interacao)
 
 # Chunks de construcoes
 var _chunks: Dictionary = {}          # Vector2i -> Array[Construcao]
@@ -357,6 +357,9 @@ func gerar_predios() -> void:
 	_fila.clear()
 	_mats_pred.clear()
 	_mats_sprite.clear()
+	abrigos_construcoes.clear()
+	abrigos_posicoes.clear()
+	abrigos_portas.clear()
 
 	_preparar_sprites()
 
@@ -386,53 +389,7 @@ func gerar_predios() -> void:
 	for quadra in lista:
 		_preencher_quadra(quadra)
 
-	# Escolhe uma construcao como abrigo: deve ter porta voltada para uma via.
-	# Candidatos: porta voltada para BAIXO (sul) e com via na frente.
-	var candidatos: Array[Construcao] = []
-	for c in _construcoes:
-		if c.frente == Vector2i(0, 1) and _porta_voltada_para_via(c):
-			candidatos.append(c)
-	if candidatos.is_empty():
-		for c in _construcoes:
-			if c.frente == Vector2i(0, 1):
-				candidatos.append(c)
-	if candidatos.is_empty():
-		candidatos = _construcoes.duplicate()
-
-	print("ABRIGO: construcoes=", _construcoes.size(), " candidatos=", candidatos.size())
-	if not candidatos.is_empty():
-		abrigo_construcao = candidatos[_rng.randi() % candidatos.size()]
-		abrigo_construcao.eh_abrigo = true
-		abrigo_construcao.cor_parede = cor_abrigo_parede.srgb_to_linear()
-		abrigo_construcao.cor_telhado = cor_abrigo_telhado.srgb_to_linear()
-		abrigo_construcao.idx_textura_parede = -1
-		abrigo_construcao.idx_textura_telhado = -1
-
-		var s = Global.tamanho_cubo
-		var bb := abrigo_construcao.bbox
-		var dv := abrigo_construcao.frente
-		var base_y = abrigo_construcao.altura_base * s
-		var door_x: float
-		var door_z: float
-		if dv.x > 0:
-			door_x = (bb.end.x) * s
-			door_z = (bb.position.y + bb.size.y * 0.5) * s
-		elif dv.x < 0:
-			door_x = (bb.position.x) * s
-			door_z = (bb.position.y + bb.size.y * 0.5) * s
-		elif dv.y > 0:
-			door_x = (bb.position.x + bb.size.x * 0.5) * s
-			door_z = (bb.end.y) * s
-		else:
-			door_x = (bb.position.x + bb.size.x * 0.5) * s
-			door_z = (bb.position.y) * s
-
-		abrigo_posicao = Vector3(bb.get_center().x * s, base_y, bb.get_center().y * s)
-		abrigo_porta_pos = Vector3(door_x, base_y + porta_altura * s * 0.5, door_z)
-		abrigo_construcao.porta_mundo = abrigo_porta_pos
-		Global.abrigo_position = Vector3(abrigo_posicao.x, 0.0, abrigo_posicao.z)
-		print("ABRIGO selecionado: porta=", abrigo_porta_pos, " centro=", abrigo_posicao)
-		_criar_sinal_abrigo(abrigo_porta_pos, Vector3(0.0, 0.0, 1.0))
+	_escolher_abrigos()
 
 	_indexar_chunks()
 
@@ -922,6 +879,91 @@ func _porta_voltada_para_via(c: Construcao) -> bool:
 			if _e_via(x, z):
 				return true
 	return false
+
+
+func _escolher_abrigos() -> void:
+	# Candidatos: porta voltada para BAIXO (sul) e com via na frente.
+	var candidatos: Array[Construcao] = []
+	for c in _construcoes:
+		if c.frente == Vector2i(0, 1) and _porta_voltada_para_via(c):
+			candidatos.append(c)
+	if candidatos.is_empty():
+		for c in _construcoes:
+			if c.frente == Vector2i(0, 1):
+				candidatos.append(c)
+	if candidatos.is_empty():
+		candidatos = _construcoes.duplicate()
+
+	print("ABRIGO: construcoes=", _construcoes.size(), " candidatos=", candidatos.size())
+	if candidatos.is_empty():
+		return
+
+	var primeiro: Construcao = candidatos[_rng.randi() % candidatos.size()]
+	_configurar_abrigo(primeiro)
+
+	# O segundo abrigo fica no candidato mais distante do primeiro.
+	var segundo: Construcao = null
+	var melhor_distancia := -1.0
+	for c in candidatos:
+		if c == primeiro:
+			continue
+		var distancia := _distancia_xz(c, primeiro)
+		if distancia > melhor_distancia:
+			melhor_distancia = distancia
+			segundo = c
+
+	if segundo != null:
+		_configurar_abrigo(segundo)
+	else:
+		push_warning("Predios: apenas um candidato a abrigo; gerando somente um.")
+
+
+func _distancia_xz(a: Construcao, b: Construcao) -> float:
+	var ca := a.bbox.get_center()
+	var cb := b.bbox.get_center()
+	return Vector2(ca.x - cb.x, ca.y - cb.y).length()
+
+
+func _configurar_abrigo(c: Construcao) -> void:
+	c.eh_abrigo = true
+	c.cor_parede = cor_abrigo_parede.srgb_to_linear()
+	c.cor_telhado = cor_abrigo_telhado.srgb_to_linear()
+	c.idx_textura_parede = -1
+	c.idx_textura_telhado = -1
+
+	var s = Global.tamanho_cubo
+	var bb := c.bbox
+	var dv := c.frente
+	var base_y = c.altura_base * s
+	var door_x: float
+	var door_z: float
+	if dv.x > 0:
+		door_x = (bb.end.x) * s
+		door_z = (bb.position.y + bb.size.y * 0.5) * s
+	elif dv.x < 0:
+		door_x = (bb.position.x) * s
+		door_z = (bb.position.y + bb.size.y * 0.5) * s
+	elif dv.y > 0:
+		door_x = (bb.position.x + bb.size.x * 0.5) * s
+		door_z = (bb.end.y) * s
+	else:
+		door_x = (bb.position.x + bb.size.x * 0.5) * s
+		door_z = (bb.position.y) * s
+
+	var centro := Vector3(bb.get_center().x * s, base_y, bb.get_center().y * s)
+	var porta := Vector3(door_x, base_y + porta_altura * s * 0.5, door_z)
+	c.porta_mundo = porta
+	abrigos_construcoes.append(c)
+	abrigos_posicoes.append(centro)
+	abrigos_portas.append(porta)
+
+	var normal := Vector3(dv.x, 0.0, dv.y)
+	if normal == Vector3.ZERO:
+		normal = Vector3(0.0, 0.0, 1.0)
+	print("ABRIGO %d selecionado: porta=%s centro=%s" % [
+		abrigos_construcoes.size(), porta, centro
+	])
+	_criar_sinal_abrigo(porta, normal)
 
 
 func _criar_sinal_abrigo(pos: Vector3, normal: Vector3) -> void:

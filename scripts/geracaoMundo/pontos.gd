@@ -181,8 +181,7 @@ var _container: Node3D
 var _jogador: Node3D
 var _nos: Array[Node3D] = []
 
-var _abrigo_porta: Vector3 = Vector3.ZERO
-var _abrigo_centro: Vector3 = Vector3.ZERO
+var _abrigos_portas: Array[Vector3] = []
 var _abrigo_carregado: bool = false
 var _indice_minigame_atual: int = -1
 var _minigame_aberto: Node = null
@@ -428,12 +427,11 @@ func _ao_mundo_pronto() -> void:
 	_mundo_pronto = true
 	_instanciar_objetivos()
 
-	# Localiza o abrigo gerado nas construcoes.
+	# Localiza os abrigos gerados nas construcoes.
 	var predios = _mundo.find_child("Predios", true, false)
 	if predios != null:
-		_abrigo_porta = predios.abrigo_porta_pos
-		_abrigo_centro = predios.abrigo_posicao
-		_abrigo_carregado = _abrigo_porta != Vector3.ZERO
+		_abrigos_portas.assign(predios.abrigos_portas)
+		_abrigo_carregado = not _abrigos_portas.is_empty()
 
 	# Cria a tela de contagem antes de iniciar (para cobrir a transicao).
 	_criar_contagem()
@@ -752,11 +750,14 @@ func _jogador_perto_abrigo() -> bool:
 	if jogador == null:
 		return false
 	var p := jogador.global_position
-	if absf(p.y - _abrigo_porta.y) > tolerancia_vertical:
-		return false
-	var dx := p.x - _abrigo_porta.x
-	var dz := p.z - _abrigo_porta.z
-	return (dx * dx + dz * dz) <= raio_interacao * raio_interacao
+	for porta in _abrigos_portas:
+		if absf(p.y - porta.y) > tolerancia_vertical:
+			continue
+		var dx := p.x - porta.x
+		var dz := p.z - porta.z
+		if (dx * dx + dz * dz) <= raio_interacao * raio_interacao:
+			return true
+	return false
 
 
 # Objetivo incompleto mais proximo dentro do alcance, ou -1.
@@ -1135,11 +1136,15 @@ func _montar_corpo_backend() -> Dictionary:
 		"pontos_position": Global.pontos_position.duplicate(true),
 		"eventos": Global.eventos.duplicate(true),
 	}
-	# Posicao do abrigo gerado (se houver).
+	# Posicoes dos abrigos gerados (a Central desenha um marcador para cada).
 	var predios_node = _mundo.find_child("Predios", true, false)
-	if predios_node != null and predios_node.abrigo_posicao != Vector3.ZERO:
-		var ap: Vector3 = predios_node.abrigo_posicao
-		corpo["abrigo_position"] = [ap.x, ap.y, ap.z]
+	if predios_node != null:
+		var posicoes: Array = predios_node.abrigos_posicoes
+		if not posicoes.is_empty():
+			var lista: Array = []
+			for ap in posicoes:
+				lista.append_array([ap.x, ap.y, ap.z])
+			corpo["abrigo_position"] = lista
 	return corpo
 
 

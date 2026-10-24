@@ -244,7 +244,7 @@ func atualizar_mapa_backend() -> void:
 	]
 
 	# Este PATCH escreve apenas campos que o gerenciador de objetivos NAO
-	# escreve. Rodada, timer, pontos, eventos e abrigo saem juntos pelo
+	# escreve. Rodada, timer, pontos, eventos e abrigos saem juntos pelo
 	# GerenciadorObjetivos, em um unico PATCH atomico.
 	var corpo: String = JSON.stringify({
 		"mapa": mapa_json,
@@ -285,7 +285,7 @@ func atualizar_mapa_backend() -> void:
 	if dados is Array and not dados.is_empty():
 		print("Mapa e posição inicial publicados no backend.")
 		print("Quantidade de valores do mapa: ", mapa_json.size())
-		print("Rodada, timer, objetivos e abrigo são publicados pelo GerenciadorObjetivos.")
+		print("Rodada, timer, objetivos e abrigos são publicados pelo GerenciadorObjetivos.")
 	elif dados is Array and dados.is_empty():
 		push_error(
 			"Nenhuma sala foi atualizada. "

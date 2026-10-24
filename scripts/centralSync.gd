@@ -8,7 +8,7 @@ extends Node
 # compartilhada e a linha da sala na tabela `salas`.
 #
 # A Cidade publica `rodada_atual` junto com estado, timer, pontos, eventos,
-# abrigo e `partida_perdida` em um unico PATCH. A Central consulta a linha
+# abrigos e `partida_perdida` em um unico PATCH. A Central consulta a linha
 # periodicamente e troca de rodada quando `rodada_atual` muda. Uma resposta
 # incompleta de rodada nova e descartada para nao misturar dados de rodadas
 # diferentes. Quando `partida_perdida` vira true, a Central abre a derrota.
@@ -18,7 +18,7 @@ signal dados_sala_atualizados(posicao: Vector3, pontos: Array)
 signal timer_atualizado(segundos: int, iniciado: bool)
 signal rodada_atualizada(numero: int, estado: String)
 signal posicao_jogador_atualizada(posicao: Vector3)
-signal abrigo_atualizado(posicao: Vector3)
+signal abrigos_atualizados(posicoes: Array)
 signal evento_ocorreu(tipo: String)
 
 const PROJECT_REF: String = "ovkvgnnsxmpymcjclnzo"
@@ -41,7 +41,7 @@ var inicio_unix: float = 0.0
 var duracao_timer: float = 0.0
 var rodada_atual: int = 0
 var estado_rodada: String = ESTADO_AGUARDANDO
-var abrigo_position: Vector3 = Vector3.ZERO
+var abrigos_position: Array[Vector3] = []
 var eventos: Array = []
 var partida_perdida: bool = false
 
@@ -52,7 +52,7 @@ var _ultimo_segundo: int = -1
 var _ultimo_estado_iniciado: bool = false
 var _assinatura_pontos: String = ""
 var _tem_posicao: bool = false
-var _tem_abrigo: bool = false
+var _assinatura_abrigos: String = ""
 var _eventos_assinatura: String = ""
 var _temporizadores_eventos: Array[Timer] = []
 var _transicao_derrota_iniciada: bool = false
@@ -193,7 +193,7 @@ func _aplicar_sala(sala: Dictionary) -> void:
 	var inicio_recebido := _converter_timestamp(sala.get("inicio_timer", null))
 	var duracao_recebida := _ler_float(sala.get("duracao_timer", null), 0.0)
 	var posicao_recebida = _ler_vetor3(sala.get("jogador_f_position", null))
-	var abrigo_recebido = _ler_vetor3(sala.get("abrigo_position", null))
+	var abrigos_recebidos = _ler_abrigos(sala.get("abrigo_position", null))
 
 	var mudou_rodada := rodada_recebida != rodada_atual
 	var mudou_estado := estado_recebido != estado_rodada
@@ -267,11 +267,13 @@ func _aplicar_sala(sala: Dictionary) -> void:
 		# depois do primeiro sync receba a posicao sem esperar uma mudanca.
 		posicao_jogador_atualizada.emit(posicao_jogador)
 
-	if abrigo_recebido != null:
-		if not _tem_abrigo or abrigo_recebido.distance_to(abrigo_position) > 0.01:
-			abrigo_position = abrigo_recebido
-			_tem_abrigo = true
-			abrigo_atualizado.emit(abrigo_position)
+	if abrigos_recebidos != null:
+		var recebidos: Array = abrigos_recebidos
+		var assinatura_abrigos := _assinatura_dos_abrigos(recebidos)
+		if assinatura_abrigos != _assinatura_abrigos:
+			_assinatura_abrigos = assinatura_abrigos
+			abrigos_position.assign(recebidos)
+			abrigos_atualizados.emit(abrigos_position.duplicate())
 
 	if mudou_rodada or mudou_estado:
 		rodada_atualizada.emit(rodada_atual, estado_rodada)
@@ -560,6 +562,56 @@ func _ler_vetor3(valor: Variant) -> Variant:
 		return Vector3(float(arr[0]), float(arr[1]), float(arr[2]))
 
 	return null
+
+
+## Aceita [x1,y1,z1,x2,y2,z2] (dois abrigos), [x,y,z] (salas antigas)
+## ou [[x,y,z], [x,y,z]] (formato aninhado).
+func _ler_abrigos(valor: Variant) -> Variant:
+	if valor == null:
+		return null
+
+	var bruto: Variant = valor
+	if bruto is String:
+		bruto = JSON.parse_string(String(bruto))
+
+	if not bruto is Array:
+		return null
+
+	var lista: Array = bruto
+	var saida: Array[Vector3] = []
+
+	# Posicoes achatadas: cada grupo de 3 numeros e um abrigo.
+	if not lista.is_empty() and _e_numero(lista[0]):
+		for i in range(0, lista.size() - 2, 3):
+			if not _e_numero(lista[i]) \
+			or not _e_numero(lista[i + 1]) \
+			or not _e_numero(lista[i + 2]):
+				return null
+			saida.append(Vector3(
+				float(lista[i]),
+				float(lista[i + 1]),
+				float(lista[i + 2])
+			))
+		return saida if not saida.is_empty() else null
+
+	for item in lista:
+		var ponto = _ler_vetor3(item)
+		if ponto is Vector3:
+			saida.append(ponto)
+
+	return saida if not saida.is_empty() else null
+
+
+func _e_numero(valor: Variant) -> bool:
+	return valor is int or valor is float
+
+
+func _assinatura_dos_abrigos(posicoes: Array) -> String:
+	var lista: Array = []
+	for i in posicoes.size():
+		var p: Vector3 = posicoes[i]
+		lista.append([p.x, p.y, p.z])
+	return JSON.stringify(lista)
 
 
 func _criar_tela_contagem() -> void:
