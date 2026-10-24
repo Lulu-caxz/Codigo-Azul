@@ -109,6 +109,8 @@ func _ao_alvo(tipo: String) -> void:
 
 	if tipo == "abrigo":
 		label_acao.text = "Entrar no abrigo"
+	elif tipo == "abrigo_sair":
+		label_acao.text = "Sair do abrigo"
 	else:
 		label_acao.text = "Colocar %s" % tipo.capitalize()
 	_animar_prompt(true)
@@ -147,6 +149,16 @@ func _animar_prompt(mostrar: bool) -> void:
 	else:
 		_tween_prompt.tween_property(prompt_container, "modulate:a", 0.0, 0.15)
 		_tween_prompt.tween_callback(func(): prompt_container.visible = false)
+
+
+## Mostra um aviso central no mesmo estilo do banner de rodada.
+## Com duracao 0.0 o aviso fica na tela ate esconder_aviso().
+func mostrar_aviso(texto: String, duracao: float, cor_borda: Color) -> void:
+	_mostrar_banner(texto, duracao, cor_borda)
+
+
+func esconder_aviso() -> void:
+	_esconder_banner()
 
 
 func _mostrar_banner(texto: String, duracao: float, cor_borda: Color) -> void:

@@ -3,8 +3,16 @@
 [ext_resource type="Texture2D" uid="uid://dm6mfff5pcpr8" path="res://assets/minigames/pluviometro/PluviomeFundoMinigame.png" id="1_uxvtl"]
 [ext_resource type="Texture2D" uid="uid://c26p51iu6h42c" path="res://assets/minigames/pluviometro/PluviometroLivroMinigame.png" id="2_r4tno"]
 [ext_resource type="Texture2D" uid="uid://m8ag33nigj8i" path="res://assets/minigames/pluviometro/PluviometroMinigame.png" id="3_msu1y"]
+[ext_resource type="Texture2D" uid="uid://to7mu37eyb37" path="res://assets/central/AdesivosSheet.png" id="4_adesivo"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="5_fonte"]
+[ext_resource type="Script" uid="uid://u4gok7t07okd" path="res://scripts/minigames/mini_game_pluviometro.gd" id="6_pluv"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_adesivo"]
+atlas = ExtResource("4_adesivo")
+region = Rect2(0, 0, 48, 48)
 
 [node name="MiniGame-PLUVIOMETRO" type="Node2D" unique_id=1356658230]
+script = ExtResource("6_pluv")
 metadata/_edit_vertical_guides_ = [-269.0]
 
 [node name="Fundo" type="Sprite2D" parent="." unique_id=487941784]
@@ -21,3 +29,23 @@ texture = ExtResource("2_r4tno")
 position = Vector2(795.00006, 623.00006)
 scale = Vector2(5, 5)
 texture = ExtResource("3_msu1y")
+
+[node name="Adesivos" type="Node2D" parent="." unique_id=387864315]
+
+[node name="Adesivo" type="Sprite2D" parent="Adesivos" unique_id=1793177677]
+position = Vector2(1395, 200)
+scale = Vector2(2.2, 2.2)
+texture = SubResource("AtlasTexture_adesivo")
+
+[node name="Textos" type="Node2D" parent="." unique_id=1239480140]
+
+[node name="Referencia" type="Label" parent="Textos" unique_id=26881741]
+offset_left = 1460.0
+offset_top = 145.0
+offset_right = 1905.0
+offset_bottom = 255.0
+theme_override_colors/font_color = Color(0.14267129, 0.14453465, 0.1445348, 1)
+theme_override_fonts/font = ExtResource("5_fonte")
+theme_override_font_sizes/font_size = 44
+text = "Ref.: Ada Lovelace"
+vertical_alignment = 1

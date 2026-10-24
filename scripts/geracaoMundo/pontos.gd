@@ -138,6 +138,14 @@ var atraso_inicio_rodada: int = 5
 @export var caminho_minigame_antena: String = "res://scenes/minigames/mini_game_antena.tscn"
 ## Caminho da cena do minigame do bueiro.
 @export var caminho_minigame_bueiro: String = "res://scenes/minigames/mini_game_bueiro.tscn"
+## Caminho da cena do minigame do pluviometro.
+@export var caminho_minigame_pluviometro: String = "res://scenes/minigames/mini_game_pluviometro.tscn"
+
+@export_group("Chuva de granizo")
+## Duracao da chuva, em segundos.
+@export_range(1.0, 60.0, 0.5) var duracao_chuva: float = 8.0
+## Intervalo entre perdas de vida enquanto o jogador esta fora do abrigo.
+@export_range(0.5, 10.0, 0.5) var intervalo_dano_chuva: float = 2.0
 
 @export_group("Depuracao")
 @export var imprimir_relatorio: bool = true
@@ -175,6 +183,11 @@ var _abrigo_centro: Vector3 = Vector3.ZERO
 var _abrigo_carregado: bool = false
 var _indice_minigame_atual: int = -1
 var _minigame_aberto: Node = null
+var _dentro_abrigo: bool = false
+var _chuva_ativa: bool = false
+var _aviso_chuva_visivel: bool = false
+var _efeito_chuva: CanvasLayer
+var _particulas_chuva: GPUParticles2D
 
 var _rng := RandomNumberGenerator.new()
 var _cand_idx := PackedInt32Array()    # indice x * profundidade + z de cada candidato
@@ -457,6 +470,9 @@ func _process(_delta: float) -> void:
 		_perder_rodada("vidas")
 		return
 
+	if _chuva_ativa:
+		_atualizar_aviso_chuva()
+
 	match estado:
 		Estado.PREPARANDO_RODADA:
 			var falta := inicio_unix - agora
@@ -520,11 +536,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if jogador == null:
 		return
 
-	# Abrigo: so pode entrar apos concluir todos os objetivos.
-	if restantes() <= 0 and _abrigo_carregado and _jogador_perto_abrigo():
+	# Abrigo: E entra e E sai (o jogador fica invisivel e parado enquanto esta dentro).
+	if _dentro_abrigo:
+		_sair_do_abrigo()
+		get_viewport().set_input_as_handled()
+		return
+
+	if _abrigo_carregado and _jogador_perto_abrigo():
 		if imprimir_relatorio:
-			print("Objetivos: jogador entrou no abrigo; rodada concluida.")
-		_concluir_rodada()
+			print("Objetivos: jogador entrou no abrigo.")
+		_entrar_no_abrigo()
 		get_viewport().set_input_as_handled()
 		return
 
@@ -532,41 +553,19 @@ func _unhandled_input(event: InputEvent) -> void:
 	if indice < 0:
 		return
 
-	# Minigame da antena: ao interagir, abre a cena do minigame (objetivo so conclui ao acertar).
+	# Minigames: ao interagir, abre a cena correspondente (o objetivo so
+	# conclui quando o jogador acerta).
 	var tipo := String(Global.pontos_position[indice][I_TIPO])
-	if tipo == "antena" and not caminho_minigame_antena.is_empty():
-		# Guarda o indice do objetivo para concluir depois.
-		_indice_minigame_atual = indice
-		# Desabilita movimento do jogador.
-		var jogador_node = _obter_jogador()
-		if jogador_node != null and jogador_node.has_method("set_physics_process"):
-			jogador_node.set_physics_process(false)
-		# Esconde o HUD.
-		var hud = get_node_or_null("HudObjetivos")
-		if hud != null:
-			hud.visible = false
-		var cena := load(caminho_minigame_antena)
-		if cena is PackedScene:
-			var instancia = cena.instantiate()
-			_minigame_aberto = instancia
-			add_child(instancia)
-		get_viewport().set_input_as_handled()
-		return
+	var caminho_minigame := ""
+	match tipo:
+		"antena":
+			caminho_minigame = caminho_minigame_antena
+		"bueiro":
+			caminho_minigame = caminho_minigame_bueiro
+		"pluviometro":
+			caminho_minigame = caminho_minigame_pluviometro
 
-	# Minigame do bueiro: ao interagir, abre a cena do minigame (objetivo so conclui ao acertar).
-	if tipo == "bueiro" and not caminho_minigame_bueiro.is_empty():
-		_indice_minigame_atual = indice
-		var jogador_node = _obter_jogador()
-		if jogador_node != null and jogador_node.has_method("set_physics_process"):
-			jogador_node.set_physics_process(false)
-		var hud = get_node_or_null("HudObjetivos")
-		if hud != null:
-			hud.visible = false
-		var cena_b := load(caminho_minigame_bueiro)
-		if cena_b is PackedScene:
-			var instancia_b = cena_b.instantiate()
-			_minigame_aberto = instancia_b
-			add_child(instancia_b)
+	if not caminho_minigame.is_empty() and _abrir_minigame(caminho_minigame, indice):
 		get_viewport().set_input_as_handled()
 		return
 
@@ -574,6 +573,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		if imprimir_relatorio:
 			print("Objetivos: objetivo %d concluido com sucesso." % indice)
 		get_viewport().set_input_as_handled()
+
+
+func _abrir_minigame(caminho: String, indice: int) -> bool:
+	var cena = load(caminho)
+	if cena == null or not (cena is PackedScene):
+		return false
+
+	_indice_minigame_atual = indice
+
+	var jogador_node = _obter_jogador()
+	if jogador_node != null and jogador_node.has_method("set_physics_process"):
+		jogador_node.set_physics_process(false)
+
+	var hud = get_node_or_null("HudObjetivos")
+	if hud != null:
+		hud.visible = false
+
+	var instancia = (cena as PackedScene).instantiate()
+	_minigame_aberto = instancia
+	add_child(instancia)
+	return true
 
 
 func _mudar_estado(novo: Estado) -> void:
@@ -657,12 +677,15 @@ func _perder_rodada(motivo: String = "tempo") -> void:
 
 
 func _atualizar_alvo() -> void:
-	var i := _indice_alvo()
 	var tipo := ""
-	if i >= 0:
-		tipo = String(Global.pontos_position[i][I_TIPO])
-	elif restantes() <= 0 and _abrigo_carregado and _jogador_perto_abrigo():
+	if _dentro_abrigo:
+		tipo = "abrigo_sair"
+	elif _abrigo_carregado and _jogador_perto_abrigo():
 		tipo = "abrigo"
+	else:
+		var i := _indice_alvo()
+		if i >= 0:
+			tipo = String(Global.pontos_position[i][I_TIPO])
 
 	if tipo == _alvo_tipo_atual:
 		return
@@ -697,6 +720,26 @@ func _obter_jogador() -> Node3D:
 		push_warning("Objetivos: jogador nao encontrado!")
 
 	return _jogador
+
+
+## Esconde o jogador e trava o movimento (ele ficou "dentro" do abrigo).
+func _entrar_no_abrigo() -> void:
+	if _dentro_abrigo:
+		return
+	_dentro_abrigo = true
+	var jogador := _obter_jogador()
+	if jogador != null:
+		jogador.call("entrar_no_abrigo")
+
+
+## Volta a mostrar o jogador e libera o movimento.
+func _sair_do_abrigo() -> void:
+	if not _dentro_abrigo:
+		return
+	_dentro_abrigo = false
+	var jogador := _obter_jogador()
+	if jogador != null:
+		jogador.call("sair_do_abrigo")
 
 
 func _jogador_perto_abrigo() -> bool:
@@ -1257,4 +1300,116 @@ func blackout() -> void:
 
 
 func chuva_granizo() -> void:
-	print("CHUVA DE GRANIZO INICIADA!")
+	if imprimir_relatorio:
+		print("CHUVA DE GRANIZO INICIADA!")
+	if _chuva_ativa:
+		return
+	_chuva_ativa = true
+	_criar_efeito_chuva()
+	_atualizar_aviso_chuva()
+	_iniciar_loop_chuva()
+
+
+# Enquanto a chuva dura, a cada `intervalo_dano_chuva` segundos o jogador
+# perde uma vida se nao estiver dentro do abrigo.
+func _iniciar_loop_chuva() -> void:
+	var restante := duracao_chuva
+	while is_inside_tree() and _chuva_ativa and restante > 0.0:
+		await get_tree().create_timer(intervalo_dano_chuva).timeout
+		if not is_inside_tree() or not _chuva_ativa:
+			return
+		if estado != Estado.RODADA_ATIVA:
+			break
+		restante -= intervalo_dano_chuva
+		if not _dentro_abrigo:
+			_perder_vida_na_chuva()
+	_encerrar_chuva()
+
+
+func _perder_vida_na_chuva() -> void:
+	Global.vidas = maxi(Global.vidas - 1, 0)
+	if imprimir_relatorio:
+		print("Chuva: jogador perdeu uma vida (restam %d)." % Global.vidas)
+
+	# Mantem o banco e a Central em sincronia, como nos minigames.
+	if Banco != null and Banco.has_method("atualizar_vida"):
+		await Banco.atualizar_vida(Global.vidas)
+	if ConectSupa != null and ConectSupa.has_method("enviar_variavel"):
+		ConectSupa.enviar_variavel({
+			"tipo": "vida",
+			"vidas": Global.vidas
+		})
+
+
+func _encerrar_chuva() -> void:
+	if not _chuva_ativa:
+		return
+	_chuva_ativa = false
+	if is_instance_valid(_particulas_chuva):
+		_particulas_chuva.emitting = false
+	_atualizar_aviso_chuva()
+
+	var camada := _efeito_chuva
+	_efeito_chuva = null
+	_particulas_chuva = null
+	if is_instance_valid(camada):
+		# Deixa as ultimas pedras cairem antes de remover a camada.
+		await get_tree().create_timer(2.6).timeout
+		if is_instance_valid(camada):
+			camada.queue_free()
+
+
+func _criar_efeito_chuva() -> void:
+	var tela := get_viewport().get_visible_rect().size
+
+	var material := ParticleProcessMaterial.new()
+	material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	material.emission_box_extents = Vector3(tela.x * 0.5 + 40.0, 8.0, 0.0)
+	material.direction = Vector3(0.0, 1.0, 0.0)
+	material.spread = 8.0
+	material.initial_velocity_min = 320.0
+	material.initial_velocity_max = 520.0
+	material.gravity = Vector3(0.0, 500.0, 0.0)
+	material.angle_min = 0.0
+	material.angle_max = 360.0
+	material.angular_velocity_min = -220.0
+	material.angular_velocity_max = 220.0
+	material.scale_min = 2.0
+	material.scale_max = 3.0
+
+	# Usa so o cubo maior do Gelos.png (o sprite tem dois cubos lado a lado).
+	var textura := AtlasTexture.new()
+	textura.atlas = preload("res://assets/Gelos.png")
+	textura.region = Rect2(16, 0, 16, 16)
+
+	_efeito_chuva = CanvasLayer.new()
+	_efeito_chuva.name = "EfeitoChuvaGranizo"
+	_efeito_chuva.layer = 5
+	add_child(_efeito_chuva)
+
+	_particulas_chuva = GPUParticles2D.new()
+	_particulas_chuva.name = "Granizo"
+	_particulas_chuva.texture = textura
+	_particulas_chuva.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_particulas_chuva.amount = 160
+	_particulas_chuva.lifetime = 2.5
+	_particulas_chuva.process_material = material
+	_particulas_chuva.position = Vector2(tela.x * 0.5, -8.0)
+	_particulas_chuva.emitting = true
+	_efeito_chuva.add_child(_particulas_chuva)
+
+
+# Mostra o aviso do HUD enquanto chove e o jogador esta fora do abrigo.
+func _atualizar_aviso_chuva() -> void:
+	var mostrar := _chuva_ativa and not _dentro_abrigo
+	if mostrar == _aviso_chuva_visivel:
+		return
+	_aviso_chuva_visivel = mostrar
+
+	var hud = get_node_or_null("HudObjetivos")
+	if hud == null:
+		return
+	if mostrar:
+		hud.mostrar_aviso("Chuva de granizo!\nVá para o abrigo!", 0.0, Color(0.45, 0.75, 1.0))
+	else:
+		hud.esconder_aviso()

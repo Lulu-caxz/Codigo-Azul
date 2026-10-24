@@ -166,6 +166,19 @@ func teleportar(destino: Vector3) -> void:
 	camera.global_position = destino + _offset_camera
 
 
+## Entrou no abrigo: fica invisivel e parado ate sair.
+func entrar_no_abrigo() -> void:
+	sprite.visible = false
+	velocity = Vector3.ZERO
+	set_physics_process(false)
+
+
+## Saiu do abrigo: volta a aparecer e a andar.
+func sair_do_abrigo() -> void:
+	sprite.visible = true
+	set_physics_process(true)
+
+
 func _physics_process(delta: float) -> void:
 	# So permite movimento apos o inicio da rodada (fim da contagem).
 	if _gerenciador_objetivos != null:
