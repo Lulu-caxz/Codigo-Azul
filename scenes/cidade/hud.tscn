@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dhlcpxr5picyx" path="res://scripts/hudObjetivos.gd" id="1_6rnlx"]
 [ext_resource type="Texture2D" uid="uid://b2a7xan02ra4u" path="res://assets/ui/CaixaDialogoSheet.png" id="2_hntmq"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="3_granizo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
 bg_color = Color(1, 1, 1, 1)
@@ -74,7 +75,7 @@ layout_mode = 0
 offset_left = 24.0
 offset_top = 20.0
 offset_right = 364.0
-offset_bottom = 161.0
+offset_bottom = 152.0
 texture = ExtResource("2_hntmq")
 patch_margin_left = 4
 patch_margin_top = 4
@@ -94,7 +95,8 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_fonts/font = ExtResource("3_granizo")
+theme_override_font_sizes/font_size = 40
 text = "RODADA 1"
 
 [node name="HSeparator" type="HSeparator" parent="MainControl/MarginMissao" unique_id=237244015]
@@ -120,7 +122,8 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_fonts/font = ExtResource("3_granizo")
+theme_override_font_sizes/font_size = 25
 text = "TEMPO RESTANTE"
 
 [node name="LabelTempo" type="Label" parent="MainControl/MarginMissao/TempoBox" unique_id=1832945169]
@@ -129,7 +132,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 24
+theme_override_fonts/font = ExtResource("3_granizo")
+theme_override_font_sizes/font_size = 30
 text = "01:00"
 
 [node name="ProgressoBox" type="VBoxContainer" parent="MainControl/MarginMissao" unique_id=913000707]
@@ -137,7 +141,7 @@ layout_mode = 0
 offset_left = 6.0
 offset_top = 90.0
 offset_right = 333.0
-offset_bottom = 129.0
+offset_bottom = 132.0
 mouse_filter = 2
 theme_override_constants/separation = 4
 
@@ -150,7 +154,8 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_fonts/font = ExtResource("3_granizo")
+theme_override_font_sizes/font_size = 25
 text = "OBJETIVOS CONCLUÍDOS"
 
 [node name="LabelProgresso" type="Label" parent="MainControl/MarginMissao/ProgressoBox/ProgressoHeader" unique_id=291987797]
@@ -158,7 +163,8 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 15
+theme_override_fonts/font = ExtResource("3_granizo")
+theme_override_font_sizes/font_size = 20
 text = "0 / 5"
 
 [node name="BarraProgresso" type="ProgressBar" parent="MainControl/MarginMissao/ProgressoBox" unique_id=1396169700]
@@ -207,7 +213,8 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_key")
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.08, 0.1, 0.15, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_fonts/font = ExtResource("3_granizo")
+theme_override_font_sizes/font_size = 25
 text = "E"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -217,7 +224,8 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_fonts/font = ExtResource("3_granizo")
+theme_override_font_sizes/font_size = 30
 text = "Interagir com Radar"
 vertical_alignment = 1
 
@@ -245,7 +253,8 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_fonts/font = ExtResource("3_granizo")
+theme_override_font_sizes/font_size = 40
 text = "Rodada Concluída!"
 horizontal_alignment = 1
 vertical_alignment = 1
