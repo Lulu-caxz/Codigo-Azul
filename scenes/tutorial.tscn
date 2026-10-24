@@ -1,0 +1,662 @@
+[gd_scene format=3 uid="uid://ddpuxnd8tdnfe"]
+
+[ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="1_8ho6b"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="2_ph3nu"]
+[ext_resource type="Texture2D" uid="uid://tt3nbvl2pr4g" path="res://assets/pin-bueiro.png" id="3_gbqnl"]
+[ext_resource type="Texture2D" uid="uid://bu5fgalwtu67m" path="res://assets/pin-pluviometro.png" id="4_ckvwl"]
+[ext_resource type="Texture2D" uid="uid://by0uqg5vk30g" path="res://assets/pin-antena.png" id="5_nlqja"]
+[ext_resource type="Texture2D" uid="uid://bc4k8ogg5nb4c" path="res://assets/pin-abrigo.png" id="6_0epgs"]
+[ext_resource type="Texture2D" uid="uid://cu2k0dwy7dcv7" path="res://assets/pin-player.png" id="7_g2equ"]
+[ext_resource type="Texture2D" uid="uid://to7mu37eyb37" path="res://assets/central/AdesivosSheet.png" id="8_tbcdj"]
+[ext_resource type="Texture2D" uid="uid://bhjk2ees0vnax" path="res://assets/central/postIt.png" id="9_ej4tf"]
+[ext_resource type="Texture2D" uid="uid://f1iw84qtt121" path="res://assets/central/ManualAberto.png" id="10_0hilk"]
+[ext_resource type="Texture2D" uid="uid://dlojwutobe2fq" path="res://assets/central/visor.png" id="11_wr8iv"]
+[ext_resource type="Texture2D" uid="uid://b41w1xrms74si" path="res://assets/central/barra_vida.png" id="12_e13mp"]
+[ext_resource type="Script" uid="uid://27_tutorial" path="res://scripts/tutorial.gd" id="27_tutorial"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vrdqu"]
+atlas = ExtResource("8_tbcdj")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cmspm"]
+atlas = ExtResource("8_tbcdj")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gbqnl"]
+atlas = ExtResource("8_tbcdj")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ikfo1"]
+atlas = ExtResource("8_tbcdj")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dwom6"]
+atlas = ExtResource("8_tbcdj")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bl2xa"]
+atlas = ExtResource("8_tbcdj")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_26022"]
+atlas = ExtResource("11_wr8iv")
+region = Rect2(0, 0, 99, 21)
+
+[node name="Tutorial" type="Node2D" unique_id=887130441]
+script = ExtResource("27_tutorial")
+
+[node name="Fundo" type="Sprite2D" parent="." unique_id=2006613069]
+position = Vector2(959.9999, 539.9999)
+scale = Vector2(5, 5)
+texture = ExtResource("1_8ho6b")
+
+[node name="Tela1" type="Control" parent="." unique_id=985753753]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Tela1" unique_id=1408227329]
+layout_mode = 0
+offset_left = 149.00006
+offset_top = 144.0
+offset_right = 909.00006
+offset_bottom = 944.0
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 4
+theme_override_constants/underline_alpha = 50
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]CÓDIGO AZUL[/b]
+
+Prepare-se para a chuva antes que seja
+tarde demais!
+
+Em Código Azul, você e sua dupla precisam
+preparar a cidade para enfrentar uma
+tempestade.
+
+Sua missão é ativar os sistemas de
+prevenção, organizar os alertas e garantir
+que a população esteja segura antes que
+a chuva cause estragos.
+
+[b]COMO JOGAR[/b]
+
+A comunicação entre os jogadores é muito
+importante! Cada um possui um papel
+essencial nessa missão.
+
+"
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="Tela1" unique_id=794071542]
+layout_mode = 0
+offset_left = 1004.9999
+offset_top = 144.00006
+offset_right = 1764.9999
+offset_bottom = 944.00006
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 5
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "O jogo possui duas funções: Central e
+Cidade. Cada jogador terá acesso a
+informações diferentes.
+
+Vocês precisarão trabalhar juntos para
+instalar os sistemas antes que o tempo
+acabe. Será que conseguem?
+
+[b]O TEMPO ESTÁ PASSANDO![/b]
+
+Vocês terão 3 minutos para instalar
+os 5 sistemas espalhados pela cidade.
+
+Cada erro durante os desafios custa
+uma vida. Ao perder as 5 vidas, a
+missão termina em derrota.
+
+Planejem seus movimentos, compartilhem
+as informações e evitem erros!
+
+O tempo está correndo. Preparem-se!"
+
+[node name="Tela2" type="Control" parent="." unique_id=934695376]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Tela2" unique_id=1586940452]
+layout_mode = 0
+offset_left = 149.00006
+offset_top = 144.0
+offset_right = 909.00006
+offset_bottom = 944.0
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 4
+theme_override_constants/underline_alpha = 50
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]CENTRAL - GRACE[/b]
+
+Grace é responsável por guiar Ada até
+os pontos de instalação e transmitir
+as informações necessárias para
+resolver os desafios.
+
+Ela também precisa ficar atenta à
+chuva de granizo e resolver um apagão
+que acontecerá na central.
+
+Seu painel possui um minimapa, um
+manual, post-its informativos e
+indicadores de tempo e vida.
+
+Fique atento a todos os detalhes!
+
+[b]PONTOS NO MAPA[/b]
+
+O minimapa mostra os pontos importantes
+da cidade. Aprenda a reconhecer cada
+marcador para orientar sua dupla."
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="Tela2" unique_id=229365944]
+layout_mode = 0
+offset_left = 1004.9999
+offset_top = 144.00006
+offset_right = 1764.9999
+offset_bottom = 944.00006
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 5
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "PINO AZUL-ESCURO
+Indica um bueiro, responsável 
+pelo escoamento da água.
+
+PINO AZUL-CLARO
+Indica um pluviômetro, que mede
+a precipitação.
+
+PINO ROXO
+Indica uma antena do sistema
+de alerta.
+
+GUARDA-CHUVA
+Indica um abrigo contra 
+a chuva de granizo.
+
+PONTO VERMELHO
+Mostra a posição de Ada 
+na cidade."
+
+[node name="Sprite2D" type="Sprite2D" parent="Tela2" unique_id=1687187158]
+position = Vector2(1611.9999, 207.00002)
+scale = Vector2(5, 5)
+texture = ExtResource("3_gbqnl")
+
+[node name="Sprite2D2" type="Sprite2D" parent="Tela2" unique_id=117955183]
+position = Vector2(1611.9998, 350.99997)
+scale = Vector2(5, 5)
+texture = ExtResource("4_ckvwl")
+
+[node name="Sprite2D3" type="Sprite2D" parent="Tela2" unique_id=715501849]
+position = Vector2(1611.9998, 494.9999)
+scale = Vector2(5, 5)
+texture = ExtResource("5_nlqja")
+
+[node name="Sprite2D4" type="Sprite2D" parent="Tela2" unique_id=1227939320]
+position = Vector2(1611.9999, 630.99994)
+scale = Vector2(5, 5)
+texture = ExtResource("6_0epgs")
+
+[node name="Sprite2D5" type="Sprite2D" parent="Tela2" unique_id=476525850]
+position = Vector2(1611.9999, 774.9999)
+scale = Vector2(5, 5)
+texture = ExtResource("7_g2equ")
+
+[node name="Tela3" type="Control" parent="." unique_id=722484639]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Tela3" unique_id=1313422510]
+layout_mode = 0
+offset_left = 149.00006
+offset_top = 144.0
+offset_right = 909.00006
+offset_bottom = 944.0
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 4
+theme_override_constants/underline_alpha = 50
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]ADESIVOS E INFORMAÇÕES[/b]
+
+Ao iniciar uma instalação, Ada verá
+o nome de uma cientista e um adesivo.
+
+O adesivo indica qual informação sobre
+essa mulher será necessária para
+resolver o desafio.
+
+Grace deve consultar os post-its
+e transmitir a informação correta.
+"
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="Tela3" unique_id=1165601325]
+layout_mode = 0
+offset_left = 1004.9999
+offset_top = 144.00006
+offset_right = 1764.9999
+offset_bottom = 944.00006
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 5
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "As informações possíveis são:
+
+• Dia do nascimento
+
+• Mês do nascimento
+
+• Ano do nascimento
+
+• Ano da morte
+
+• Principal feito
+
+• Área de atuação
+
+
+Observe o adesivo e passe somente
+a informação necessária!"
+
+[node name="Sprite2D" type="Sprite2D" parent="Tela3" unique_id=1684463913]
+position = Vector2(1491.9998, 247.00002)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_vrdqu")
+
+[node name="Sprite2D2" type="Sprite2D" parent="Tela3" unique_id=1363160360]
+position = Vector2(1491.9998, 351)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_cmspm")
+
+[node name="Sprite2D3" type="Sprite2D" parent="Tela3" unique_id=405448109]
+position = Vector2(1491.9998, 462.99994)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_gbqnl")
+
+[node name="Sprite2D4" type="Sprite2D" parent="Tela3" unique_id=1001797176]
+position = Vector2(1491.9998, 662.99994)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_ikfo1")
+
+[node name="Sprite2D5" type="Sprite2D" parent="Tela3" unique_id=1868690003]
+position = Vector2(1491.9998, 566.9999)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_dwom6")
+
+[node name="Sprite2D6" type="Sprite2D" parent="Tela3" unique_id=1824827492]
+position = Vector2(1491.9998, 774.9999)
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_bl2xa")
+
+[node name="Tela4" type="Control" parent="." unique_id=1691258742]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Tela4" unique_id=61658148]
+layout_mode = 0
+offset_left = 149.00006
+offset_top = 144.0
+offset_right = 909.00006
+offset_bottom = 944.0
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 4
+theme_override_constants/underline_alpha = 50
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]CUIDADO COM OS ERROS![/b]
+
+A barra de vida indica quantas
+tentativas restam para a dupla.
+
+Cada parte amarela representa
+uma vida.
+
+Sempre que um jogador errar durante
+um desafio, uma vida será perdida.
+
+Quando todas as 5 vidas acabarem,
+a missão será encerrada.
+
+Confiram as informações antes
+de responder!"
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="Tela4" unique_id=329382606]
+layout_mode = 0
+offset_left = 1004.9999
+offset_top = 144.00006
+offset_right = 1764.9999
+offset_bottom = 944.00006
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 5
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]FERRAMENTAS DA CENTRAL[/b]
+
+[b]POST-ITS[/b]
+
+Cada post-it contém informações
+sobre uma cientista importante
+para a resolução dos desafios.
+
+[b]MANUAL[/b]
+
+Precisa consultar uma regra ou
+entender melhor um equipamento?
+O manual estará disponível para
+ajudar durante a missão.
+
+[b]VISOR[/b]
+
+O visor mostra quanto tempo falta
+para a chegada da chuva.
+
+Organize-se e aproveite cada segundo!"
+
+[node name="Sprite2D" type="Sprite2D" parent="Tela4" unique_id=96855142]
+position = Vector2(1447, 251)
+scale = Vector2(2, 2)
+texture = ExtResource("9_ej4tf")
+
+[node name="Sprite2D2" type="Sprite2D" parent="Tela4" unique_id=1925738806]
+position = Vector2(1317, 478)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("10_0hilk")
+
+[node name="Sprite2D3" type="Sprite2D" parent="Tela4" unique_id=2105098323]
+position = Vector2(1323, 741)
+scale = Vector2(3, 3)
+texture = SubResource("AtlasTexture_26022")
+
+[node name="Sprite2D4" type="Sprite2D" parent="Tela4" unique_id=975832287]
+position = Vector2(435, 813)
+scale = Vector2(2, 2)
+texture = ExtResource("12_e13mp")
+
+[node name="Tela5" type="Control" parent="." unique_id=615394524]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Tela5" unique_id=1162995927]
+layout_mode = 0
+offset_left = 149.00006
+offset_top = 144.0
+offset_right = 909.00006
+offset_bottom = 944.0
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 4
+theme_override_constants/underline_alpha = 50
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]CIDADE — ADA[/b]
+
+Ada é responsável por encontrar
+e instalar os sistemas inteligentes
+espalhados pela cidade.
+
+Ela precisa se deslocar pelo mapa,
+localizar os equipamentos e resolver
+os desafios de cada instalação.
+
+Existem três tipos de equipamentos:
+
+• Antena: sistema de alerta.
+• Bueiro: sistema de escoamento.
+• Pluviômetro: medição da precipitação.
+
+Grace possui as informações necessárias.
+Comuniquem-se para concluir a missão!"
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="Tela5" unique_id=429644917]
+layout_mode = 0
+offset_left = 1004.9999
+offset_top = 144.00006
+offset_right = 1764.9999
+offset_bottom = 944.00006
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 5
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]INSTALAÇÃO: ANTENA[/b]
+
+A antena envia alertas aos celulares
+da região para avisar sobre possíveis
+tempestades e catástrofes.
+
+Para ativá-la, é necessário conectar
+o equipamento ao servidor da central.
+
+Uma senha estará faltando. Ela depende
+de uma informação sobre a cientista
+indicada na placa.
+
+Observe o adesivo para descobrir qual
+informação será necessária.
+
+Peça a senha para Grace e insira-a
+corretamente para concluir a instalação!"
+
+[node name="Tela6" type="Control" parent="." unique_id=1095098792]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Tela6" unique_id=878629836]
+layout_mode = 0
+offset_left = 149.00006
+offset_top = 144.0
+offset_right = 909.00006
+offset_bottom = 944.0
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 4
+theme_override_constants/underline_alpha = 50
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]INSTALAÇÃO: BUEIRO[/b]
+
+O bueiro representa o sistema de
+escoamento da água, que ajuda a
+evitar alagamentos na cidade.
+
+Para concluir a instalação, você
+precisará descobrir duas informações.
+
+Observe os adesivos e siga a ordem
+indicada, da esquerda para a direita.
+
+Cada válvula possui uma placa com
+o nome de uma cientista.
+
+Consulte Grace para descobrir as
+informações e clique nas válvulas
+na sequência correta!
+
+Atenção à ordem das respostas."
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="Tela6" unique_id=1292866211]
+layout_mode = 0
+offset_left = 1004.9999
+offset_top = 144.00006
+offset_right = 1764.9999
+offset_bottom = 944.00006
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 5
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]INSTALAÇÃO: PLUVIÔMETRO[/b]
+
+O pluviômetro é responsável por medir
+a precipitação, ajudando a monitorar
+a quantidade de chuva.
+
+Para instalá-lo corretamente, Ada
+precisa ajustar o equipamento
+à altura indicada pelo desafio.
+
+Observe o nome da cientista e o
+adesivo para descobrir qual
+informação será necessária.
+
+Consulte Grace e utilize a informação
+correta para determinar a medida.
+
+Cuidado! Uma medida incorreta
+custará uma vida."
+
+[node name="Tela7" type="Control" parent="." unique_id=1058230091]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Tela7" unique_id=619068665]
+layout_mode = 0
+offset_left = 149.00006
+offset_top = 144.0
+offset_right = 909.00006
+offset_bottom = 959.0
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 4
+theme_override_constants/underline_alpha = 50
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]TRABALHEM EM EQUIPE![/b]
+
+Grace e Ada possuem informações
+diferentes, mas uma depende da outra.
+Grace deve consultar o painel e
+transmitir as informações necessárias.
+
+Ada precisa explicar onde está,
+qual equipamento encontrou e o que
+o desafio está solicitando.
+
+[b]DICAS IMPORTANTES[/b]
+• Sejam claros ao transmitir senhas.
+• Confirmem a ordem das informações.
+• Acompanhem o tempo restante.
+• Evitem respostas por tentativa e erro.
+
+A cooperação é essencial para
+salvar a cidade!"
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="Tela7" unique_id=578511278]
+layout_mode = 0
+offset_left = 1004.9999
+offset_top = 144.00006
+offset_right = 1764.9999
+offset_bottom = 944.00006
+theme_override_colors/default_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_constants/line_separation = 5
+theme_override_fonts/normal_font = ExtResource("2_ph3nu")
+theme_override_fonts/bold_font = ExtResource("2_ph3nu")
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 60
+bbcode_enabled = true
+text = "[b]SALVEM A CIDADE![/b]
+
+A tempestade está se aproximando
+e cada segundo é importante.
+
+Instalem os sistemas necessários,
+compartilhem as informações e
+mantenham a calma diante dos desafios.
+
+Vocês têm 3 minutos e 5 vidas.
+
+[b]CONSEGUIRÃO PREPARAR A CIDADE
+ANTES QUE A CHUVA CHEGUE?[/b]
+
+Boa sorte, equipe!"
+
+[node name="VOLTAR" type="Button" parent="." unique_id=857447819]
+offset_left = 145.0
+offset_top = 952.0
+offset_right = 436.0
+offset_bottom = 1005.0
+theme_override_fonts/font = ExtResource("2_ph3nu")
+theme_override_font_sizes/font_size = 40
+text = "Voltar"
+
+[node name="VoltarPagina" type="Button" parent="." unique_id=531664894]
+offset_left = 160.0
+offset_top = 88.0
+offset_right = 220.0
+offset_bottom = 128.0
+theme_override_fonts/font = ExtResource("2_ph3nu")
+theme_override_font_sizes/font_size = 50
+text = "<"
+
+[node name="PassarPagina" type="Button" parent="." unique_id=1429142132]
+offset_left = 1696.0
+offset_top = 88.0
+offset_right = 1756.0
+offset_bottom = 131.0
+theme_override_fonts/font = ExtResource("2_ph3nu")
+theme_override_font_sizes/font_size = 50
+text = ">"

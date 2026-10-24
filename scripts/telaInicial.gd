@@ -16,6 +16,8 @@ const TEXTURA_GRACE: Texture2D = preload("res://assets/players/GraceFrente.png")
 @onready var botao_atualizar_sala = $VBoxContainer/AtualizarSalas
 @onready var criador_sala = $Control/CriarSala
 @onready var nome_sala_input = $Control/NinePatchRect/LineEdit
+@onready var botao_tutorial: Button = $Control/NinePatchRect3/BotaoTutorial
+@onready var _som_ui: AudioStreamPlayer
 
 var salas_carregadas: Array = []
 var criando_sala: bool = false
@@ -24,11 +26,20 @@ var criando_sala: bool = false
 func _ready() -> void:
 	http.request_completed.connect(_ao_receber_salas)
 	botao_criar_sala.pressed.connect(_ao_clicar_criar_sala)
-	botao_criar_sala.mouse_entered.connect(_ao_mouse_entrou_criar_sala)
-	botao_criar_sala.mouse_exited.connect(_ao_mouse_saiu_criar_sala)
+	botao_criar_sala.mouse_entered.connect(func():
+		_tocar_som_ui("res://sounds/hover.mp3")
+		_ao_mouse_entrou_criar_sala()
+	)
+	botao_criar_sala.mouse_exited.connect(func():
+		_ao_mouse_saiu_criar_sala()
+	)
 	botao_atualizar_sala.pressed.connect(_on_botao_atualizar_pressed)
 	criador_sala.sala_criada.connect(_ao_sala_criada)
 	criador_sala.erro_ao_criar.connect(_ao_erro_criar_sala)
+	botao_tutorial.pressed.connect(_ao_clicar_tutorial)
+	botao_tutorial.mouse_entered.connect(func():
+		_tocar_som_ui("res://sounds/hover.mp3")
+	)
 	atualizar_salas()
 
 	nome_sala_input.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
@@ -275,6 +286,21 @@ func _ao_mouse_entrou_criar_sala() -> void:
 func _ao_mouse_saiu_criar_sala() -> void:
 	if not criando_sala:
 		botao_criar_sala.modulate = Color.WHITE
+
+func _tocar_som_ui(caminho: String) -> void:
+	if _som_ui == null:
+		_som_ui = AudioStreamPlayer.new()
+		add_child(_som_ui)
+	var s := load(caminho)
+	if s is AudioStream:
+		_som_ui.stream = s
+		_som_ui.play()
+
+
+func _ao_clicar_tutorial() -> void:
+	_tocar_som_ui("res://sounds/clicar.mp3")
+	await Transicao.mudar_cena("res://scenes/tutorial.tscn", 0.8)
+
 
 func _on_botao_atualizar_pressed() -> void:
 	atualizar_salas()
