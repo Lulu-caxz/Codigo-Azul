@@ -12,7 +12,7 @@
 [ext_resource type="Texture2D" uid="uid://f1iw84qtt121" path="res://assets/central/ManualAberto.png" id="10_0hilk"]
 [ext_resource type="Texture2D" uid="uid://dlojwutobe2fq" path="res://assets/central/visor.png" id="11_wr8iv"]
 [ext_resource type="Texture2D" uid="uid://b41w1xrms74si" path="res://assets/central/barra_vida.png" id="12_e13mp"]
-[ext_resource type="Script" uid="uid://27_tutorial" path="res://scripts/tutorial.gd" id="27_tutorial"]
+[ext_resource type="Script" uid="uid://dleo72k02py7l" path="res://scripts/tutorial.gd" id="27_tutorial"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vrdqu"]
 atlas = ExtResource("8_tbcdj")
@@ -115,8 +115,7 @@ acabe. Será que conseguem?
 
 [b]O TEMPO ESTÁ PASSANDO![/b]
 
-Vocês terão 3 minutos para instalar
-os 5 sistemas espalhados pela cidade.
+Vocês terão 3 minutos e 30 segundos para instalar os 5 sistemas espalhados pela cidade.
 
 Cada erro durante os desafios custa
 uma vida. Ao perder as 5 vidas, a
@@ -627,7 +626,7 @@ Instalem os sistemas necessários,
 compartilhem as informações e
 mantenham a calma diante dos desafios.
 
-Vocês têm 3 minutos e 5 vidas.
+Vocês têm 3 minutos e 30 segundos e 5 vidas.
 
 [b]CONSEGUIRÃO PREPARAR A CIDADE
 ANTES QUE A CHUVA CHEGUE?[/b]
