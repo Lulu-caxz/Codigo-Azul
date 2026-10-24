@@ -174,6 +174,7 @@ var _abrigo_porta: Vector3 = Vector3.ZERO
 var _abrigo_centro: Vector3 = Vector3.ZERO
 var _abrigo_carregado: bool = false
 var _indice_minigame_atual: int = -1
+var _minigame_aberto: Node = null
 
 var _rng := RandomNumberGenerator.new()
 var _cand_idx := PackedInt32Array()    # indice x * profundidade + z de cada candidato
@@ -508,6 +509,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed(acao_interagir):
 		return
 
+	# Enquanto um minigame estiver aberto, E nao interage com o mundo.
+	if is_instance_valid(_minigame_aberto):
+		return
+
 	if estado != Estado.RODADA_ATIVA:
 		return
 
@@ -543,6 +548,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var cena := load(caminho_minigame_antena)
 		if cena is PackedScene:
 			var instancia = cena.instantiate()
+			_minigame_aberto = instancia
 			add_child(instancia)
 		get_viewport().set_input_as_handled()
 		return
@@ -559,6 +565,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var cena_b := load(caminho_minigame_bueiro)
 		if cena_b is PackedScene:
 			var instancia_b = cena_b.instantiate()
+			_minigame_aberto = instancia_b
 			add_child(instancia_b)
 		get_viewport().set_input_as_handled()
 		return
