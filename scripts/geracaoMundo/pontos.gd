@@ -56,6 +56,9 @@ const DIRS4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 const MAX_TENTATIVAS_ENVIO := 3
 const INTERVALO_RETENTATIVA := 5.0
 
+# Segundos somados a duracao da rodada a cada rodada seguinte.
+const INCREMENTO_DURACAO_RODADA := 60.0
+
 # -----------------------------------------------------------------------------
 #  CONFIGURACOES
 # -----------------------------------------------------------------------------
@@ -64,7 +67,7 @@ const INTERVALO_RETENTATIVA := 5.0
 @export_range(1, 100) var objetivos_iniciais: int = 5
 ## Objetivos somados a cada rodada seguinte (5, 8, 11, 14, 17...).
 @export_range(0, 50) var objetivos_adicionais_por_rodada: int = 3
-## Duracao de cada rodada, em segundos (o mesmo valor vai para duracao_timer no backend).
+## Duracao base da rodada 1, em segundos (cada rodada seguinte soma 1 minuto).
 @export_range(5.0, 3600.0, 1.0) var duracao_rodada: float = Global.duracao_partida
 ## Segundos entre preparar uma rodada e o cronometro comecar (igual ao +10 s do backend).
 var atraso_inicio_rodada: int = 5
@@ -282,9 +285,9 @@ func objetivos_da_rodada(numero: int) -> int:
 	return maxi(objetivos_iniciais + objetivos_adicionais_por_rodada * (numero - 1), 0)
 
 
-## Gancho para a duracao variar por rodada no futuro.
-func duracao_da_rodada(_numero: int) -> float:
-	return duracao_rodada
+## Duracao da rodada: comeca em `duracao_rodada` e cresce 1 minuto por rodada.
+func duracao_da_rodada(numero: int) -> float:
+	return duracao_rodada + INCREMENTO_DURACAO_RODADA * float(maxi(numero - 1, 0))
 
 
 func exigidos() -> int:
