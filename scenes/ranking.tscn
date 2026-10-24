@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" uid="uid://bnpxglucujtc7" path="res://assets/central/fundo_painel.png" id="1_fundo"]
+[ext_resource type="FontFile" uid="uid://b0v32pmgkhcoy" path="res://fonts/ByteBounce-PT-BR.ttf" id="2_fonte"]
+[ext_resource type="Script" path="res://scripts/ranking.gd" id="3_script"]
+
+[node name="Ranking" type="Node2D"]
+script = ExtResource("3_script")
+
+[node name="Fundo" type="Sprite2D" parent="."]
+position = Vector2(960, 540)
+scale = Vector2(5, 5)
+texture = ExtResource("1_fundo")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[node name="Titulo" type="Label" parent="."]
+offset_left = 0.0
+offset_top = 66.0
+offset_right = 1920.0
+offset_bottom = 171.0
+theme_override_colors/font_color = Color(0.34146577, 0.34496176, 0.34496188, 1)
+theme_override_fonts/font = ExtResource("2_fonte")
+theme_override_font_sizes/font_size = 90
+text = "Ranking"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitulo" type="Label" parent="."]
+offset_left = 0.0
+offset_top = 176.0
+offset_right = 1920.0
+offset_bottom = 224.0
+theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_fonts/font = ExtResource("2_fonte")
+theme_override_font_sizes/font_size = 36
+text = "As salas com mais partidas aparecem primeiro."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cabecalho" type="HBoxContainer" parent="."]
+offset_left = 200.0
+offset_top = 240.0
+offset_right = 1720.0
+offset_bottom = 292.0
+theme_override_constants/separation = 16
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+offset_left = 180.0
+offset_top = 300.0
+offset_right = 1740.0
+offset_bottom = 915.0
+horizontal_scroll_mode = 0
+
+[node name="Lista" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Status" type="Label" parent="."]
+offset_left = 180.0
+offset_top = 300.0
+offset_right = 1740.0
+offset_bottom = 915.0
+theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
+theme_override_fonts/font = ExtResource("2_fonte")
+theme_override_font_sizes/font_size = 48
+text = "Carregando ranking..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VOLTAR" type="Button" parent="."]
+offset_left = 145.0
+offset_top = 952.0
+offset_right = 436.0
+offset_bottom = 1005.0
+theme_override_fonts/font = ExtResource("2_fonte")
+theme_override_font_sizes/font_size = 40
+text = "Voltar"

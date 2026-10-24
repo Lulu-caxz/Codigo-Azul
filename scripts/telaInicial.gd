@@ -16,7 +16,10 @@ const TEXTURA_GRACE: Texture2D = preload("res://assets/players/GraceFrente.png")
 @onready var botao_atualizar_sala = $VBoxContainer/AtualizarSalas
 @onready var criador_sala = $Control/CriarSala
 @onready var nome_sala_input = $Control/NinePatchRect/LineEdit
+@onready var nome_jogador_input: LineEdit = $Control/NinePatchRectJogador/LineEdit
+@onready var aviso_nome: Label = $Control/AvisoNome
 @onready var botao_tutorial: Button = $Control/NinePatchRect3/BotaoTutorial
+@onready var botao_ranking: Button = $Control/NinePatchRectRanking/BotaoRanking
 @onready var _som_ui: AudioStreamPlayer
 
 var salas_carregadas: Array = []
@@ -40,9 +43,18 @@ func _ready() -> void:
 	botao_tutorial.mouse_entered.connect(func():
 		_tocar_som_ui("res://sounds/hover.mp3")
 	)
+	botao_ranking.pressed.connect(_ao_clicar_ranking)
+	botao_ranking.mouse_entered.connect(func():
+		_tocar_som_ui("res://sounds/hover.mp3")
+	)
 	atualizar_salas()
 
 	nome_sala_input.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	nome_jogador_input.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	aviso_nome.visible = false
+	nome_jogador_input.text_changed.connect(func(_texto: String):
+		aviso_nome.visible = false
+	)
 
 
 func atualizar_salas() -> void:
@@ -232,12 +244,22 @@ func criar_card_sala(sala: Dictionary) -> void:
 
 
 func _ao_clicar_entrar(id_sala: String, papel: String) -> void:
+	var nome_jogador: String = nome_jogador_input.text.strip_edges()
+
+	if nome_jogador.is_empty():
+		aviso_nome.visible = true
+		nome_jogador_input.grab_focus()
+		return
+
+	aviso_nome.visible = false
 	print("Solicitando entrada na sala: ", id_sala)
 	print("Papel escolhido: Player ", papel)
+	print("Nome do jogador: ", nome_jogador)
 
 	var sucesso: bool = await criador_sala.entrar_na_sala(
 		id_sala,
-		papel
+		papel,
+		nome_jogador
 	)
 
 	if not sucesso:
@@ -259,12 +281,15 @@ func _ao_clicar_entrar(id_sala: String, papel: String) -> void:
 		push_error("Erro ao trocar de cena: " + str(cena))
 
 func _ao_clicar_criar_sala() -> void:
+	aviso_nome.visible = false
 	criando_sala = true
 	botao_criar_sala.modulate = Color(0.223, 0.223, 0.223, 1.0)
-	if nome_sala_input.text == "":
-		criador_sala.criar_sala("Nova sala")
-	else:
-		criador_sala.criar_sala(nome_sala_input.text)
+
+	var nome_sala: String = nome_sala_input.text.strip_edges()
+	if nome_sala.is_empty():
+		nome_sala = "Nova sala"
+
+	criador_sala.criar_sala(nome_sala)
 
 
 func _ao_sala_criada() -> void:
@@ -300,6 +325,11 @@ func _tocar_som_ui(caminho: String) -> void:
 func _ao_clicar_tutorial() -> void:
 	_tocar_som_ui("res://sounds/clicar.mp3")
 	await Transicao.mudar_cena("res://scenes/tutorial.tscn", 0.8)
+
+
+func _ao_clicar_ranking() -> void:
+	_tocar_som_ui("res://sounds/clicar.mp3")
+	await Transicao.mudar_cena("res://scenes/ranking.tscn", 0.8)
 
 
 func _on_botao_atualizar_pressed() -> void:

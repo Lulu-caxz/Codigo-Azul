@@ -59,16 +59,19 @@ func criar_sala(nome: String = "Nova sala") -> void:
 		erro_ao_criar.emit("Não foi possível iniciar a requisição: %s" % resultado)
 
 
-func entrar_na_sala(id_sala: String, papel: String) -> bool:
+func entrar_na_sala(id_sala: String, papel: String, nome_jogador: String = "") -> bool:
 	if papel != "F" and papel != "C":
 		push_error("Papel inválido: " + papel)
 		return false
 
 	var campo: String
+	var campo_nome: String
 	if papel == "F":
 		campo = "jogador_f_id"
+		campo_nome = "jogador_f_nome"
 	else:
 		campo = "jogador_c_id"
+		campo_nome = "jogador_c_nome"
 
 	# Consultar a sala antes de tentar entrar.
 	var url_consulta: String = (
@@ -155,7 +158,7 @@ func entrar_na_sala(id_sala: String, papel: String) -> bool:
 		url_atualizacao,
 		headers_patch,
 		HTTPClient.METHOD_PATCH,
-		JSON.stringify({campo: jogador_id})
+		JSON.stringify({campo: jogador_id, campo_nome: nome_jogador})
 	)
 
 	if erro_patch != OK:
