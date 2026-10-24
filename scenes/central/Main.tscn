@@ -302,6 +302,8 @@ theme_override_colors/font_color = Color(0.4117647, 0.41568628, 0.41568628, 1)
 theme_override_fonts/font = ExtResource("15_8f1ir")
 theme_override_font_sizes/font_size = 60
 text = "Em 30 segundos vai 
-acontecer uma chuva de granizo!"
+acontecer uma chuva de granizo!
+A Ada deve se proteger no
+ abrigo, avise ela!!"
 horizontal_alignment = 1
 vertical_alignment = 1
