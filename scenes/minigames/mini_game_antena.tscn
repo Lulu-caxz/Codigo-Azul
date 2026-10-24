@@ -56,6 +56,15 @@ icon = SubResource("AtlasTexture_26022")
 flat = true
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=773664383]
-position = Vector2(481.00003, 900.00006)
+position = Vector2(565, 900)
 scale = Vector2(5, 5)
 texture = SubResource("AtlasTexture_0n522")
+
+[node name="Sair" type="Button" parent="." unique_id=978656792]
+offset_left = 145.0
+offset_top = 952.0
+offset_right = 436.0
+offset_bottom = 1005.0
+theme_override_fonts/font = ExtResource("3_1c0bb")
+theme_override_font_sizes/font_size = 40
+text = "Sair"

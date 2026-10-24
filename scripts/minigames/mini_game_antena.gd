@@ -6,7 +6,9 @@ const INFO = preload("res://scripts/informacoesMulheres.gd")
 @onready var input: LineEdit = $Input
 @onready var botao_confirmar: Button = $Confirmar
 @onready var adesivo_sprite: Sprite2D = $Sprite2D
+@onready var btn_sair: Button = $Sair
 
+var _saindo: bool = false
 var _mulher: String
 var _info_key: String
 var _valor_correto: String
@@ -36,6 +38,9 @@ func _ready() -> void:
 	botao_confirmar.button_up.connect(func(): botao_confirmar.icon = tex_normal)
 	botao_confirmar.pressed.connect(_verificar)
 
+	btn_sair.pressed.connect(_sair_do_minigame)
+	btn_sair.mouse_entered.connect(func(): _tocar_som("res://sounds/hover.mp3"))
+
 	_sorteiar()
 
 
@@ -59,6 +64,8 @@ func _sorteiar() -> void:
 
 
 func _verificar() -> void:
+	if _saindo:
+		return
 	var resposta := _normalizar(input.text)
 	var correto := _normalizar(_valor_correto)
 	if resposta == correto:
@@ -83,6 +90,8 @@ func _verificar() -> void:
 		# Atualiza o backend via script externo de banco.
 		if Banco != null and Banco.has_method("atualizar_vida"):
 			await Banco.atualizar_vida(Global.vidas)
+		if _saindo or not is_inside_tree() or is_queued_for_deletion():
+			return
 		# Aviso em tempo real (complementar).
 		if ConectSupa != null and ConectSupa.has_method("enviar_variavel"):
 			ConectSupa.enviar_variavel({
@@ -90,6 +99,42 @@ func _verificar() -> void:
 				"vidas": Global.vidas
 			})
 		_sorteiar()
+
+
+func _sair_do_minigame() -> void:
+	if _saindo:
+		return
+	_saindo = true
+	btn_sair.disabled = true
+
+	# O clique continua tocando depois que a cena do minigame for liberada.
+	var som := AudioStreamPlayer.new()
+	var s := load("res://sounds/clicar.mp3")
+	if s is AudioStream:
+		som.stream = s
+		som.volume_db = -10.0
+		som.finished.connect(som.queue_free)
+		get_parent().add_child(som)
+		som.play()
+
+	_restaurar_jogo()
+	queue_free()
+
+
+func _restaurar_jogo() -> void:
+	var ger = get_tree().current_scene.find_child("Pontos", true, false)
+	if ger == null:
+		return
+	if ger.get("_indice_minigame_atual") != null:
+		ger._indice_minigame_atual = -1
+	if ger.get("_minigame_aberto") != null:
+		ger._minigame_aberto = null
+	var jogador_node = ger._obter_jogador()
+	if jogador_node != null and jogador_node.has_method("set_physics_process"):
+		jogador_node.set_physics_process(true)
+	var hud = ger.get_node_or_null("HudObjetivos")
+	if hud != null:
+		hud.visible = true
 
 
 func _normalizar(texto: String) -> String:

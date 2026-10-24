@@ -3,7 +3,9 @@ extends Node2D
 const INFO = preload("res://scripts/informacoesMulheres.gd")
 
 @onready var label_ref: Label = $Textos/Referencia
+@onready var btn_sair: Button = $Sair
 
+var _saindo: bool = false
 var _mulher: String
 var _adesivo1: String
 var _adesivo2: String
@@ -48,11 +50,14 @@ func _ready() -> void:
 		btn.pressed.connect(_girar_valvula.bind(i))
 		_botoes.append(btn)
 
+	btn_sair.pressed.connect(_sair_do_minigame)
+	btn_sair.mouse_entered.connect(func(): _tocar_som("res://sounds/hover.mp3", -10.0))
+
 	_sorteiar()
 
 
 func _girar_valvula(i: int) -> void:
-	if _bloqueado:
+	if _saindo or _bloqueado:
 		return
 	if i < 0 or i >= 4:
 		return
@@ -93,6 +98,8 @@ func _errar() -> void:
 	_tocar_som("res://sounds/erro.mp3")
 	if Banco != null and Banco.has_method("atualizar_vida"):
 		await Banco.atualizar_vida(Global.vidas)
+	if _saindo or not is_inside_tree() or is_queued_for_deletion():
+		return
 	if ConectSupa != null and ConectSupa.has_method("enviar_variavel"):
 		ConectSupa.enviar_variavel({
 			"tipo": "vida",
@@ -101,6 +108,8 @@ func _errar() -> void:
 
 	# Bloqueia novas jogadas por 1 segundo antes de resetar.
 	await get_tree().create_timer(1.0).timeout
+	if _saindo or not is_inside_tree() or is_queued_for_deletion():
+		return
 
 	_sorteiar()
 	_bloqueado = false
@@ -121,6 +130,42 @@ func _acertar() -> void:
 		if hud != null:
 			hud.visible = true
 	queue_free()
+
+
+func _sair_do_minigame() -> void:
+	if _saindo:
+		return
+	_saindo = true
+	btn_sair.disabled = true
+
+	# O clique continua tocando depois que a cena do minigame for liberada.
+	var som := AudioStreamPlayer.new()
+	var s := load("res://sounds/clicar.mp3")
+	if s is AudioStream:
+		som.stream = s
+		som.volume_db = -10.0
+		som.finished.connect(som.queue_free)
+		get_parent().add_child(som)
+		som.play()
+
+	_restaurar_jogo()
+	queue_free()
+
+
+func _restaurar_jogo() -> void:
+	var ger = get_tree().current_scene.find_child("Pontos", true, false)
+	if ger == null:
+		return
+	if ger.get("_indice_minigame_atual") != null:
+		ger._indice_minigame_atual = -1
+	if ger.get("_minigame_aberto") != null:
+		ger._minigame_aberto = null
+	var jogador_node = ger._obter_jogador()
+	if jogador_node != null and jogador_node.has_method("set_physics_process"):
+		jogador_node.set_physics_process(true)
+	var hud = ger.get_node_or_null("HudObjetivos")
+	if hud != null:
+		hud.visible = true
 
 
 func _sorteiar() -> void:

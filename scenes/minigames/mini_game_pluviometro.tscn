@@ -49,3 +49,12 @@ theme_override_fonts/font = ExtResource("5_fonte")
 theme_override_font_sizes/font_size = 44
 text = "Ref.: Ada Lovelace"
 vertical_alignment = 1
+
+[node name="Sair" type="Button" parent="."]
+offset_left = 145.0
+offset_top = 952.0
+offset_right = 436.0
+offset_bottom = 1005.0
+theme_override_fonts/font = ExtResource("5_fonte")
+theme_override_font_sizes/font_size = 40
+text = "Sair"

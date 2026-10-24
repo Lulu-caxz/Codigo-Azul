@@ -11,7 +11,9 @@ const OFFSET_COPO := 387.5
 @onready var pluviometro: Sprite2D = $Pluviometro
 @onready var label_ref: Label = $Textos/Referencia
 @onready var adesivo: Sprite2D = $Adesivos/Adesivo
+@onready var btn_sair: Button = $Sair
 
+var _saindo: bool = false
 var _mulher: String
 var _categoria: String
 var _valor_correto: String
@@ -36,6 +38,8 @@ func _tocar_som(caminho: String, volume_db: float = 0.0) -> void:
 func _ready() -> void:
 	_criar_linha_altura()
 	_criar_botoes()
+	btn_sair.pressed.connect(_sair_do_minigame)
+	btn_sair.mouse_entered.connect(func(): _tocar_som("res://sounds/hover.mp3", -10.0))
 	_sorteiar()
 
 
@@ -116,7 +120,7 @@ func _sorteiar() -> void:
 
 
 func _escolher_dica(i: int) -> void:
-	if _bloqueado:
+	if _saindo or _bloqueado:
 		return
 	_bloqueado = true
 	for btn in _botoes:
@@ -132,6 +136,8 @@ func _escolher_dica(i: int) -> void:
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(pluviometro, "position:y", altura + OFFSET_COPO, 0.6)
 	await tw.finished
+	if _saindo or not is_inside_tree() or is_queued_for_deletion():
+		return
 
 	if _valores[i] == _valor_correto:
 		_acertar()
@@ -144,6 +150,8 @@ func _errar() -> void:
 	_tocar_som("res://sounds/erro.mp3")
 	if Banco != null and Banco.has_method("atualizar_vida"):
 		await Banco.atualizar_vida(Global.vidas)
+	if _saindo or not is_inside_tree() or is_queued_for_deletion():
+		return
 	if ConectSupa != null and ConectSupa.has_method("enviar_variavel"):
 		ConectSupa.enviar_variavel({
 			"tipo": "vida",
@@ -151,12 +159,16 @@ func _errar() -> void:
 		})
 
 	await get_tree().create_timer(1.0).timeout
+	if _saindo or not is_inside_tree() or is_queued_for_deletion():
+		return
 
 	_linha_altura.visible = false
 	var tw := create_tween()
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(pluviometro, "position:y", POSICAO_REPOUSO.y, 0.4)
 	await tw.finished
+	if _saindo or not is_inside_tree() or is_queued_for_deletion():
+		return
 
 	_sorteiar()
 	_bloqueado = false
@@ -177,6 +189,42 @@ func _acertar() -> void:
 		if hud != null:
 			hud.visible = true
 	queue_free()
+
+
+func _sair_do_minigame() -> void:
+	if _saindo:
+		return
+	_saindo = true
+	btn_sair.disabled = true
+
+	# O clique continua tocando depois que a cena do minigame for liberada.
+	var som := AudioStreamPlayer.new()
+	var s := load("res://sounds/clicar.mp3")
+	if s is AudioStream:
+		som.stream = s
+		som.volume_db = -10.0
+		som.finished.connect(som.queue_free)
+		get_parent().add_child(som)
+		som.play()
+
+	_restaurar_jogo()
+	queue_free()
+
+
+func _restaurar_jogo() -> void:
+	var ger = get_tree().current_scene.find_child("Pontos", true, false)
+	if ger == null:
+		return
+	if ger.get("_indice_minigame_atual") != null:
+		ger._indice_minigame_atual = -1
+	if ger.get("_minigame_aberto") != null:
+		ger._minigame_aberto = null
+	var jogador_node = ger._obter_jogador()
+	if jogador_node != null and jogador_node.has_method("set_physics_process"):
+		jogador_node.set_physics_process(true)
+	var hud = ger.get_node_or_null("HudObjetivos")
+	if hud != null:
+		hud.visible = true
 
 
 func _obter_valor(mulher: String, categoria: String) -> String:

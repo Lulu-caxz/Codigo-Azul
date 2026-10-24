@@ -421,21 +421,25 @@ func _configurar_postit(p: Node, idx: int = 0, cor: int = 0) -> void:
 	ctrl.custom_minimum_size = Vector2(54, 34)
 	ctrl.size = Vector2(54, 34)
 
-	var original_pos: Vector2 = ctrl.position
+	# Move apenas o sprite: deslocar o Control fazia o cursor na borda
+	# esquerda sair da area e o hover ficar indo e voltando.
+	var sprite := ctrl.get_node_or_null("Sprite2D") as Sprite2D
+	var visual: Node = sprite if sprite != null else ctrl
+	var original_pos: Vector2 = sprite.position if sprite != null else ctrl.position
 	var tween: Tween
 
 	ctrl.mouse_entered.connect(func():
 		if tween and tween.is_valid():
 			tween.kill()
 		tween = create_tween()
-		tween.tween_property(ctrl, "position", original_pos + Vector2(8, 0), 0.05)
+		tween.tween_property(visual, "position", original_pos + Vector2(8, 0), 0.05)
 		_tocar_som_ui("res://sounds/hover.mp3")
 	)
 	ctrl.mouse_exited.connect(func():
 		if tween and tween.is_valid():
 			tween.kill()
 		tween = create_tween()
-		tween.tween_property(ctrl, "position", original_pos, 0.05)
+		tween.tween_property(visual, "position", original_pos, 0.05)
 	)
 	ctrl.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -475,20 +479,32 @@ func _tocar_som_ui(caminho: String) -> void:
 
 func _configurar_manual(btn: TextureButton) -> void:
 	btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	var original_pos: Vector2 = btn.position
+
+	# O visual vira um sprite filho; o botao (area de clique) fica parado.
+	# Mover o proprio botao fazia o hover oscilar na borda esquerda.
+	var visual := btn.get_node_or_null("Visual") as Sprite2D
+	if visual == null:
+		visual = Sprite2D.new()
+		visual.name = "Visual"
+		visual.texture = btn.texture_normal
+		visual.position = btn.size * 0.5
+		btn.texture_normal = null
+		btn.add_child(visual)
+
+	var original_pos: Vector2 = visual.position
 	var tween: Tween
 	btn.mouse_entered.connect(func():
 		if tween and tween.is_valid():
 			tween.kill()
 		tween = create_tween()
-		tween.tween_property(btn, "position", original_pos + Vector2(8, 0), 0.05)
+		tween.tween_property(visual, "position", original_pos + Vector2(8, 0), 0.05)
 		_tocar_som_ui("res://sounds/hover.mp3")
 	)
 	btn.mouse_exited.connect(func():
 		if tween and tween.is_valid():
 			tween.kill()
 		tween = create_tween()
-		tween.tween_property(btn, "position", original_pos, 0.05)
+		tween.tween_property(visual, "position", original_pos, 0.05)
 	)
 	btn.pressed.connect(func():
 		_abrir_manual()
