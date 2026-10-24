@@ -1143,7 +1143,7 @@ func _montar_corpo_backend() -> Dictionary:
 		if not posicoes.is_empty():
 			var lista: Array = []
 			for ap in posicoes:
-				lista.append_array([ap.x, ap.y, ap.z])
+				lista.append([ap.x, ap.y, ap.z])
 			corpo["abrigo_position"] = lista
 	return corpo
 

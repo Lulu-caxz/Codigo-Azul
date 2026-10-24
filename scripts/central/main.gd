@@ -288,7 +288,7 @@ func _criar_aviso_chuva() -> void:
 	if _aviso_chuva != null:
 		# Acima dos pins (10/11) e do marcador do jogador (20), mas abaixo
 		# dos popups de post-it/manual (100).
-		_aviso_chuva.z_index = 500
+		_aviso_chuva.z_index = 50
 		_aviso_chuva.z_as_relative = false
 		_aviso_chuva.visible = false
 		return
