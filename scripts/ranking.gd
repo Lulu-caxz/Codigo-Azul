@@ -44,9 +44,9 @@ func _tocar_som_ui(caminho: String) -> void:
 func _criar_cabecalho() -> void:
 	_adicionar_label(cabecalho, "Pos.", LARGURA_POSICAO, 34, HORIZONTAL_ALIGNMENT_CENTER, false)
 	_adicionar_label(cabecalho, "Sala", 0.0, 34, HORIZONTAL_ALIGNMENT_LEFT, true)
-	_adicionar_label(cabecalho, "Jogador F", LARGURA_JOGADOR, 34, HORIZONTAL_ALIGNMENT_LEFT, false)
-	_adicionar_label(cabecalho, "Jogador C", LARGURA_JOGADOR, 34, HORIZONTAL_ALIGNMENT_LEFT, false)
-	_adicionar_label(cabecalho, "Partidas", LARGURA_PARTIDAS, 34, HORIZONTAL_ALIGNMENT_RIGHT, false)
+	_adicionar_label(cabecalho, "Ada", LARGURA_JOGADOR, 34, HORIZONTAL_ALIGNMENT_LEFT, false)
+	_adicionar_label(cabecalho, "Grace", LARGURA_JOGADOR, 34, HORIZONTAL_ALIGNMENT_LEFT, false)
+	_adicionar_label(cabecalho, "Rodadas", LARGURA_PARTIDAS, 34, HORIZONTAL_ALIGNMENT_RIGHT, false)
 
 
 func _carregar_ranking() -> void:
@@ -154,8 +154,8 @@ func _adicionar_linha(posicao: int, sala: Dictionary) -> void:
 
 	_adicionar_label(linha, "#%d" % posicao, LARGURA_POSICAO, 44, HORIZONTAL_ALIGNMENT_CENTER, false)
 	_adicionar_label(linha, _nome_sala(sala), 0.0, 40, HORIZONTAL_ALIGNMENT_LEFT, true)
-	_adicionar_label(linha, "F: " + _nome_jogador(sala, "jogador_f_nome"), LARGURA_JOGADOR, 32, HORIZONTAL_ALIGNMENT_LEFT, false)
-	_adicionar_label(linha, "C: " + _nome_jogador(sala, "jogador_c_nome"), LARGURA_JOGADOR, 32, HORIZONTAL_ALIGNMENT_LEFT, false)
+	_adicionar_label(linha, _nome_jogador(sala, "jogador_f_nome"), LARGURA_JOGADOR, 32, HORIZONTAL_ALIGNMENT_LEFT, false)
+	_adicionar_label(linha, _nome_jogador(sala, "jogador_c_nome"), LARGURA_JOGADOR, 32, HORIZONTAL_ALIGNMENT_LEFT, false)
 	_adicionar_label(linha, _texto_partidas(_rodadas(sala)), LARGURA_PARTIDAS, 38, HORIZONTAL_ALIGNMENT_RIGHT, false)
 
 	lista.add_child(card)
@@ -206,5 +206,5 @@ func _rodadas(sala: Dictionary) -> int:
 
 func _texto_partidas(quantidade: int) -> String:
 	if quantidade == 1:
-		return "1 partida"
-	return "%d partidas" % quantidade
+		return "1 rodada"
+	return "%d rodadas" % quantidade
